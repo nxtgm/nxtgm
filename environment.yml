@@ -1,0 +1,17 @@
+name: nxtgm
+channels:
+  - conda-forge
+
+dependencies:
+  # Build tools
+  - cmake
+  - doctest 
+  - cxx-compiler
+  # swiss-army-knife
+  - boost-cpp
+  - fmt
+  # python-bindings
+  - python
+  - pybind11
+  # examples 
+  - xtensor
