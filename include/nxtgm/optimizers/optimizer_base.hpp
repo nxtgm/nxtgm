@@ -36,11 +36,11 @@ namespace nxtgm
         }
 
         virtual SolutionValue best_solution_value() const{
-            return this->model()(this->best_solution(), false /* early exit when infeasible*/);
+            return this->model().evaluate(this->best_solution(), false /* early exit when infeasible*/);
         }
 
         virtual SolutionValue current_solution_value() const{
-            return this->model()(this->best_solution(), false /* early exit when infeasible*/);
+            return this->model().evaluate(this->best_solution(), false /* early exit when infeasible*/);
         }
 
         virtual void optimize(

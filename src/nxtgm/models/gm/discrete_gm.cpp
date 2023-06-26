@@ -7,7 +7,7 @@ namespace nxtgm
 {
     const_discrete_label_span local_solution_from_model_solution(
         const std::vector<std::size_t> & variables,
-        const std::vector<discrete_label_type> & solution,        
+        const span<const discrete_label_type> & solution,        
         std::vector<discrete_label_type> & local_labels_buffer
     ){
         const auto arity = variables.size();
@@ -49,8 +49,11 @@ namespace nxtgm
         constraint_functions_.push_back(std::move(function));
         return constraint_functions_.size() - 1;
     }
-
-    SolutionValue DiscreteGm::operator()(const solution_type &solution, bool early_stop_infeasible) const
+    SolutionValue DiscreteGm::evaluate(const solution_type &solution, bool early_stop_infeasible)const{
+        span<const discrete_label_type> solution_span(solution.data(), solution.size());
+        return this->evaluate(solution_span, early_stop_infeasible);
+    }
+    SolutionValue DiscreteGm::evaluate(const span<const discrete_label_type> &solution, bool early_stop_infeasible) const
     {
         bool total_is_feasible = true;
         energy_type total_how_violated = 0;

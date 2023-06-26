@@ -22,7 +22,7 @@ namespace nxtgm{
         }else{
             best_solution_ = initial_solution;
         }
-        best_sol_value_ = this->model()(best_solution_, false);
+        best_sol_value_ = this->model().evaluate(best_solution_, false);
         current_solution_ = best_solution_;
         current_sol_value_ = best_sol_value_;
 
@@ -174,7 +174,7 @@ namespace nxtgm{
             }
         }
         
-        this->best_sol_value_ = this->model()(this->best_solution_, false);
+        this->best_sol_value_ = this->model().evaluate(this->best_solution_);
 
 
 

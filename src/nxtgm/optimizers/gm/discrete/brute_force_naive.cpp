@@ -7,7 +7,7 @@ namespace nxtgm
         : base_type(gm), 
         best_solution_(initial_solution), 
         current_solution_(initial_solution), 
-        best_sol_value_(gm(best_solution_, false /* early exit when infeasible*/)),
+        best_sol_value_(gm.evaluate(best_solution_, false /* early exit when infeasible*/)),
         current_sol_value_()
     {
         current_sol_value_ = best_sol_value_;
@@ -17,7 +17,7 @@ namespace nxtgm
         : base_type(gm), 
         best_solution_(gm.space().size(), 0), 
         current_solution_(gm.space().size(), 0), 
-        best_sol_value_(gm(best_solution_, false /* early exit when infeasible*/)),
+        best_sol_value_(gm.evaluate(best_solution_, false /* early exit when infeasible*/)),
         current_sol_value_()
     {
         current_sol_value_ = best_sol_value_;
@@ -43,7 +43,7 @@ namespace nxtgm
             [&](const solution_type & solution
         ){
             // evaluate the current solution
-            this->current_sol_value_ = this->model()(solution, early_stop_infeasible);
+            this->current_sol_value_ = this->model().evaluate(solution, early_stop_infeasible);
 
             // if the current solution is better than the best solution
             if(this->current_sol_value_ < this->best_sol_value_)

@@ -20,7 +20,7 @@ namespace nxtgm{
         public:
   
         virtual ~DiscreteConstraintFunctionBase() = default;
-
+        
         virtual std::size_t arity() const = 0;
         virtual discrete_label_type shape(std::size_t index) const = 0;
 
@@ -29,6 +29,7 @@ namespace nxtgm{
         // convenience function 
         virtual std::size_t size() const;
         virtual std::pair<bool, energy_type> feasible(std::initializer_list<discrete_label_type> labels) const;
+        virtual std::unique_ptr<DiscreteConstraintFunctionBase> clone() const = 0;
 
         virtual void add_to_lp(
             IlpData & ilp_data,  const span<std::size_t> & indicator_variables_mapping, IlpConstraintBuilderBuffer & buffer

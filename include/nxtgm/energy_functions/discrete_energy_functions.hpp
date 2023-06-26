@@ -20,11 +20,18 @@ namespace nxtgm{
         using base_type = DiscreteEnergyFunctionBase;
         using base_type::energy;
         
+        template<typename ITER>
+        Unary(ITER begin, ITER end) : 
+            values_(begin, end) 
+        {
+        }
+
         Unary(const std::vector<energy_type>& values);
         std::size_t arity() const override;
         discrete_label_type shape(std::size_t ) const override;
         energy_type energy(const const_discrete_label_span& discrete_labels) const override;
 
+        std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override;
         private:
         std::vector<energy_type> values_;
     };
@@ -45,7 +52,7 @@ namespace nxtgm{
         discrete_label_type shape(std::size_t ) const override;
         std::size_t size() const override;
         energy_type energy(const const_discrete_label_span& discrete_labels) const override;
-
+        std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override;
         private:
         std::size_t num_labels_;
         energy_type beta_;
@@ -71,6 +78,11 @@ namespace nxtgm{
             values_(values) 
         {
         }
+        template<class TENSOR>
+        XTensor(TENSOR && values) : 
+            values_(std::forward<TENSOR>(values)) 
+        {
+        }
 
         discrete_label_type shape(std::size_t index) const override{
             return values_.shape()[index];   
@@ -87,7 +99,9 @@ namespace nxtgm{
         energy_type energy(const const_discrete_label_span& discrete_labels) const override {
             return values_[discrete_labels];
         }
-
+        std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override{
+            return std::make_unique<XTensor<ARITY>>(values_);
+        }
         private:
             xtensor_type values_;
     };
@@ -100,6 +114,12 @@ namespace nxtgm{
 
         using xarray_type = xt::xarray<energy_type>;
 
+        template<class TENSOR>
+        Xarray(TENSOR && values) : 
+            values_(std::forward<TENSOR>(values)) 
+        {
+        }
+
         Xarray(const xarray_type & values);
         discrete_label_type shape(std::size_t index) const override;
 
@@ -108,7 +128,7 @@ namespace nxtgm{
         std::size_t size() const override;
 
         energy_type energy(const const_discrete_label_span& discrete_labels) const override;
-
+        std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override;
         private:
             xarray_type values_;
     };
@@ -139,7 +159,7 @@ namespace nxtgm{
 
         energy_type energy(const const_discrete_label_span& discrete_labels) const override;
 
-
+        std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override;
         void add_to_lp(
             IlpData & ilp_data, 
             const span<std::size_t> & indicator_variables_mapping,

@@ -28,13 +28,16 @@ namespace nxtgm
         return discrete_labels[0] != discrete_labels[1] ? std::make_pair(true, energy_type(0)) : std::make_pair(false, scale_);
     }
 
+    std::unique_ptr<DiscreteConstraintFunctionBase> PairwiseUniqueLables::clone() const {
+        return std::make_unique<PairwiseUniqueLables>(n_labels_, scale_);
+    }
+
     void PairwiseUniqueLables::add_to_lp(
         IlpData & ilp_data,  
         const span<std::size_t>  & indicator_variables_mapping, 
         IlpConstraintBuilderBuffer & /*buffer*/ 
     )const
     {
-
         for(discrete_label_type l=0; l < n_labels_; ++l){
 
             ilp_data.begin_constraint(0.0, 1.0);

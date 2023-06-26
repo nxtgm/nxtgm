@@ -21,6 +21,10 @@ namespace nxtgm{
     energy_type Unary::energy(const const_discrete_label_span& discrete_labels) const  {
         return values_[discrete_labels[0]];
     }
+
+    std::unique_ptr<DiscreteEnergyFunctionBase> Unary::clone() const{
+        return std::make_unique<Unary>(values_);
+    }
   
 
     Potts::Potts(std::size_t num_labels, energy_type beta) : 
@@ -44,7 +48,9 @@ namespace nxtgm{
     energy_type Potts::energy(const const_discrete_label_span& discrete_labels) const  {
         return beta_ * (discrete_labels[0] != discrete_labels[1]);
     }
-
+    std::unique_ptr<DiscreteEnergyFunctionBase> Potts::clone() const{
+        return std::make_unique<Potts>(num_labels_, beta_);
+    }
 
     Xarray::Xarray(const xarray_type & values) : 
     values_(values) 
@@ -66,7 +72,9 @@ namespace nxtgm{
     energy_type Xarray::energy(const const_discrete_label_span& discrete_labels) const  {
         return values_[discrete_labels];
     }
-
+    std::unique_ptr<DiscreteEnergyFunctionBase> Xarray::clone() const{
+        return std::make_unique<Xarray>(values_);
+    }
 
     discrete_label_type LabelCosts::shape(std::size_t index) const {
         return costs_.size();
@@ -95,7 +103,12 @@ namespace nxtgm{
             result += is_used_[i] * costs_[i];
         }
         return result;
+    }   
+
+    std::unique_ptr<DiscreteEnergyFunctionBase> LabelCosts::clone() const{
+        return std::make_unique<LabelCosts>(arity_, costs_.begin(), costs_.end());
     }
+
 
     void LabelCosts::add_to_lp(
         IlpData & ilp_data, 

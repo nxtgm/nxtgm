@@ -49,5 +49,8 @@ namespace nxtgm{
             IlpFactorBuilderBuffer & buffer
         ) const;
 
+        virtual std::unique_ptr<DiscreteEnergyFunctionBase> clone() const = 0;
+
+
     };  
 }

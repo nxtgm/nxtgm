@@ -17,7 +17,7 @@ namespace nxtgm{
         std::size_t size() const override;
         
         std::pair<bool, energy_type>  feasible(const const_discrete_label_span& discrete_labels) const override;
-
+        std::unique_ptr<DiscreteConstraintFunctionBase> clone() const override;
         void add_to_lp(IlpData & ,  const span<std::size_t> &, IlpConstraintBuilderBuffer &)const override;
 
      private:

@@ -47,7 +47,7 @@ struct CheckOptimality
         SolutionValue optimal_solution_value;
         discrete_solution optimal_solution;
         std::tie(optimal_solution, optimal_solution_value)  = solve_brute_force(model);
-        auto solution_value = model(solution, false);
+        auto solution_value = model.evaluate(solution, false);
 
         CHECK(optimal_solution_value.is_feasible() == solution_value.is_feasible());
         if(optimal_solution_value.is_feasible()){
@@ -87,7 +87,7 @@ struct CheckLocalOptimality
                      continue;
                 }
                 solution_copy[vi] = li;
-                auto solution_copy_value = model(solution_copy, false);
+                auto solution_copy_value = model.evaluate(solution_copy, false);
                 CHECK(solution_value <= solution_copy_value);
                 // reset solution_copy
                 solution_copy[vi] = l;

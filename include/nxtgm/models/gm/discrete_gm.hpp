@@ -118,6 +118,38 @@ namespace nxtgm
        
         DiscreteGm(const DiscreteSpace & discrete_space);
 
+        template<class NUM_LABELS_ITER>
+        DiscreteGm(
+            NUM_LABELS_ITER num_labels_begin,
+            NUM_LABELS_ITER num_labels_end
+        ) : 
+            discrete_space_(num_labels_begin, num_labels_end),
+            factors_(),
+            energy_functions_(),
+            constraints_(),
+            constraint_functions_(),
+            max_factor_arity_(0),
+            max_constraint_arity_(0),
+            max_factor_size_(0),
+            max_constraint_size_(0)
+        {
+        }
+
+        inline DiscreteGm(std::size_t num_var , discrete_label_type num_labels
+        ) : 
+            discrete_space_(num_var, num_labels),
+            factors_(),
+            energy_functions_(),
+            constraints_(),
+            constraint_functions_(),
+            max_factor_arity_(0),
+            max_constraint_arity_(0),
+            max_factor_size_(0),
+            max_constraint_size_(0)
+        {
+        }
+
+
         inline const DiscreteSpace &space() const
         {
             return discrete_space_;
@@ -274,8 +306,8 @@ namespace nxtgm
             return factors_.size() - 1;
         }
 
-
-        SolutionValue operator()(const solution_type &solution, bool early_stop_infeasible) const;
+        SolutionValue evaluate(const span<const discrete_label_type> &solution, bool early_stop_infeasible = false) const;
+        SolutionValue evaluate(const solution_type &solution, bool early_stop_infeasible = false) const;
 
     private:
 
@@ -294,13 +326,10 @@ namespace nxtgm
         DiscreteSpace discrete_space_;
         std::vector<DiscreteFactor> factors_;
         std::vector<std::unique_ptr<DiscreteEnergyFunctionBase>> energy_functions_;
-
         std::vector<DiscreteConstraint> constraints_;
         std::vector<std::unique_ptr<DiscreteConstraintFunctionBase>> constraint_functions_;
-
         std::size_t max_factor_arity_;
         std::size_t max_constraint_arity_;
-
         std::size_t max_factor_size_;
         std::size_t max_constraint_size_;
     };

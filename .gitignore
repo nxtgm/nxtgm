@@ -32,5 +32,11 @@
 *.app
 
 
-
+# macOS 
 .DS_Store
+
+# python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
