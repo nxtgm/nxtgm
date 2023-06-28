@@ -66,7 +66,6 @@ namespace nxtgm{
 
         auto flat_index = 0;
         n_nested_loops<discrete_label_type>(arity, shapef, discrete_labels_buffer, [&](auto && _){
-            
             energies[flat_index] += this->energy(discrete_labels_buffer);
             ++flat_index;
         });

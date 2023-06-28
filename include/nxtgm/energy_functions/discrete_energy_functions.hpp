@@ -6,6 +6,7 @@
 #include <xtensor/xtensor.hpp>
 #include <xtensor/xarray.hpp>
 #include <cstdint>
+#include <algorithm>
 
 #ifndef NXTGM_NO_THREADS
 #include <mutex>          // std::mutex
@@ -30,8 +31,11 @@ namespace nxtgm{
         std::size_t arity() const override;
         discrete_label_type shape(std::size_t ) const override;
         energy_type energy(const discrete_label_type * discrete_labels) const override;
-
         std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override;
+
+        void copy_energies(energy_type * energies, discrete_label_type * ) const override;
+        void add_energies(energy_type * energies, discrete_label_type * ) const override;
+
         private:
         std::vector<energy_type> values_;
     };
@@ -53,8 +57,12 @@ namespace nxtgm{
         std::size_t size() const override;
         energy_type energy(const discrete_label_type * discrete_labels) const override;
         std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override;
+
+        void copy_energies(energy_type * energies, discrete_label_type * ) const override;
+        void add_energies(energy_type * energies, discrete_label_type * ) const override;
+
         private:
-        std::size_t num_labels_;
+        std::size_t num_labels_; 
         energy_type beta_;
         
     };
@@ -103,6 +111,14 @@ namespace nxtgm{
         std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override{
             return std::make_unique<XTensor<ARITY>>(values_);
         }
+
+        void copy_energies(energy_type * energies, discrete_label_type * ) const override{
+            std::copy(values_.data(), values_.data() + values_.size(), energies);
+        }
+        void add_energies(energy_type * energies, discrete_label_type * ) const override{
+            std::transform(values_.data(), values_.data() + values_.size(), energies, energies, std::plus<energy_type>());
+        }
+        
         private:
             xtensor_type values_;
     };
@@ -130,6 +146,10 @@ namespace nxtgm{
 
         energy_type energy(const discrete_label_type * discrete_labels) const override;
         std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override;
+
+        void copy_energies(energy_type * energies, discrete_label_type * ) const override;
+        void add_energies(energy_type * energies, discrete_label_type * ) const override;
+
         private:
             xarray_type values_;
     };

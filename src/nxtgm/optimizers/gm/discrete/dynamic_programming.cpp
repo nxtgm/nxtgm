@@ -18,10 +18,10 @@ namespace nxtgm
         best_sol_value_(),
         current_sol_value_(),
         factors_of_variables_(gm),
-        m_value_buffers(gm.space().size()),
-        m_state_buffers(gm.space().size()),
-        m_node_order(gm.space().size(), std::numeric_limits<std::size_t>::max() ),
-        m_ordered_nodes(gm.space().size(), std::numeric_limits<std::size_t>::max() )
+        value_buffers_(gm.space().size()),
+        state_buffers_(gm.space().size()),
+        node_order_(gm.space().size(), std::numeric_limits<std::size_t>::max() ),
+        ordered_nodes_(gm.space().size(), std::numeric_limits<std::size_t>::max() )
     {
         if(gm.max_factor_arity() > 2)
         {
@@ -56,13 +56,13 @@ namespace nxtgm
         {
             if(root_count<parameters_.roots.size())
             {
-                m_node_order[parameters_.roots[root_count]] = order_count++;
+                node_order_[parameters_.roots[root_count]] = order_count++;
                 node_list.push_back(parameters_.roots[root_count]);
                 ++root_count;
             }
-            else if(m_node_order[var_count]==std::numeric_limits<std::size_t>::max())
+            else if(node_order_[var_count]==std::numeric_limits<std::size_t>::max())
             {
-                m_node_order[var_count] = order_count++;
+                node_order_[var_count] = order_count++;
                 node_list.push_back(var_count);
             }
             ++var_count;
@@ -74,13 +74,13 @@ namespace nxtgm
                     auto && factor = gm.factors()[fid];
                     auto && variables = factor.variables();
                     if( factor.arity() == 2 ){
-                        if(variables[1] == node && m_node_order[variables[0]]==mxval ){
-                            m_node_order[variables[0]] = order_count++;
+                        if(variables[1] == node && node_order_[variables[0]]==mxval ){
+                            node_order_[variables[0]] = order_count++;
                             node_list.push_back(variables[0]);
                             ++num_children[node];
                         }
-                        if( variables[0] == node && m_node_order[variables[1]]==mxval ){
-                            m_node_order[variables[1]] = order_count++;
+                        if( variables[0] == node && node_order_[variables[1]]==mxval ){
+                            node_order_[variables[1]] = order_count++;
                             node_list.push_back(variables[1]);
                             ++num_children[node];
                         }
@@ -96,19 +96,19 @@ namespace nxtgm
             buffer_size_values += gm.space()[vi];
             buffer_size_states += gm.space()[vi] * num_children[vi];
         }
-        m_value_buffer.resize(buffer_size_values);
-        m_state_buffer.resize(buffer_size_states);
+        value_buffer_.resize(buffer_size_values);
+        state_buffer_.resize(buffer_size_states);
 
-        auto value_ptr =  m_value_buffer.data();
-        auto state_ptr =  m_state_buffer.data();
+        auto value_ptr =  value_buffer_.data();
+        auto state_ptr =  state_buffer_.data();
 
         for(std::size_t vi=0; vi<gm.num_variables();++vi)
         {
-            m_value_buffers[vi] = value_ptr;
+            value_buffers_[vi] = value_ptr;
             value_ptr += gm.space()[vi];
-            m_state_buffers[vi] = state_ptr;
+            state_buffers_[vi] = state_ptr;
             state_ptr +=  gm.space()[vi] * num_children[vi];
-            m_ordered_nodes[m_node_order[vi]] = vi;
+            ordered_nodes_[node_order_[vi]] = vi;
         }
 
     }
@@ -135,9 +135,9 @@ namespace nxtgm
         for (std::size_t i = 1; i <= gm.num_variables(); ++i)
         {
             // std::cout<<" ii "<< i<<"\n";
-            const auto node = m_ordered_nodes[gm.num_variables() - i];
+            const auto node = ordered_nodes_[gm.num_variables() - i];
 
-            std::fill(m_value_buffers[node], m_value_buffers[node] + gm.num_labels(node), energy_type(0));
+            std::fill(value_buffers_[node], value_buffers_[node] + gm.num_labels(node), energy_type(0));
 
             // accumulate messages
             std::size_t children_counter = 0;
@@ -150,8 +150,8 @@ namespace nxtgm
                 {
                    
          
-                    factor.function()->add_energies(
-                        m_value_buffers[node],
+                    factor.add_energies(
+                        value_buffers_[node],
                         factor_label_buffer.data()
                     );
                 }
@@ -161,7 +161,7 @@ namespace nxtgm
                 {
 
                     auto && vars =  factor.variables();
-                    if (vars[0] == node && m_node_order[vars[1]] > m_node_order[node])
+                    if (vars[0] == node && node_order_[vars[1]] > node_order_[node])
                     {
                         const auto node2 = vars[1];
                         discrete_label_type s;
@@ -171,21 +171,21 @@ namespace nxtgm
                             v=std::numeric_limits<energy_type>::infinity();
                             for(discrete_label_type l1=0; l1<gm.num_labels(node2); ++l1)
                             {
-                                const auto factor_value = factor.function()->energy({l0, l1});
-                                const auto v2 = factor_value + m_value_buffers[node2][l1];
+                                const auto factor_value = factor({l0, l1});
+                                const auto v2 = factor_value + value_buffers_[node2][l1];
                                 if(v2 < v)
                                 {
                                     v = v2;
                                     s = l1;
                                 }
                             }
-                            m_state_buffers[node][children_counter * gm.num_labels(node) + l0] = s;
-                            m_value_buffers[node][l0] += v;
+                            state_buffers_[node][children_counter * gm.num_labels(node) + l0] = s;
+                            value_buffers_[node][l0] += v;
                         }
                         ++children_counter;
 
                     }
-                    if (vars[1] == node && m_node_order[vars[0]] > m_node_order[node])
+                    if (vars[1] == node && node_order_[vars[0]] > node_order_[node])
                     {
                         const auto node2 = vars[0];
                         discrete_label_type s;
@@ -193,15 +193,15 @@ namespace nxtgm
                         for (discrete_label_type l1 = 0; l1 < gm.num_labels(node); ++l1) {
                             v=std::numeric_limits<energy_type>::infinity();
                             for (discrete_label_type l0 = 0; l0 < gm.num_labels(node2); ++l0) {
-                                const auto factor_value = factor.function()->energy({l0, l1});
-                                const auto v2 = factor_value + m_value_buffers[node2][l0];
+                                const auto factor_value = factor({l0, l1});
+                                const auto v2 = factor_value + value_buffers_[node2][l0];
                                 if (v2 < v) {
                                     v = v2;
                                     s = l0;
                                 }
                             }
-                            m_state_buffers[node][children_counter * gm.num_labels(node) + l1] = s;
-                            m_value_buffers[node][l1] += v;
+                            state_buffers_[node][children_counter * gm.num_labels(node) + l1] = s;
+                            value_buffers_[node][l1] += v;
                         }
                         ++children_counter;
                     }
@@ -258,8 +258,8 @@ namespace nxtgm
             {
                 energy_type v = std::numeric_limits<energy_type>::infinity();
                 for (std::size_t i = 0; i < gm.num_labels(var); ++i) {
-                    if(m_value_buffers[var][i] < v){
-                        v = m_value_buffers[var][i];
+                    if(value_buffers_[var][i] < v){
+                        v = value_buffers_[var][i];
                         best_solution_[var] = i;
                     }
                 }
@@ -280,13 +280,13 @@ namespace nxtgm
 
                     if (factor.arity() == 2)
                     {
-                        if (vars[1] == node && m_node_order[vars[0]] > m_node_order[node]) {
-                            best_solution_[vars[0]] = m_state_buffers[node][children_counter * gm.num_labels(node) + best_solution_[node]];
+                        if (vars[1] == node && node_order_[vars[0]] > node_order_[node]) {
+                            best_solution_[vars[0]] = state_buffers_[node][children_counter * gm.num_labels(node) + best_solution_[node]];
                             node_list.push_back(vars[0]);
                             ++children_counter;
                         }
-                        if (vars[0] == node && m_node_order[vars[1]] > m_node_order[node]) {
-                            best_solution_[vars[1]] = m_state_buffers[node][children_counter * gm.num_labels(node) + best_solution_[node]];
+                        if (vars[0] == node && node_order_[vars[1]] > node_order_[node]) {
+                            best_solution_[vars[1]] = state_buffers_[node][children_counter * gm.num_labels(node) + best_solution_[node]];
                             node_list.push_back(vars[1]);
                             ++children_counter;
                         }

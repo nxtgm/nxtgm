@@ -50,11 +50,11 @@ namespace nxtgm
 
         DiscreteGmFactorsOfVariables factors_of_variables_;
 
-        std::vector<energy_type> m_value_buffer;
-        std::vector<discrete_label_type> m_state_buffer;
-        std::vector<energy_type*> m_value_buffers;
-        std::vector<discrete_label_type*> m_state_buffers;
-        std::vector<std::size_t> m_node_order;
-        std::vector<std::size_t> m_ordered_nodes;
+        std::vector<energy_type> value_buffer_;
+        std::vector<discrete_label_type> state_buffer_;
+        std::vector<energy_type*> value_buffers_;
+        std::vector<discrete_label_type*> state_buffers_;
+        std::vector<std::size_t> node_order_;
+        std::vector<std::size_t> ordered_nodes_;
     };
 }

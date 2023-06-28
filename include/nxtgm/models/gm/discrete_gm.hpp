@@ -59,6 +59,18 @@ namespace nxtgm
             }
         }
 
+        inline energy_type operator()(const discrete_label_type *labels)const
+        {
+            return function_->energy(labels);
+        }
+        inline energy_type operator()(std::initializer_list<discrete_label_type> labels)const
+        {
+            return function_->energy(labels.begin());
+        }
+        inline void add_energies(energy_type * energy, discrete_label_type *labels)const
+        {
+            function_->add_energies(energy, labels);
+        }
     private:
         const DiscreteEnergyFunctionBase *function_;
         std::vector<std::size_t> variables_;

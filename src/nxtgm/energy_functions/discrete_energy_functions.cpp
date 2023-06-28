@@ -1,6 +1,7 @@
 #include <nxtgm/energy_functions/discrete_energy_functions.hpp>
 
 #include <cmath>
+#include <algorithm>
 
 namespace nxtgm{
 
@@ -25,6 +26,14 @@ namespace nxtgm{
     std::unique_ptr<DiscreteEnergyFunctionBase> Unary::clone() const{
         return std::make_unique<Unary>(values_);
     }
+
+    void Unary::copy_energies(energy_type * energies, discrete_label_type * ) const{
+        std::copy(values_.begin(), values_.end(), energies);
+    }
+    void Unary::add_energies(energy_type * energies, discrete_label_type * ) const{
+        std::transform(values_.data(), values_.data() + values_.size(), energies, energies, std::plus<energy_type>());
+    }
+
   
 
     Potts::Potts(std::size_t num_labels, energy_type beta) : 
@@ -52,6 +61,25 @@ namespace nxtgm{
         return std::make_unique<Potts>(num_labels_, beta_);
     }
 
+    void Potts::copy_energies(energy_type * energies, discrete_label_type * ) const{
+        for(std::size_t i=0; i<num_labels_; ++i){
+            for(std::size_t j=0; j<num_labels_; ++j){
+                energies[i*num_labels_ + j] = beta_ * (i != j);
+            }
+        }
+    }
+    void Potts::add_energies(energy_type * energies, discrete_label_type * ) const
+    {
+        for(std::size_t i=0; i<num_labels_; ++i){
+            for(std::size_t j=0; j<num_labels_; ++j){
+                if(i != j){
+                    energies[i*num_labels_ + j] += beta_;
+                }
+            }
+        }
+    }
+
+
     Xarray::Xarray(const xarray_type & values) : 
     values_(values) 
     {
@@ -75,6 +103,13 @@ namespace nxtgm{
     }
     std::unique_ptr<DiscreteEnergyFunctionBase> Xarray::clone() const{
         return std::make_unique<Xarray>(values_);
+    }
+
+    void Xarray::copy_energies(energy_type * energies, discrete_label_type * ) const{
+        std::copy(values_.begin(), values_.end(), energies);
+    }
+    void Xarray::add_energies(energy_type * energies, discrete_label_type * ) const{
+        std::transform(values_.data(), values_.data() + values_.size(), energies, energies, std::plus<energy_type>());
     }
 
     discrete_label_type LabelCosts::shape(std::size_t index) const {
