@@ -42,11 +42,10 @@ namespace nxtgm
         
     private:
         void compute_labels();
+        
         parameters_type parameters_;
         solution_type best_solution_;
-        solution_type current_solution_;
         SolutionValue best_sol_value_;
-        SolutionValue current_sol_value_;
 
         DiscreteGmFactorsOfVariables factors_of_variables_;
 

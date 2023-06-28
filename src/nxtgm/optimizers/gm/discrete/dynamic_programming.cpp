@@ -10,13 +10,11 @@
 namespace nxtgm
 {
 
-    DynamicProgramming::DynamicProgramming(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & initial_solution) 
+    DynamicProgramming::DynamicProgramming(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & ) 
         : base_type(gm), 
         parameters_(parameters),
-        best_solution_(initial_solution), 
-        current_solution_(initial_solution), 
-        best_sol_value_(),
-        current_sol_value_(),
+        best_solution_(gm.num_variables()), 
+        best_sol_value_(gm.evaluate(best_solution_)),
         factors_of_variables_(gm),
         value_buffers_(gm.space().size()),
         state_buffers_(gm.space().size()),
@@ -32,17 +30,6 @@ namespace nxtgm
             throw std::runtime_error("DynamicProgramming does not support constraints");
         }
         
-        if(initial_solution.empty()){
-            current_solution_.resize(gm.space().size(), 0);
-        }
-        else{
-            current_solution_ = initial_solution;
-        }
-        best_solution_  = current_solution_;
-        current_sol_value_ = best_sol_value_;
-        best_sol_value_ = gm.evaluate(best_solution_, false /* early exit when infeasible*/);
-        current_sol_value_ = best_sol_value_;
-
         // node order
         std::vector<std::size_t> num_children(gm.num_variables(), 0);
         std::vector<std::size_t> node_list;
@@ -71,8 +58,8 @@ namespace nxtgm
                 node_list.pop_back();
                 for(auto && fid: factors_of_variables_[node])
                 {
-                    auto && factor = gm.factors()[fid];
-                    auto && variables = factor.variables();
+                    const auto & factor = gm.factors()[fid];
+                    const auto & variables = factor.variables();
                     if( factor.arity() == 2 ){
                         if(variables[1] == node && node_order_[variables[0]]==mxval ){
                             node_order_[variables[0]] = order_count++;
@@ -117,24 +104,24 @@ namespace nxtgm
         reporter_callback_wrapper_type & reporter_callback,
         repair_callback_wrapper_type & /*repair_callback not used*/
     ) {
+        reporter_callback.begin();
+        AutoStartedTimer timer;
         
         const auto & gm = this->model();
-
-        AutoStartedTimer timer;
         OptimizationStatus status = OptimizationStatus::OPTIMAL;
         
-        static const bool early_stop_infeasible = true;
-
-        // indicate the start of the optimization
-        reporter_callback.begin();
-        
-
-        std::vector<energy_type> factor_value_buffer(gm.max_factor_size(), 0);
         std::vector<discrete_label_type> factor_label_buffer(gm.max_factor_size(), 0);
  
         for (std::size_t i = 1; i <= gm.num_variables(); ++i)
         {
-            // std::cout<<" ii "<< i<<"\n";
+
+            // check if the time limit is reached
+            if(timer.elapsed() > this->parameters_.time_limit)
+            {
+                return OptimizationStatus::TIME_LIMIT_REACHED;
+            }
+
+
             const auto node = ordered_nodes_[gm.num_variables() - i];
 
             std::fill(value_buffers_[node], value_buffers_[node] + gm.num_labels(node), energy_type(0));
@@ -148,14 +135,11 @@ namespace nxtgm
                 // unary
                 if (factor.arity() == 1)
                 {
-                   
-         
                     factor.add_energies(
                         value_buffers_[node],
-                        factor_label_buffer.data()
+                        factor_label_buffer.data() /* buffer */
                     );
                 }
-
                 //pairwise
                 if (factor.arity() == 2)
                 {
@@ -210,21 +194,9 @@ namespace nxtgm
         }
 
         this->compute_labels();
-        this->best_sol_value_ = gm.evaluate(this->best_solution_);
-        this->current_sol_value_ = this->best_sol_value_;
-        // find best solution
-     
-        if (reporter_callback  && !timer.paused_call([&](){return reporter_callback.report();}))
-        {
-            status = OptimizationStatus::CALLBACK_EXIT;
-        }
-    
-        // check if the time limit is reached
-        if(timer.elapsed() > this->parameters_.time_limit)
-        {
-            status = OptimizationStatus::TIME_LIMIT_REACHED;
-        }
 
+        this->best_sol_value_ = gm.evaluate(this->best_solution_);
+    
         // indicate the end of the optimization
         reporter_callback.end();
 
@@ -235,14 +207,14 @@ namespace nxtgm
         return this->best_sol_value_;
     }
     SolutionValue DynamicProgramming::current_solution_value() const {
-        return this->current_sol_value_;
+        return this->best_sol_value_;
     }
 
     const typename DynamicProgramming::solution_type & DynamicProgramming::best_solution()const {
         return this->best_solution_;
     }
     const typename DynamicProgramming::solution_type & DynamicProgramming::current_solution()const {
-        return this->current_solution_;
+        return this->best_solution_;
     }
 
     void DynamicProgramming::compute_labels(){
