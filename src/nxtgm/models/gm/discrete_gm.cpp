@@ -25,7 +25,7 @@ namespace nxtgm
     }
 
     DiscreteGm::DiscreteGm(const DiscreteSpace & discrete_space)
-    :   discrete_space_(discrete_space),
+    :   space_(discrete_space),
         factors_(),
         energy_functions_(),
         constraints_(),
@@ -68,7 +68,7 @@ namespace nxtgm
                 solution,
                 local_labels_buffer
             );
-            const auto [is_feasible, how_violated] = constraint.function()->feasible(labels);
+            const auto [is_feasible, how_violated] = constraint.function()->feasible(labels.data());
             if(!is_feasible)
             {
                 if(early_stop_infeasible)
@@ -95,7 +95,7 @@ namespace nxtgm
                 solution,
                 local_labels_buffer
             );
-            total_energy += factor.function()->energy(labels);
+            total_energy += factor.function()->energy(labels.data());
         }
         return SolutionValue{total_energy, total_is_feasible, total_how_violated};
     }

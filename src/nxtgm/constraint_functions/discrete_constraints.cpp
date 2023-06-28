@@ -24,7 +24,7 @@ namespace nxtgm
     }
 
     
-    std::pair<bool, energy_type>  PairwiseUniqueLables::feasible(const const_discrete_label_span& discrete_labels) const {
+    std::pair<bool, energy_type>  PairwiseUniqueLables::feasible(const discrete_label_type * discrete_labels) const {
         return discrete_labels[0] != discrete_labels[1] ? std::make_pair(true, energy_type(0)) : std::make_pair(false, scale_);
     }
 
@@ -34,7 +34,7 @@ namespace nxtgm
 
     void PairwiseUniqueLables::add_to_lp(
         IlpData & ilp_data,  
-        const span<std::size_t>  & indicator_variables_mapping, 
+        const std::size_t * indicator_variables_mapping, 
         IlpConstraintBuilderBuffer & /*buffer*/ 
     )const
     {

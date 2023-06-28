@@ -1,7 +1,7 @@
 #pragma once
 #include <nxtgm/optimizers/gm/discrete/optimizer_base.hpp>
 #include <nxtgm/models/gm/discrete_gm.hpp>
-
+#include <chrono>
 #include <highs/Highs.h>
 
 namespace nxtgm
@@ -10,7 +10,10 @@ namespace nxtgm
     class IlpHighs : public DiscreteGmOptimizerBase{
     public:
         
-        class parameter_type{
+        class parameters_type{
+        public:
+            bool integer = true;
+            std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
         };
 
         using base_type = DiscreteGmOptimizerBase;
@@ -26,11 +29,11 @@ namespace nxtgm
             return "IlpHighs";
         }
 
-        IlpHighs(const DiscreteGm & gm, const parameter_type & parameters, const solution_type & initial_solution = solution_type());
+        IlpHighs(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & initial_solution = solution_type());
 
         virtual ~IlpHighs() = default;
 
-        virtual void optimize(
+        OptimizationStatus optimize(
             reporter_callback_wrapper_type & reporter_callback,
             repair_callback_wrapper_type & /*repair_callback not used*/
         ) override;
@@ -46,7 +49,7 @@ namespace nxtgm
     private:
         void setup_lp();
 
-
+        parameters_type parameters_;
 
         solution_type best_solution_;
         solution_type current_solution_;
@@ -57,6 +60,7 @@ namespace nxtgm
         // map from variable index to the beginning of the indicator variables
         IndicatorVariableMapping indicator_variable_mapping_;
 
+        IlpData ilp_data_;
 
         HighsModel highs_model_;
     };

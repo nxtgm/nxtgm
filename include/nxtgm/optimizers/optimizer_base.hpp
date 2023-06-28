@@ -10,18 +10,26 @@
 
 namespace nxtgm
 {
+    enum class OptimizationStatus{
+        OPTIMAL,
+        INFEASIBLE,
+        UNKOWN,
+        TIME_LIMIT_REACHED,
+        CALLBACK_EXIT
+    };
 
-    template<class MODEL_TYPE>
+
+    template<class MODEL_TYPE, class DERIVED_OPTIMIZER_BASE>
     class OptimizerBase {
 
 
     public:
-        using self_type = OptimizerBase<MODEL_TYPE>;
+        using self_type = OptimizerBase<MODEL_TYPE, DERIVED_OPTIMIZER_BASE>;
         using model_type = MODEL_TYPE;
 
         using solution_type = typename model_type::solution_type;
 
-        using reporter_callback_base_type = ReporterCallbackBase<self_type>;
+        using reporter_callback_base_type = ReporterCallbackBase<DERIVED_OPTIMIZER_BASE>;
         using reporter_callback_wrapper_type = ReporterCallbackWrapper<reporter_callback_base_type>;
 
         using repair_callback_base_type = RepairCallbackBase<self_type>;
@@ -43,17 +51,17 @@ namespace nxtgm
             return this->model().evaluate(this->best_solution(), false /* early exit when infeasible*/);
         }
 
-        virtual void optimize(
+        virtual OptimizationStatus optimize(
             reporter_callback_base_type * reporter_callback=nullptr,
             repair_callback_base_type * repair_callback=nullptr
         ){
             reporter_callback_wrapper_type reporter_callback_wrapper(reporter_callback) ;
             repair_callback_wrapper_type repair_callback_wrapper(repair_callback);
 
-            this->optimize(reporter_callback_wrapper, repair_callback_wrapper);
+            return this->optimize(reporter_callback_wrapper, repair_callback_wrapper);
         }
 
-        virtual void optimize(
+        virtual OptimizationStatus optimize(
             reporter_callback_wrapper_type & reporter_callback,
             repair_callback_wrapper_type & repair_callback
         ) = 0;

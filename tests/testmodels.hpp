@@ -21,6 +21,43 @@
 namespace nxtgm::tests
 {   
 
+
+    struct Star
+    {   
+        std::pair<DiscreteGm, std::string> operator()()
+        {   
+            xt::random::seed(seed);
+
+            auto space = DiscreteSpace(n_arms + 1, n_labels);
+            DiscreteGm gm(space);
+
+            // unaries
+            for(std::size_t vi=0; vi<space.size(); ++vi)
+            {
+                auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
+                auto f = std::make_unique<nxtgm::XTensor<1>>(tensor);
+                auto fid = gm.add_energy_function(std::move(f));
+                gm.add_factor({vi}, fid);
+            }
+
+            // pairwise
+            for(std::size_t arm_index=0; arm_index<n_arms; ++arm_index)
+            {
+                auto tensor = xt::random::rand<energy_type>({n_labels, n_labels}, energy_type(-1), energy_type(1));
+                auto f = std::make_unique<nxtgm::XTensor<2>>(tensor);
+                auto fid = gm.add_energy_function(std::move(f));
+                gm.add_factor({std::size_t(0),arm_index+1}, fid);
+            }
+            const std::string name = fmt::format("Star(n_arms={}, n_labels={}, seed={})", n_arms, n_labels, seed);
+            return std::pair<DiscreteGm, std::string>(std::move(gm), "Star");
+        }
+
+
+        std::size_t n_arms = 3;
+        std::size_t n_labels = 2;
+        std::uint32_t seed = 0;
+    };
+
     struct PottsChain
     {
 

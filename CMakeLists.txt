@@ -41,6 +41,7 @@ add_library(nxtgm SHARED
     src/nxtgm/models/gm/discrete_gm.cpp
     src/nxtgm/optimizers/gm/discrete/brute_force_naive.cpp
     src/nxtgm/optimizers/gm/discrete/ilp_highs.cpp
+    src/nxtgm/optimizers/gm/discrete/dynamic_programming.cpp
 )
 
 ###############################################################
@@ -67,6 +68,14 @@ target_include_directories(nxtgm PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
+
+###############################################################
+# python
+###############################################################
+if(BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
+
 
 ###############################################################
 # python

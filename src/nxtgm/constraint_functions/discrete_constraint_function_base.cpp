@@ -25,10 +25,10 @@ namespace nxtgm{
             return result;
         }
         std::pair<bool, energy_type> DiscreteConstraintFunctionBase::feasible(std::initializer_list<discrete_label_type> labels) const {
-            return this->feasible(const_discrete_label_span(labels.begin(), labels.size()));
+            return this->feasible(labels.begin());
         }
         void  DiscreteConstraintFunctionBase::add_to_lp(
-            IlpData & ilp_data,  const span<std::size_t> & indicator_variables_mapping, IlpConstraintBuilderBuffer & buffer
+            IlpData & ilp_data,  const std::size_t * indicator_variables_mapping, IlpConstraintBuilderBuffer & buffer
         )const{
             throw std::runtime_error("Not implemented");
         }

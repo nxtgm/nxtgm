@@ -123,7 +123,7 @@ namespace nxtgm
             NUM_LABELS_ITER num_labels_begin,
             NUM_LABELS_ITER num_labels_end
         ) : 
-            discrete_space_(num_labels_begin, num_labels_end),
+            space_(num_labels_begin, num_labels_end),
             factors_(),
             energy_functions_(),
             constraints_(),
@@ -137,7 +137,7 @@ namespace nxtgm
 
         inline DiscreteGm(std::size_t num_var , discrete_label_type num_labels
         ) : 
-            discrete_space_(num_var, num_labels),
+            space_(num_var, num_labels),
             factors_(),
             energy_functions_(),
             constraints_(),
@@ -152,7 +152,7 @@ namespace nxtgm
 
         inline const DiscreteSpace &space() const
         {
-            return discrete_space_;
+            return space_;
         }
 
         inline const std::vector<DiscreteFactor> &factors() const
@@ -188,6 +188,23 @@ namespace nxtgm
         inline std::size_t max_arity() const
         {
             return std::max(max_factor_arity_, max_constraint_arity_);
+        }
+
+        discrete_label_type num_labels(std::size_t variable_index) const
+        {
+            return space_[variable_index];
+        }
+        std::size_t num_variables() const
+        {
+            return space_.size();
+        }
+        std::size_t num_factors() const
+        {
+            return factors_.size();
+        }
+        std::size_t num_constraints() const
+        {
+            return constraints_.size();
         }
 
         template <class F>
@@ -317,13 +334,13 @@ namespace nxtgm
             std::size_t product = 1;
             for (const auto &variable_index : variable_indicies)
             {
-                product *= discrete_space_[variable_index];
+                product *= space_[variable_index];
             }
             return product;
         }
 
     
-        DiscreteSpace discrete_space_;
+        DiscreteSpace space_;
         std::vector<DiscreteFactor> factors_;
         std::vector<std::unique_ptr<DiscreteEnergyFunctionBase>> energy_functions_;
         std::vector<DiscreteConstraint> constraints_;
@@ -332,6 +349,25 @@ namespace nxtgm
         std::size_t max_constraint_arity_;
         std::size_t max_factor_size_;
         std::size_t max_constraint_size_;
+    };
+
+
+
+    class DiscreteGmFactorsOfVariables : public std::vector<std::vector<std::size_t>>
+    {
+    public:
+        using base_type = std::vector<std::vector<std::size_t>>;
+        inline DiscreteGmFactorsOfVariables(const DiscreteGm &gm)
+        : base_type(gm.space().size())
+        {
+            for(std::size_t fi=0; fi<gm.factors().size(); ++fi)
+            {
+                for(const auto &vi : gm.factors()[fi].variables())
+                {
+                    (*this)[vi].push_back(fi);
+                }
+            }
+        }
     };
 
 } 

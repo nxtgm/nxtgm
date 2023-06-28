@@ -9,13 +9,16 @@
 
 namespace nxtgm{
 
-    IlpHighs::IlpHighs(const DiscreteGm & gm, const parameter_type & parameters, const solution_type & initial_solution) 
+    IlpHighs::IlpHighs(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & initial_solution) 
     :   base_type(gm), 
+        parameters_(parameters),
         best_solution_(), 
         current_solution_(), 
         best_sol_value_(),
         current_sol_value_(),
-        indicator_variable_mapping_(gm.space())
+        ilp_data_(),
+        indicator_variable_mapping_(gm.space()),
+        highs_model_()
     {
         if(initial_solution.empty()){
             best_solution_ = solution_type(gm.space().size());
@@ -36,18 +39,15 @@ namespace nxtgm{
         const auto   & model = this->model();
         const auto & space = model.space();
 
-        // buffers
-        IlpData ilp_data;
-
         // add inter variables for all the indicator variables
         // (objective will be added later)
-        ilp_data.add_variables(indicator_variable_mapping_.num_indicator_variables() , 0.0, 1.0, 0.0, true);
+        ilp_data_.add_variables(indicator_variable_mapping_.num_indicator_variables() , 0.0, 1.0, 0.0, true);
 
         // sum to one constraints
         for(std::size_t vi = 0; vi <space.size(); ++vi){
-            ilp_data.begin_constraint(1.0, 1.0);
+            ilp_data_.begin_constraint(1.0, 1.0);
             for(discrete_label_type l=0; l < space[vi]; ++l){
-                ilp_data.add_constraint_coefficient(indicator_variable_mapping_[vi] + l, 1.0);
+                ilp_data_.add_constraint_coefficient(indicator_variable_mapping_[vi] + l, 1.0);
             }
         }
 
@@ -57,8 +57,7 @@ namespace nxtgm{
        
         for(auto && factor : model.factors()){
             factor.map_from_model(indicator_variable_mapping_, indicator_variables_mapping_buffer);
-            span<std::size_t> factor_indicator_variables_mapping(indicator_variables_mapping_buffer.data(), factor.arity());
-            factor.function()->add_to_lp(ilp_data, factor_indicator_variables_mapping, ilp_factor_builder_buffer);
+            factor.function()->add_to_lp(ilp_data_, indicator_variables_mapping_buffer.data(), ilp_factor_builder_buffer);
         };
 
 
@@ -67,35 +66,26 @@ namespace nxtgm{
         for(auto  && constraint : model.constraints())
         {
             constraint.map_from_model(indicator_variable_mapping_, indicator_variables_mapping_buffer);   
-            span<std::size_t> constraint_indicator_variables_mapping(indicator_variables_mapping_buffer.data(), constraint.arity());
-            constraint.function()->add_to_lp(ilp_data, constraint_indicator_variables_mapping, ilp_constraint_builder_buffer);
+            constraint.function()->add_to_lp(ilp_data_, indicator_variables_mapping_buffer.data(), ilp_constraint_builder_buffer);
         }
 
-
-
         // pass to highs
-        highs_model_.lp_.num_col_ = ilp_data.col_lower().size();
-        highs_model_.lp_.num_row_ = ilp_data.row_lower().size();
-        highs_model_.lp_.col_cost_ = std::move(ilp_data.col_cost());
-        highs_model_.lp_.col_lower_ = std::move(ilp_data.col_lower());
-        highs_model_.lp_.col_upper_ = std::move(ilp_data.col_upper());
-        highs_model_.lp_.row_lower_ = std::move(ilp_data.row_lower());
-        highs_model_.lp_.row_upper_ = std::move(ilp_data.row_upper());
-
-        // Here the orientation of the matrix is column-wise
+        highs_model_.lp_.num_col_ = ilp_data_.col_lower().size();
+        highs_model_.lp_.num_row_ = ilp_data_.row_lower().size();
+        highs_model_.lp_.col_cost_ = std::move(ilp_data_.col_cost());
+        highs_model_.lp_.col_lower_ = std::move(ilp_data_.col_lower());
+        highs_model_.lp_.col_upper_ = std::move(ilp_data_.col_upper());
+        highs_model_.lp_.row_lower_ = std::move(ilp_data_.row_lower());
+        highs_model_.lp_.row_upper_ = std::move(ilp_data_.row_upper());
         highs_model_.lp_.a_matrix_.format_ = MatrixFormat::kRowwise;
-        // a_start_ has num_col_1 entries, and the last entry is the number
-        // of nonzeros in A, allowing the number of nonzeros in the last
-        // column to be defined
-        highs_model_.lp_.a_matrix_.start_ = std::move(ilp_data.astart());
-        highs_model_.lp_.a_matrix_.index_ = std::move(ilp_data.aindex());
-        highs_model_.lp_.a_matrix_.value_  = std::move(ilp_data.avalue());
-
+        highs_model_.lp_.a_matrix_.start_ = std::move(ilp_data_.astart());
+        highs_model_.lp_.a_matrix_.index_ = std::move(ilp_data_.aindex());
+        highs_model_.lp_.a_matrix_.value_  = std::move(ilp_data_.avalue());
         highs_model_.lp_.a_matrix_.start_.push_back(highs_model_.lp_.a_matrix_.index_.size());
     }
     
 
-    void IlpHighs::optimize(
+    OptimizationStatus IlpHighs::optimize(
         reporter_callback_wrapper_type & reporter_callback,
         repair_callback_wrapper_type & /*repair_callback not used*/
     ) {
@@ -105,31 +95,25 @@ namespace nxtgm{
         
         const bool continue_opt =  reporter_callback.report();
 
-
-
         // Create a Highs instance
         Highs highs;
         highs.setOptionValue("log_to_console", false);
         HighsStatus return_status;
-        //
+        
         // Pass the model to HiGHS
         return_status = highs.passModel(highs_model_);
         assert(return_status==HighsStatus::kOk);
-        // If a user passes a model with entries in
-        // model.lp_.a_matrix_.value_ less than (the option)
-        // small_matrix_value in magnitude, they will be ignored. A logging
-        // message will indicate this, and passModel will return
-        // HighsStatus::kWarning
-        //
+
+
         // Get a const reference to the LP data in HiGHS
         const HighsLp& lp = highs.getLp();
-        //
+    
         // Solve the model
         return_status = highs.run();
         const HighsModelStatus& model_status = highs.getModelStatus();
         //std::cout << "Model status: " << highs.modelStatusToString(model_status) << std::endl;
         assert(return_status==HighsStatus::kOk);
-        //
+
         // Get the model status
         assert(model_status==HighsModelStatus::kOptimal);
 
@@ -148,40 +132,32 @@ namespace nxtgm{
         const HighsSolution& solution = highs.getSolution();
         const HighsBasis& basis = highs.getBasis();
 
-        // Now indicate that all the variables must take integer values
-        highs_model_.lp_.integrality_.resize(lp.num_col_);
-        for (int col=0; col < lp.num_col_; col++)
-            highs_model_.lp_.integrality_[col] = HighsVarType::kInteger;
-
-        highs.passModel(highs_model_);
-        // Solve the model
-        return_status = highs.run();
-        assert(return_status==HighsStatus::kOk);
-
-
-    
-        for(std::size_t vi=0; vi< this->model().space().size(); ++vi)
+        if(parameters_.integer)
         {
-            for(discrete_label_type l=0; l<this->model().space()[vi]; ++l)
-            {
-                const auto lp_var = indicator_variable_mapping_[vi] + l;
-                const auto lp_sol = solution.col_value[lp_var];
-                if ( solution.col_value[lp_var] > 0.5)
-                {
-                    best_solution_[vi] = l;
-                    break;
-                }
+            highs_model_.lp_.integrality_.resize(lp.num_col_);
+            for (int col=0; col < lp.num_col_; col++)
+            {   
+                highs_model_.lp_.integrality_[col] = ilp_data_.is_integer()[col] ? 
+                    HighsVarType::kInteger : HighsVarType::kContinuous;
             }
+            highs.passModel(highs_model_);
+            return_status = highs.run();
+            assert(return_status==HighsStatus::kOk);
         }
+
+
+
+        const bool all_integral = indicator_variable_mapping_.lp_solution_to_model_solution(
+            solution.col_value,
+            best_solution_
+        );
         
         this->best_sol_value_ = this->model().evaluate(this->best_solution_);
-
-
-
-
-
-        
         reporter_callback.end();
+
+
+        return all_integral ? OptimizationStatus::OPTIMAL : OptimizationStatus::UNKOWN;
+        
     }
 
     SolutionValue IlpHighs::best_solution_value() const{

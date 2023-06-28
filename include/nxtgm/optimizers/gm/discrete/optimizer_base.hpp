@@ -6,9 +6,9 @@
 namespace nxtgm
 {
 
-    class DiscreteGmOptimizerBase : public OptimizerBase<DiscreteGm>{
+    class DiscreteGmOptimizerBase : public OptimizerBase<DiscreteGm, DiscreteGmOptimizerBase>{
         public:
-            using base_type = OptimizerBase<DiscreteGm>;
+            using base_type = OptimizerBase<DiscreteGm, DiscreteGmOptimizerBase>;
             using base_type::base_type;
             using base_type::optimize;
     };

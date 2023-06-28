@@ -24,7 +24,7 @@ namespace nxtgm{
         virtual std::size_t arity() const = 0;
         virtual discrete_label_type shape(std::size_t index) const = 0;
 
-        virtual std::pair<bool, energy_type>  feasible(const const_discrete_label_span& discrete_labels) const  = 0;
+        virtual std::pair<bool, energy_type>  feasible(const discrete_label_type * discrete_labels) const  = 0;
 
         // convenience function 
         virtual std::size_t size() const;
@@ -32,7 +32,7 @@ namespace nxtgm{
         virtual std::unique_ptr<DiscreteConstraintFunctionBase> clone() const = 0;
 
         virtual void add_to_lp(
-            IlpData & ilp_data,  const span<std::size_t> & indicator_variables_mapping, IlpConstraintBuilderBuffer & buffer
+            IlpData & ilp_data,  const std::size_t * indicator_variables_mapping, IlpConstraintBuilderBuffer & buffer
         ) const;
 
     };

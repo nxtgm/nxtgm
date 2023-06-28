@@ -37,8 +37,7 @@ namespace nxtgm
                 {
                     throw std::runtime_error("only unary energy functions can be accessed with a single index");
                 }
-                discrete_label_span  l(&label, 1);
-                return self->energy(l);
+                return self->energy(&label);
             })
 
             .def("__getitem__", [](DiscreteEnergyFunctionBase * self, py::tuple indices)
@@ -56,10 +55,9 @@ namespace nxtgm
                 {
                      index[i] = indices[i].cast<discrete_label_type>();
                 }
-                discrete_label_span labels(index.data(), arity);
 
                 // return the value
-                return self->energy(labels);
+                return self->energy(index.data());
             })
 
         ;

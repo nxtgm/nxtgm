@@ -4,10 +4,10 @@
 namespace nxtgm
 {
     IndicatorVariableMapping::IndicatorVariableMapping(const DiscreteSpace & space)
-    :   is_simple_(space.is_simple()),
+    :   space_(space),
         mapping_(space.is_simple() ? 1 : space.size())
     {
-        if(is_simple_)
+        if(space_.is_simple())
         {
             mapping_[0] = space[0];
             n_variables_ =  space.size() * space[0];
@@ -26,6 +26,6 @@ namespace nxtgm
     std::size_t IndicatorVariableMapping::operator[](std::size_t variable)const
     {
         // when simple, mapping_[0] is the number of labels
-        return (is_simple_ ? variable * mapping_[0] : mapping_[variable]);
+        return (space_.is_simple() ? variable * mapping_[0] : mapping_[variable]);
     }
 }

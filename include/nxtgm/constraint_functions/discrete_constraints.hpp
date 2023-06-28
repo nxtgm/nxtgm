@@ -16,9 +16,9 @@ namespace nxtgm{
         discrete_label_type shape(std::size_t ) const override;
         std::size_t size() const override;
         
-        std::pair<bool, energy_type>  feasible(const const_discrete_label_span& discrete_labels) const override;
+        std::pair<bool, energy_type>  feasible(const discrete_label_type * discrete_labels) const override;
         std::unique_ptr<DiscreteConstraintFunctionBase> clone() const override;
-        void add_to_lp(IlpData & ,  const span<std::size_t> &, IlpConstraintBuilderBuffer &)const override;
+        void add_to_lp(IlpData & ,  const std::size_t *, IlpConstraintBuilderBuffer &)const override;
 
      private:
         discrete_label_type n_labels_;

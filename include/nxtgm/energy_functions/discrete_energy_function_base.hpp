@@ -34,18 +34,22 @@ namespace nxtgm{
         // pure virtual functions:
         virtual std::size_t arity() const = 0;
         virtual discrete_label_type shape(std::size_t index) const = 0;
-        virtual energy_type energy(const const_discrete_label_span& discrete_labels) const = 0;
+        virtual energy_type energy(const discrete_label_type * discrete_labels) const = 0;
         
         // function with default implementation:
         virtual std::size_t size() const;
         virtual energy_type  energy(std::initializer_list<discrete_label_type> discrete_labels) const;
 
-        virtual void copy_energies(energy_span energies, discrete_label_span discrete_labels_buffer) const;
-        virtual void copy_shape(discrete_label_span shape) const; 
+
+        virtual void copy_energies(energy_type * energies, discrete_label_type * discrete_labels_buffer) const;
+        virtual void copy_shape(discrete_label_type * shape) const; 
+        
+        virtual void add_energies(energy_type * energies, discrete_label_type * discrete_labels_buffer) const;
+
 
         virtual void add_to_lp(
             IlpData & ilp_data, 
-            const span<std::size_t> & indicator_variables_mapping,
+            const std::size_t* indicator_variables_mapping,
             IlpFactorBuilderBuffer & buffer
         ) const;
 

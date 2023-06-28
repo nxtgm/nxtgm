@@ -11,6 +11,7 @@ add_executable(tests main.cpp
     # models/gm/test_discrete_gm.cpp
     optimizers/gm/discrete/test_brute_force_naive.cpp
     optimizers/gm/discrete/test_ilp_highs.cpp
+    optimizers/gm/discrete/test_dynamic_programming.cpp
 )
 target_compile_features(tests PRIVATE cxx_std_17)
 target_link_libraries(tests PRIVATE nxtgm doctest::doctest )

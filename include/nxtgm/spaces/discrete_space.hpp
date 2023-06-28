@@ -4,7 +4,7 @@
 
 
 #include <vector>
-
+#include <iostream>
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/utils/n_nested_loops.hpp>
 
@@ -87,8 +87,42 @@ namespace nxtgm{
         {
             return n_variables_;
         }
+
+        template<class INDICATOR_VARIABLE_SOLUTION, class MODEL_SOLUTION>
+        bool lp_solution_to_model_solution(
+            const INDICATOR_VARIABLE_SOLUTION & indicator_variable_solution,
+            MODEL_SOLUTION & model_solution
+        )
+        {
+            bool all_integral = true;
+            for(std::size_t vi = 0; vi < space_.size(); ++vi)
+            {
+                double best = 0.0;
+                std::size_t best_label = 0;
+                const auto mapping_begin = this->operator[](vi);
+                for(discrete_label_type l=0; l<space_[vi]; ++l)
+                {
+                    const auto lp_sol = indicator_variable_solution[mapping_begin + l];
+                    if(lp_sol > best)
+                    {
+                        best = lp_sol;
+                        best_label = l;
+                        if(best >= 0.99999)
+                        {
+                            break;
+                        }
+                    }
+                }
+                if(best < 0.99999)
+                {
+                    all_integral = false;
+                }
+                model_solution[vi] = best_label;
+            }
+            return all_integral;
+        }
     private:
-        bool is_simple_;
+        const DiscreteSpace & space_;
         std::size_t n_variables_;
         std::vector<std::size_t> mapping_;
     };

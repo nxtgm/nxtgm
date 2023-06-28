@@ -18,7 +18,7 @@ namespace nxtgm{
         return static_cast<discrete_label_type>(values_.size());
     }
 
-    energy_type Unary::energy(const const_discrete_label_span& discrete_labels) const  {
+    energy_type Unary::energy(const discrete_label_type * discrete_labels) const  {
         return values_[discrete_labels[0]];
     }
 
@@ -45,7 +45,7 @@ namespace nxtgm{
         return num_labels_ * num_labels_;
     }
 
-    energy_type Potts::energy(const const_discrete_label_span& discrete_labels) const  {
+    energy_type Potts::energy(const discrete_label_type * discrete_labels) const  {
         return beta_ * (discrete_labels[0] != discrete_labels[1]);
     }
     std::unique_ptr<DiscreteEnergyFunctionBase> Potts::clone() const{
@@ -69,8 +69,9 @@ namespace nxtgm{
         return values_.size();
     }
 
-    energy_type Xarray::energy(const const_discrete_label_span& discrete_labels) const  {
-        return values_[discrete_labels];
+    energy_type Xarray::energy(const discrete_label_type * discrete_labels) const  {
+        const_discrete_label_span discrete_labels_span(discrete_labels, values_.dimension());
+        return values_[discrete_labels_span];
     }
     std::unique_ptr<DiscreteEnergyFunctionBase> Xarray::clone() const{
         return std::make_unique<Xarray>(values_);
@@ -88,14 +89,14 @@ namespace nxtgm{
         return std::pow(costs_.size(), arity_);
     }
 
-    energy_type LabelCosts::energy(const const_discrete_label_span& discrete_labels) const {
+    energy_type LabelCosts::energy(const discrete_label_type * discrete_labels) const {
         
         #ifndef NXTGM_NO_THREADS
         std::lock_guard<std::mutex> lck (mtx_);
         #endif
 
         std::fill(is_used_.begin(), is_used_.end(), 0);
-        for(std::size_t i = 0; i < discrete_labels.size(); ++i){
+        for(std::size_t i = 0; i < arity_; ++i){
             is_used_[discrete_labels[i]] = 1;
         }
         energy_type result = 0;
@@ -112,7 +113,7 @@ namespace nxtgm{
 
     void LabelCosts::add_to_lp(
         IlpData & ilp_data, 
-        const span<std::size_t> & indicator_variables_mapping,
+        const std::size_t * indicator_variables_mapping,
         IlpFactorBuilderBuffer & buffer
     ) const
     {

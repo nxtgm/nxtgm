@@ -55,22 +55,27 @@ namespace nxtgm
             using reporter_callback_base_type = REPORTER_CALLBACK_BASE_TYPE;
             ReporterCallbackWrapper(reporter_callback_base_type * reporter_callback) : reporter_callback_(reporter_callback){
             }
-            bool report(){
+            inline bool report(){
                if (this->reporter_callback_ != nullptr){
                     return this->reporter_callback_->report();
                }
                return true;
             }
-            void begin(){
+            inline void begin(){
                if (this->reporter_callback_ != nullptr){
                     this->reporter_callback_->begin();
                }
             }
-            void end(){
+            inline void end(){
                if (this->reporter_callback_ != nullptr){
                     this->reporter_callback_->end();
                }
             }
+            // convert to bool
+            inline operator bool() const {
+                return this->reporter_callback_ != nullptr;
+            }
+
         private:
             reporter_callback_base_type * reporter_callback_;
     };
@@ -111,19 +116,26 @@ namespace nxtgm
             
             RepairCallbackWrapper(repair_callback_base_type * repair_callback) : repair_callback_(repair_callback){
             }
-            bool repair(solution_type & solution, SolutionValue & solution_eval ){
+            inline bool repair(solution_type & solution, SolutionValue & solution_eval ){
                 if (this->repair_callback_ != nullptr){
                     return this->repair_callback_->repair(solution, solution_eval);
                 }
                 return false;
             }
-            bool improve(solution_type & solution, SolutionValue & solution_eval ){
+            inline bool improve(solution_type & solution, SolutionValue & solution_eval ){
                 if (this->repair_callback_ != nullptr){
                     return this->repair_callback_->improve(solution, solution_eval);
                 }
                 return false;
             }
-  
+
+            // convert to bool
+            inline operator bool() const {
+                return this->repair_callback_ != nullptr;
+            }
+
+
+
         private:
             repair_callback_base_type * repair_callback_;
     };

@@ -32,9 +32,9 @@ namespace nxtgm{
     }
 
     energy_type DiscreteEnergyFunctionBase::energy(std::initializer_list<discrete_label_type> discrete_labels) const {
-        return this->energy(const_discrete_label_span(discrete_labels.begin(), discrete_labels.size()));
+        return this->energy( discrete_labels.begin());
     }
-
+ 
     std::size_t DiscreteEnergyFunctionBase::size() const {
         std::size_t result = 1;
         for(std::size_t i = 0; i < arity(); ++i){
@@ -44,8 +44,8 @@ namespace nxtgm{
     }
 
     void  DiscreteEnergyFunctionBase::copy_energies(
-        energy_span energies,
-        discrete_label_span discrete_labels_buffer
+        energy_type * energies,
+        discrete_label_type * discrete_labels_buffer
     ) const {
         const auto arity = this->arity();
         auto shapef = [this](std::size_t index) { return this->shape(index); };
@@ -57,7 +57,22 @@ namespace nxtgm{
         });
     }
 
-    void DiscreteEnergyFunctionBase::copy_shape(discrete_label_span shape) const {
+    void  DiscreteEnergyFunctionBase::add_energies(
+        energy_type * energies,
+        discrete_label_type * discrete_labels_buffer
+    ) const {
+        const auto arity = this->arity();
+        auto shapef = [this](std::size_t index) { return this->shape(index); };
+
+        auto flat_index = 0;
+        n_nested_loops<discrete_label_type>(arity, shapef, discrete_labels_buffer, [&](auto && _){
+            
+            energies[flat_index] += this->energy(discrete_labels_buffer);
+            ++flat_index;
+        });
+    }
+
+    void DiscreteEnergyFunctionBase::copy_shape(discrete_label_type * shape) const {
         for(std::size_t i = 0; i < arity(); ++i){
             shape[i] = this->shape(i);
         }
@@ -65,7 +80,7 @@ namespace nxtgm{
 
     void DiscreteEnergyFunctionBase::add_to_lp(
         IlpData & ilp_data, 
-        const span<std::size_t> &indicator_variables_mapping,
+        const std::size_t * indicator_variables_mapping,
         IlpFactorBuilderBuffer & buffer
     ) const
     {
@@ -75,10 +90,10 @@ namespace nxtgm{
         // make sure the buffer is big enough
         buffer.ensure_size(factor_size, arity);
 
-        const auto labels_span = discrete_label_span(buffer.label_buffer.data(), arity);
-        const auto energies = energy_span(buffer.energy_buffer.data(), factor_size);
+        auto labels = buffer.label_buffer.data();
+        auto energies =buffer.energy_buffer.data();
 
-        this->copy_energies(energies, labels_span);
+        this->copy_energies(buffer.energy_buffer.data(), buffer.label_buffer.data());
 
         if(arity == 1)
         {
@@ -89,15 +104,17 @@ namespace nxtgm{
         }
         else
         {
-            const auto shape = discrete_label_span(buffer.shape_buffer.data(), arity);  
+            auto shape = buffer.shape_buffer.data();
             this->copy_shape(shape);
 
             // where to the factor indicator variables start?
             const auto start = ilp_data.num_variables();
             // todo: avoid allocation? 
-            auto factor_indicator_vars = xt::eval(xt::arange(start, start + factor_size).reshape(shape));
+            auto factor_indicator_vars = xt::eval(xt::arange(start, start + factor_size).reshape(
+                const_discrete_label_span(shape, arity)
+            ));
 
-            ilp_data.add_variables(0.0, 1.0, energies.begin(), energies.end(),false);
+            ilp_data.add_variables(0.0, 1.0, energies, energies + factor_size,false);
 
 
             for(auto ai=0; ai<arity; ++ai)
