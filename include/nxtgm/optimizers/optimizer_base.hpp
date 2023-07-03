@@ -12,8 +12,10 @@ namespace nxtgm
 {
     enum class OptimizationStatus{
         OPTIMAL,
+        PARTIAL_OPTIMAL,
+        LOCAL_OPTIMAL,
         INFEASIBLE,
-        UNKOWN,
+        UNKNOWN,
         TIME_LIMIT_REACHED,
         CALLBACK_EXIT
     };

@@ -1,8 +1,9 @@
 from . import conftest
+from . testmodels import *
 
 import pytest
 import numpy as np
-
+import datetime
 import nxtgm
 
 
@@ -36,18 +37,6 @@ class TestDiscreteSpace(object):
         assert space[1] == 3
         assert space[2] == 4
         assert space[3] == 5
-
-
-class TestUnary(object):
-
-    def test_constructor(self):
-        f = nxtgm.Unary(values=[0.5, 1.0, 1.5])
-        assert f.arity == 1
-        assert f.size == 3
-        assert f.shape == (3,)
-        assert f[0] == pytest.approx(0.5)
-        assert f[1] == pytest.approx(1.0)
-        assert f[(2,)] == pytest.approx(1.5)
 
 
 
@@ -100,8 +89,7 @@ class TestDiscreteGm(object):
 
     def test_add_function(self):
         gm = nxtgm.DiscreteGm(10, 3)
-        f = nxtgm.Unary(values=[0.5, 1.0, 1.5])
-        function_id = gm.add_function(f)
+        function_id = gm.add_function(np.array([1,2,3]))
         assert function_id == 0
         factor_id = gm.add_factor([0], function_id)
         assert factor_id == 0
@@ -128,16 +116,42 @@ class TestDiscreteGm(object):
         function_id = gm.add_function(potts)
         gm.add_factor([0,1], function_id)
 
-        assert len(gm.evaluate([0,0])) == 3
+        assert len(gm.evaluate([0,0])) == 2
 
+        
         # enery
         assert gm.evaluate([0,0])[0] == pytest.approx(0.0)
         assert gm.evaluate([0,1])[0] == pytest.approx(1.0)
 
-        # feasible
-        assert gm.evaluate([0,0])[1]
-        assert gm.evaluate([0,1])[1]    
-
         # how violated
-        assert gm.evaluate([0,0])[2] == pytest.approx(0.0)
-        assert gm.evaluate([0,1])[2] == pytest.approx(0.0)
+        assert gm.evaluate([0,0])[1] == pytest.approx(0.0)
+        assert gm.evaluate([0,1])[1] == pytest.approx(0.0)
+
+
+
+
+class TestOptimizers(object):
+
+    def test_ilp_highs(self):
+        gm = potts_chain(num_variables=10, num_labels=2)
+
+
+        # setup optimizer
+        solver_cls = nxtgm.IlpHighs
+        optimizer = solver_cls(gm, solver_cls.parameters(integer=True, time_limit=datetime.timedelta(seconds=10.0)))
+
+        # setup reporter callback
+        reporter_callback = solver_cls.ReporterCallback(optimizer)
+        
+        #let the optimizer do its work
+        print("optimizing:");
+        status = optimizer.optimize(reporter_callback)
+        assert  status == nxtgm.OptimizationStatus.OPTIMAL
+
+        # get solution  
+        solution = optimizer.best_solution()
+        assert solution is not None
+        print("solution: ", solution)
+        assert solution.shape[0] == len(gm.space)
+        energy, how_violated = gm.evaluate(solution)
+        print(f"energy: {energy}, how_violated: {how_violated}")

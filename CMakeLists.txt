@@ -10,9 +10,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 ###############################################################
 # options
 ###############################################################
-option(BUILD_TESTS      "Build tests" ON)
-option(BUILD_PYTHON     "Build python bindings" ON)
-
+option(BUILD_TESTS          "Build tests" ON)
+option(BUILD_PYTHON         "Build python bindings" ON)
+option(BUILD_WITH_COVERAGE  "Build with coverage" OFF)
 
 
 ###############################################################
@@ -23,8 +23,14 @@ find_package(fmt REQUIRED)
 find_package(Boost REQUIRED)
 find_package(xtensor REQUIRED)
 find_package(HIGHS REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
-
+###############################################################
+# converage
+###############################################################
+if(BUILD_WITH_COVERAGE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate -fcoverage-mapping")
+endif()
 
 
 ###############################################################
@@ -39,9 +45,11 @@ add_library(nxtgm SHARED
     src/nxtgm/constraint_functions/discrete_constraints.cpp
     src/nxtgm/models/solution_value.cpp
     src/nxtgm/models/gm/discrete_gm.cpp
+    src/nxtgm/optimizers/gm/discrete/movemaker.cpp
     src/nxtgm/optimizers/gm/discrete/brute_force_naive.cpp
     src/nxtgm/optimizers/gm/discrete/ilp_highs.cpp
     src/nxtgm/optimizers/gm/discrete/dynamic_programming.cpp
+    src/nxtgm/optimizers/gm/discrete/icm.cpp
 )
 
 ###############################################################
@@ -58,6 +66,7 @@ target_link_libraries(nxtgm PUBLIC
     Boost::boost  
     highs::highs
     xtensor
+    nlohmann_json::nlohmann_json
 )
 
 
@@ -68,6 +77,14 @@ target_include_directories(nxtgm PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
+
+
+###############################################################
+#  tests
+###############################################################
+# cmake use tests
+enable_testing()
+
 
 ###############################################################
 # python

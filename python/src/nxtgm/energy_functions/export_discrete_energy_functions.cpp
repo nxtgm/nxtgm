@@ -61,14 +61,7 @@ namespace nxtgm
             })
 
         ;
-
-
-        py::class_<Unary, DiscreteEnergyFunctionBase>(pymodule , "Unary")
-            .def(py::init([](const xt::pytensor<energy_type,1> & values)
-            {
-                return new Unary(values.data(), values.data() + values.size());
-            }), py::arg("values"))
-        ;
+        
 
         py::class_<Potts, DiscreteEnergyFunctionBase>(pymodule , "Potts")
             .def(py::init<std::size_t, energy_type>(), py::arg("num_labels"), py::arg("beta"))

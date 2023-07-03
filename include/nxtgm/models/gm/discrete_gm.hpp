@@ -71,6 +71,16 @@ namespace nxtgm
         {
             function_->add_energies(energy, labels);
         }
+
+        std::size_t variable_position(std::size_t variable)const
+        {
+            const auto iter = std::find(variables_.begin(), variables_.end(), variable);
+            if(iter == variables_.end())
+            {
+                return variables_.size();
+            }
+            return std::distance(variables_.begin(), iter);
+        }
     private:
         const DiscreteEnergyFunctionBase *function_;
         std::vector<std::size_t> variables_;
@@ -104,6 +114,16 @@ namespace nxtgm
         }
 
 
+        inline auto operator()(const discrete_label_type *labels)const
+        {
+            return function_->how_violated(labels);
+        }
+        inline auto operator()(std::initializer_list<discrete_label_type> labels)const
+        {
+            return function_->how_violated(labels.begin());
+        }
+
+
         template<class MODEL_DATA, class CONSTRAINT_DATA>
         void map_from_model(const MODEL_DATA & model_data, CONSTRAINT_DATA & constraint_data)const
         {
@@ -112,6 +132,15 @@ namespace nxtgm
             {
                 constraint_data[ai] = model_data[variables[ai]];
             }
+        }
+        std::size_t variable_position(std::size_t variable)const
+        {
+            const auto iter = std::find(variables_.begin(), variables_.end(), variable);
+            if(iter == variables_.end())
+            {
+                return variables_.size();
+            }
+            return std::distance(variables_.begin(), iter);
         }
     private:
         const DiscreteConstraintFunctionBase *function_;
@@ -375,6 +404,23 @@ namespace nxtgm
             for(std::size_t fi=0; fi<gm.factors().size(); ++fi)
             {
                 for(const auto &vi : gm.factors()[fi].variables())
+                {
+                    (*this)[vi].push_back(fi);
+                }
+            }
+        }
+    };
+
+    class DiscreteGmConstraintsOfVariables : public std::vector<std::vector<std::size_t>>
+    {
+    public:
+        using base_type = std::vector<std::vector<std::size_t>>;
+        inline DiscreteGmConstraintsOfVariables(const DiscreteGm &gm)
+        : base_type(gm.space().size())
+        {
+            for(std::size_t fi=0; fi<gm.constraints().size(); ++fi)
+            {
+                for(const auto &vi : gm.constraints()[fi].variables())
                 {
                     (*this)[vi].push_back(fi);
                 }

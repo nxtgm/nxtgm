@@ -48,4 +48,20 @@ TEST_CASE("ilp-highs"){
             )
         );
     }
+
+    SUBCASE("infeasible")
+    {
+            nxtgm::tests::test_discrete_gm_optimizer<nxtgm::IlpHighs>(
+            std::string("test-ilp-highs"),
+            {nxtgm::IlpHighs::parameters_type{}},
+            std::make_tuple(
+                nxtgm::tests::InfeasibleModel{4,2}
+            ),
+            100,
+            std::make_tuple(
+                nxtgm::tests::CheckOptimizationStatus{nxtgm::OptimizationStatus::INFEASIBLE},
+                nxtgm::tests::CheckInfesibility{}
+            )
+        );
+    }
 }

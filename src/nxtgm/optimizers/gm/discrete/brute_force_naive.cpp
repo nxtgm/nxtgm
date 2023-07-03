@@ -81,6 +81,10 @@ namespace nxtgm
 
         // indicate the end of the optimization
         reporter_callback.end();
+        
+        if(!this->best_sol_value_.is_feasible()){
+            status = OptimizationStatus::INFEASIBLE;
+        }
 
         return status;
     }

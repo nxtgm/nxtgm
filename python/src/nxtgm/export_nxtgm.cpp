@@ -12,15 +12,19 @@ namespace py = pybind11;
 
 namespace nxtgm
 {   
+    void export_solution_value(py::module_ & pymodule);
     void export_discrete_energy_functions(py::module_ & pymodule);
     void export_discrete_space(py::module_ & pymodule);
     void export_discrete_gm(py::module_ & pymodule);
+    void export_discrete_gm_optimizers(py::module_ & pymodule);
 
     void export_nxtgm(py::module_ pymodule)
     {   
+        export_solution_value(pymodule);
         export_discrete_energy_functions(pymodule);
         export_discrete_space(pymodule);
         export_discrete_gm(pymodule);
+        export_discrete_gm_optimizers(pymodule);
     }
 }
 

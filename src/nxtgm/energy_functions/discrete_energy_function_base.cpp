@@ -3,9 +3,12 @@
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/energy_functions/discrete_energy_function_base.hpp>
 #include <nxtgm/utils/n_nested_loops.hpp>
-
+#include <nxtgm/utils/tuple_for_each.hpp>
 // xtensor view
 #include <xtensor/xview.hpp>
+
+
+#include <nxtgm/energy_functions/discrete_energy_functions.hpp>
 
 namespace nxtgm{
 
@@ -72,7 +75,7 @@ namespace nxtgm{
     }
 
     void DiscreteEnergyFunctionBase::copy_shape(discrete_label_type * shape) const {
-        for(std::size_t i = 0; i < arity(); ++i){
+    for(std::size_t i = 0; i < arity(); ++i){
             shape[i] = this->shape(i);
         }
     }
@@ -133,4 +136,91 @@ namespace nxtgm{
             }
         }
     }
+
+
+    std::pair<std::unique_ptr<DiscreteEnergyFunctionBase>,energy_type> DiscreteEnergyFunctionBase::bind(
+        const span<std::size_t> & binded_vars,
+        const span<discrete_label_type> & binded_vars_labels
+    ) const {
+        throw std::runtime_error("Not implemented");
+    }   
+
+    template<class T>
+    struct Identity
+    {
+        using type = T;
+    };
+
+
+    using InteralDiscreteFunctionTypes = std::tuple<
+        Identity<XArray>,
+        Identity<Potts>,
+        Identity<LabelCosts>
+    >;
+
+
+
+    // Function to iterate through all values
+    // I equals number of values in tuple
+    template <size_t I,class F, typename... Ts>
+    typename std::enable_if<I == sizeof...(Ts),
+                    void>::type
+    visit_tuple_breakable(const std::tuple<Ts...> & , F &&)
+    {
+        return;
+    }
+    
+    template <size_t I,class F, typename... Ts>
+    typename std::enable_if<(I < sizeof...(Ts)),
+                    void>::type
+    visit_tuple_breakable(const std::tuple<Ts...> & tup, F && f)
+    {
+    
+        if(!f(std::get<I>(tup))){
+            return;
+        }
+    
+        // Go to next element
+        visit_tuple_breakable<I + 1>(tup, f);
+    }
+
+    // yes, this if/else for each function is 
+    // a tight coupling between the serialization and the
+    // concrete function types. 
+    // A "more generic" solution would be to have a 
+    // singleton with a map from type to factory function
+    // but this makes linkage more complicated
+    std::unique_ptr<DiscreteEnergyFunctionBase> discrete_energy_function_deserialize_json(
+        const nlohmann::json & json,
+        const UserDeserializeFactory & user_factory
+    ){
+        const std::string type = json.at("type").get<std::string>();
+        std::unique_ptr<DiscreteEnergyFunctionBase> result;
+        
+        InteralDiscreteFunctionTypes all_types;
+        visit_tuple_breakable<0>(all_types, [&](auto && tuple_element){
+            using function_type = typename std::decay_t<decltype(tuple_element)>::type;
+            const std::string name = function_type::serialization_name();
+            if(name == type){
+                result = std::move(function_type::deserialize_json(json));
+                return false;
+            }
+            return true;
+        });
+        if(result){
+            return std::move(result);
+        }
+        else
+        {
+            // check if in user factory
+            auto factory = user_factory.find(type);
+            if(factory == user_factory.end()){
+                throw std::runtime_error("Unknown type: `" + type + "`");
+            }
+            else{
+                return factory->second(json);
+            }
+        }
+    }
+
 }

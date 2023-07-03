@@ -15,10 +15,12 @@ execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import numpy; print(numpy.get_i
 
 # add python bindings target
 pybind11_add_module(_nxtgm  
+    ${PY_SRC_DIR}/nxtgm/models/export_solution_value.cpp
     ${PY_SRC_DIR}/nxtgm/export_nxtgm.cpp
     ${PY_SRC_DIR}/nxtgm/energy_functions/export_discrete_energy_functions.cpp
     ${PY_SRC_DIR}/nxtgm/spaces/export_discrete_space.cpp
     ${PY_SRC_DIR}/nxtgm/models/gm/export_discrete_gm.cpp
+    ${PY_SRC_DIR}/nxtgm/optimizers/gm/discrete/export_discrete_gm_optimizers.cpp
 )
 
 # link dependencies
@@ -39,7 +41,7 @@ add_custom_command(TARGET _nxtgm POST_BUILD
                    ${PY_MODULE_DIR}/nxtgm)
 
 # run pytest from cmake 
-add_custom_target(pytest
+add_custom_target(python_tests
                   ${CMAKE_COMMAND}
                      -E env PYTHONPATH=${PY_MODULE_DIR}  
                      ${PYTHON_EXECUTABLE} -m 
@@ -49,3 +51,5 @@ add_custom_target(pytest
                   COMMENT "Running pytest"
                   USES_TERMINAL
                   )
+
+add_test(NAME python_tests COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target python_tests)

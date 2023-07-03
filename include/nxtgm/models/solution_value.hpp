@@ -12,13 +12,11 @@ namespace nxtgm
 
         inline SolutionValue(
             const energy_type  energy = 0, 
-            const bool is_feasible = true,
             const energy_type  how_violated = 0
         )
         :   energy_(energy),
-            is_feasible_(is_feasible),
             how_violated_(how_violated)
-        {
+    {
 
         }
 
@@ -28,8 +26,8 @@ namespace nxtgm
         }
 
         inline bool is_feasible() const
-        {
-            return is_feasible_;
+        {                        
+            return how_violated_ < constraint_feasiblility_limit;
         }
 
         inline energy_type how_violated() const
@@ -37,13 +35,13 @@ namespace nxtgm
             return how_violated_;
         }
 
-        
         bool operator<(const SolutionValue & other)const;
         bool operator<=(const SolutionValue & other)const;
+        SolutionValue& operator+=(const SolutionValue & other);
+        SolutionValue& operator-=(const SolutionValue & other);
 
     private:
         energy_type energy_;
-        bool is_feasible_;
         energy_type how_violated_;
     };
 

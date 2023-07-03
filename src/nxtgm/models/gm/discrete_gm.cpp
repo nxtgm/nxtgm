@@ -68,16 +68,15 @@ namespace nxtgm
                 solution,
                 local_labels_buffer
             );
-            const auto [is_feasible, how_violated] = constraint.function()->feasible(labels.data());
-            if(!is_feasible)
+            const auto  how_violated = constraint.function()->how_violated(labels.data());
+            if(how_violated >= constraint_feasiblility_limit)
             {
                 if(early_stop_infeasible)
                 {
-                    return SolutionValue{std::numeric_limits<energy_type>::infinity(), false, how_violated};
+                    return SolutionValue{std::numeric_limits<energy_type>::infinity(), how_violated};
                 }
                 else
                 {
-                    total_is_feasible = false;
                     total_how_violated += how_violated;
                 }
             }
@@ -97,6 +96,7 @@ namespace nxtgm
             );
             total_energy += factor.function()->energy(labels.data());
         }
-        return SolutionValue{total_energy, total_is_feasible, total_how_violated};
+        total_how_violated = total_how_violated < constraint_feasiblility_limit ? 0 : total_how_violated;
+        return SolutionValue{total_energy, total_how_violated};
     }
 } 

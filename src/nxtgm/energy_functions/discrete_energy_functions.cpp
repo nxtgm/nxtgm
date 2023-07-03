@@ -6,36 +6,6 @@
 namespace nxtgm{
 
 
-    Unary::Unary(const std::vector<energy_type>& values) : 
-        values_(values) 
-    {
-
-    }
-    std::size_t Unary::arity() const  {
-        return 1;
-    }
-
-    discrete_label_type Unary::shape(std::size_t ) const  {
-        return static_cast<discrete_label_type>(values_.size());
-    }
-
-    energy_type Unary::energy(const discrete_label_type * discrete_labels) const  {
-        return values_[discrete_labels[0]];
-    }
-
-    std::unique_ptr<DiscreteEnergyFunctionBase> Unary::clone() const{
-        return std::make_unique<Unary>(values_);
-    }
-
-    void Unary::copy_energies(energy_type * energies, discrete_label_type * ) const{
-        std::copy(values_.begin(), values_.end(), energies);
-    }
-    void Unary::add_energies(energy_type * energies, discrete_label_type * ) const{
-        std::transform(values_.data(), values_.data() + values_.size(), energies, energies, std::plus<energy_type>());
-    }
-
-  
-
     Potts::Potts(std::size_t num_labels, energy_type beta) : 
         num_labels_(num_labels),
         beta_(beta)
@@ -79,37 +49,78 @@ namespace nxtgm{
         }
     }
 
+    nlohmann::json Potts::serialize_json() const {
+        return {
+            {"type", Potts::serialization_name()},
+            {"num_labels", num_labels_},
+            {"beta", beta_}
+        };
+    }
 
-    Xarray::Xarray(const xarray_type & values) : 
+    std::unique_ptr<DiscreteEnergyFunctionBase> Potts::deserialize_json(const nlohmann::json & json){
+        return std::make_unique<Potts>(json["num_labels"], json["beta"]);
+    }
+
+
+    XArray::XArray(const xarray_type & values) : 
     values_(values) 
     {
     }
 
-    discrete_label_type Xarray::shape(std::size_t index) const {
+    discrete_label_type XArray::shape(std::size_t index) const {
         return values_.shape()[index];   
     }
 
-    std::size_t Xarray::arity() const  {
+    std::size_t XArray::arity() const  {
         return values_.dimension();
     }   
 
-    std::size_t Xarray::size() const  {
+    std::size_t XArray::size() const  {
         return values_.size();
     }
 
-    energy_type Xarray::energy(const discrete_label_type * discrete_labels) const  {
+    energy_type XArray::energy(const discrete_label_type * discrete_labels) const  {
         const_discrete_label_span discrete_labels_span(discrete_labels, values_.dimension());
         return values_[discrete_labels_span];
     }
-    std::unique_ptr<DiscreteEnergyFunctionBase> Xarray::clone() const{
-        return std::make_unique<Xarray>(values_);
+    std::unique_ptr<DiscreteEnergyFunctionBase> XArray::clone() const{
+        return std::make_unique<XArray>(values_);
     }
 
-    void Xarray::copy_energies(energy_type * energies, discrete_label_type * ) const{
+    void XArray::copy_energies(energy_type * energies, discrete_label_type * ) const{
         std::copy(values_.begin(), values_.end(), energies);
     }
-    void Xarray::add_energies(energy_type * energies, discrete_label_type * ) const{
+    void XArray::add_energies(energy_type * energies, discrete_label_type * ) const{
         std::transform(values_.data(), values_.data() + values_.size(), energies, energies, std::plus<energy_type>());
+    }
+
+    nlohmann::json XArray::serialize_json() const {
+
+        nlohmann::json shape = nlohmann::json::array();
+        for(auto s: values_.shape()){
+            shape.push_back(s);
+        }
+
+        auto values = nlohmann::json::array();
+        for(auto it = values_.begin(); it != values_.end(); ++it){
+            values.push_back(*it);
+        }
+
+        return {
+            {"type", XArray::serialization_name()},
+            {"shape", shape},
+            {"values", values}
+        };
+    }
+
+    std::unique_ptr<DiscreteEnergyFunctionBase> XArray::deserialize_json(const nlohmann::json & json){
+        std::vector<std::size_t> shape;
+        for(auto s: json["shape"]){
+            shape.push_back(s);
+        }
+        typename XArray::xarray_type array(shape);
+        std::copy(json["values"].begin(), json["values"].end(), array.begin());
+        return std::make_unique<XArray>(array);
     }
 
     discrete_label_type LabelCosts::shape(std::size_t index) const {
@@ -183,7 +194,17 @@ namespace nxtgm{
         }
 
     }
+    
+    nlohmann::json LabelCosts::serialize_json() const {
+        return {
+            {"type", LabelCosts::serialization_name()},
+            {"arity", arity_},
+            {"values", costs_}
+        };
+    }
 
-
+    std::unique_ptr<DiscreteEnergyFunctionBase> LabelCosts::deserialize_json(const nlohmann::json & json){
+        return std::make_unique<LabelCosts>(json["arity"], json["values"].begin(), json["values"].end());
+    }
 
 }

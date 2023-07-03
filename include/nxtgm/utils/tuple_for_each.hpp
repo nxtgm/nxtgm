@@ -1,3 +1,5 @@
+#include <tuple>
+
 namespace nxtgm
 {
     template <typename Tuple, typename F>
@@ -5,4 +7,6 @@ namespace nxtgm
     {
         std::apply([&f](auto&&... args) { (f(args), ...); }, std::forward<Tuple>(tuple));
     }
+
+    
 } // namespace nxtgm::utils

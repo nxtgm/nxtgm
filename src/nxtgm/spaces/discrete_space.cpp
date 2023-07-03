@@ -1,8 +1,13 @@
 #include  <nxtgm/nxtgm.hpp>
 #include <nxtgm/spaces/discrete_space.hpp>
+#include <algorithm>
 
 namespace nxtgm
 {
+    discrete_label_type DiscreteSpace::max_num_labels()const{
+        // get max element 
+        return *std::max_element(n_labels_.begin(), n_labels_.end());
+    }
     IndicatorVariableMapping::IndicatorVariableMapping(const DiscreteSpace & space)
     :   space_(space),
         mapping_(space.is_simple() ? 1 : space.size())
@@ -23,9 +28,11 @@ namespace nxtgm
     
     }
 
+
     std::size_t IndicatorVariableMapping::operator[](std::size_t variable)const
     {
         // when simple, mapping_[0] is the number of labels
         return (space_.is_simple() ? variable * mapping_[0] : mapping_[variable]);
     }
+
 }

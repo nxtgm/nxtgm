@@ -2,16 +2,18 @@
 
 #include <chrono>
 #include <nxtgm/optimizers/gm/discrete/optimizer_base.hpp>
-
+#include <nxtgm/optimizers/gm/discrete/movemaker.hpp>
+#include <queue>
 
 namespace nxtgm
 {
 
-    class BruteForceNaive : public DiscreteGmOptimizerBase{
+    class Icm : public DiscreteGmOptimizerBase{
     public:
         
         class parameters_type{
         public:
+            std::vector<std::size_t> roots;
             std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
         };
 
@@ -25,11 +27,11 @@ namespace nxtgm
 
         inline static std::string name()
         {
-            return "BruteForceNaive";
-        } 
-        virtual ~BruteForceNaive() = default;
+            return "Icm";
+        }
+        virtual ~Icm() = default;
 
-        BruteForceNaive(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & initial_solution = solution_type());
+        Icm(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & initial_solution = solution_type());
 
         OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &) override;
 
@@ -40,10 +42,13 @@ namespace nxtgm
         const solution_type & current_solution()const override;
         
     private:
+        void compute_labels();
+        
         parameters_type parameters_;
-        solution_type best_solution_;
-        solution_type current_solution_;
-        SolutionValue best_sol_value_;
-        SolutionValue current_sol_value_;
+
+        Movemaker movemaker_;
+        std::vector<uint8_t> in_queue_;
+        std::queue<std::size_t> queue_;
+        
     };
 }

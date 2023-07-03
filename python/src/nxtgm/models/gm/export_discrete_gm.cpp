@@ -50,8 +50,7 @@ namespace nxtgm
             // evaluate from xt::pytensor
             .def("evaluate", [](const DiscreteGm & gm, const xt::pytensor<discrete_label_type, 1> & labels, bool early_exit_infeasible) {   
                 span<const discrete_label_type> labels_span(labels.data(), labels.size());
-                const SolutionValue value =  gm.evaluate(labels_span);
-                return std::make_tuple(value.energy(), value.is_feasible(), value.how_violated());
+                return gm.evaluate(labels_span);
             }, py::arg("labels"), py::arg("early_exit_infeasible") = false)
 
 
@@ -76,7 +75,7 @@ namespace nxtgm
 
             .def("add_function",[](DiscreteGm & gm, const xt::pyarray<energy_type> & array)
             {   
-                auto f = std::make_unique<nxtgm::Xarray>(array);
+                auto f = std::make_unique<nxtgm::XArray>(array);
                 return gm.add_energy_function(std::move(f));
             }, py::arg("energy_function"))
 

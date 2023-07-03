@@ -9,13 +9,50 @@
 
 namespace nxtgm{
 
+
+    OptimizationStatus highsModelStatusToOptimizationStatus(Highs & highs, HighsModelStatus model_status){
+        if(model_status == HighsModelStatus::kOptimal){
+            return OptimizationStatus::OPTIMAL;
+        }
+        else if(model_status == HighsModelStatus::kModelError || model_status == HighsModelStatus::kSolveError ){
+            throw std::runtime_error("Error in Highs:" + highs.modelStatusToString(model_status));
+            return OptimizationStatus::UNKNOWN;
+        }
+        else if(model_status == HighsModelStatus::kInfeasible || model_status == HighsModelStatus::kUnboundedOrInfeasible){
+            return OptimizationStatus::INFEASIBLE;
+        }
+        else if(model_status == HighsModelStatus::kUnbounded){
+            throw std::runtime_error("nxgtm internal error: unbounded Model in Highs:" + highs.modelStatusToString(model_status));
+            return OptimizationStatus::UNKNOWN;
+        }
+        else if(model_status == HighsModelStatus::kObjectiveBound){
+            throw std::runtime_error("nxgtm internal error: kObjectiveBound is unexpected status:" + highs.modelStatusToString(model_status));
+            return OptimizationStatus::UNKNOWN;
+        }
+        else if(model_status == HighsModelStatus::kObjectiveTarget){
+            throw std::runtime_error("nxgtm internal error: kObjectiveBound is unexpected status:" + highs.modelStatusToString(model_status));
+            return OptimizationStatus::UNKNOWN;
+        }
+        else if(model_status == HighsModelStatus::kTimeLimit){
+            return OptimizationStatus::TIME_LIMIT_REACHED;
+        }
+        else if(model_status == HighsModelStatus::kIterationLimit){
+            return OptimizationStatus::UNKNOWN;
+        }
+        else{
+            throw std::runtime_error("nxgtm internal error: unexpected status:" + highs.modelStatusToString(model_status));
+            return OptimizationStatus::UNKNOWN;
+        }
+    }
+
     IlpHighs::IlpHighs(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & initial_solution) 
     :   base_type(gm), 
         parameters_(parameters),
-        best_solution_(), 
+        best_solution_(),  
         current_solution_(), 
         best_sol_value_(),
         current_sol_value_(),
+        lower_bound_(-std::numeric_limits<energy_type>::infinity()),
         ilp_data_(),
         indicator_variable_mapping_(gm.space()),
         highs_model_()
@@ -97,7 +134,7 @@ namespace nxtgm{
 
         // Create a Highs instance
         Highs highs;
-        highs.setOptionValue("log_to_console", false);
+        highs.setOptionValue("log_to_console", parameters_.highs_log_to_console);
         HighsStatus return_status;
         
         // Pass the model to HiGHS
@@ -110,12 +147,24 @@ namespace nxtgm{
     
         // Solve the model
         return_status = highs.run();
-        const HighsModelStatus& model_status = highs.getModelStatus();
-        //std::cout << "Model status: " << highs.modelStatusToString(model_status) << std::endl;
-        assert(return_status==HighsStatus::kOk);
+        OptimizationStatus status = highsModelStatusToOptimizationStatus(highs,  highs.getModelStatus());
+        if(status == OptimizationStatus::INFEASIBLE){
+            reporter_callback.end();
+            return OptimizationStatus::INFEASIBLE;
+        }
+
+
+
+
+        // get the lower bound
+        lower_bound_ = highs.getHighsInfo().objective_function_value;
+        reporter_callback.report();
+        
 
         // Get the model status
         assert(model_status==HighsModelStatus::kOptimal);
+
+        
 
         // Get the solution information
         const HighsInfo& info = highs.getInfo();
@@ -143,9 +192,13 @@ namespace nxtgm{
             highs.passModel(highs_model_);
             return_status = highs.run();
             assert(return_status==HighsStatus::kOk);
+
+            status = highsModelStatusToOptimizationStatus(highs,  highs.getModelStatus());
+            if(status == OptimizationStatus::INFEASIBLE){
+                reporter_callback.end();
+                return OptimizationStatus::INFEASIBLE;
+            }
         }
-
-
 
         const bool all_integral = indicator_variable_mapping_.lp_solution_to_model_solution(
             solution.col_value,
@@ -155,9 +208,11 @@ namespace nxtgm{
         this->best_sol_value_ = this->model().evaluate(this->best_solution_);
         reporter_callback.end();
 
+        return status;        
+    }
 
-        return all_integral ? OptimizationStatus::OPTIMAL : OptimizationStatus::UNKOWN;
-        
+    energy_type IlpHighs::lower_bound() const{
+        return this->lower_bound_;
     }
 
     SolutionValue IlpHighs::best_solution_value() const{
@@ -173,9 +228,5 @@ namespace nxtgm{
     const typename IlpHighs::solution_type & IlpHighs::current_solution()const{
         return this->current_solution_;
     }
-
-
-
-
 
 } // namespace nxtgm

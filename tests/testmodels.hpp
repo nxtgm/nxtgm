@@ -63,31 +63,25 @@ namespace nxtgm::tests
 
         std::pair<DiscreteGm, std::string> operator()(
         ){
+            xt::random::seed(seed);
 
             auto space = DiscreteSpace(n_variables, n_labels);
             DiscreteGm gm(space);
             
-            std::mt19937 mersenne_engine {seed}; 
-            std::uniform_real_distribution<energy_type> dist {-1, 1};
-            auto gen = [&dist, &mersenne_engine](){
-                return dist(mersenne_engine);
-            };
-
             // unary factors        
-            for (std::size_t i = 0; i < n_variables; i++)
+            for (std::size_t vi = 0; vi < n_variables; vi++)
             {
-                std::vector<energy_type> vec(n_labels);
-                std::generate(std::begin(vec), std::end(vec), gen);
-
-                auto f = std::make_unique<Unary>(vec);
+                auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
+                auto f = std::make_unique<nxtgm::Unary>(tensor);
                 auto fid = gm.add_energy_function(std::move(f));
-                gm.add_factor({i}, fid);
+                gm.add_factor({vi}, fid);
             }
 
             // pairwise potts factors
             for (std::size_t i = 0; i < n_variables - 1; i++)
-            {
-                auto f = std::make_unique<Potts>(n_labels, gen());
+            {   
+                auto beta = xt::random::rand<energy_type>({1}, energy_type(-1), energy_type(1))(0);
+                auto f = std::make_unique<Potts>(n_labels, beta);
             }
 
             const std::string name = fmt::format("PottsChain(n_variables={}, n_labels={}, seed={})", n_variables, n_labels, seed);
@@ -110,29 +104,22 @@ namespace nxtgm::tests
             auto space = DiscreteSpace(n_variables, n_labels);
             DiscreteGm gm(space);
             
-            std::mt19937 mersenne_engine {seed}; 
             xt::random::seed(seed);
 
-            std::uniform_real_distribution<energy_type> dist {-1, 1};
-            auto gen = [&dist, &mersenne_engine](){
-                return dist(mersenne_engine);
-            };
-
             // unary factors        
-            for (std::size_t i = 0; i < n_variables; i++)
+            for (std::size_t vi = 0; vi < n_variables; vi++)
             {
-                std::vector<energy_type> vec(n_labels);
-                std::generate(std::begin(vec), std::end(vec), gen);
-
-                auto f = std::make_unique<Unary>(vec);
+                auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
+                auto f = std::make_unique<nxtgm::Unary>(tensor);
                 auto fid = gm.add_energy_function(std::move(f));
-                gm.add_factor({i}, fid);
+                gm.add_factor({vi}, fid);
             }
 
             // pairwise potts factors
             for (std::size_t i = 0; i < n_variables - 1; i++)
             {
-                auto f = std::make_unique<Potts>(n_labels, gen());
+                auto beta = xt::random::rand<energy_type>({1}, energy_type(-1), energy_type(1))(0);
+                auto f = std::make_unique<Potts>(n_labels, beta);
             }
 
             // global label costs
@@ -161,25 +148,18 @@ namespace nxtgm::tests
             
             using pairwise_function_type = nxtgm::XTensor<2>;
             
-            std::mt19937 mersenne_engine {seed}; 
             xt::random::seed(seed);
-            std::uniform_real_distribution<energy_type> dist {-1, 1};
-            auto gen = [&dist, &mersenne_engine](){
-                return dist(mersenne_engine);
-            };
 
             auto space = DiscreteSpace(n_variables, n_labels);
             DiscreteGm gm(space);
 
             // unary factors        
-            for (std::size_t i = 0; i < n_variables; i++)
+            for (std::size_t vi = 0; vi < n_variables; vi++)
             {
-                std::vector<energy_type> vec(n_labels);
-                std::generate(std::begin(vec), std::end(vec), gen);
-
-                auto f = std::make_unique<Unary>(vec);
+                auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
+                auto f = std::make_unique<nxtgm::Unary>(tensor);
                 auto fid = gm.add_energy_function(std::move(f));
-                gm.add_factor({i}, fid);
+                gm.add_factor({vi}, fid);
             }
 
             // pairwise factors
@@ -237,7 +217,7 @@ namespace nxtgm::tests
                 auto vis = xt::view(all_vis, xt::range(0, arity));
                 auto shape = xt::index_view(num_labels, vis);
                 auto array = xt::eval(xt::random::rand<energy_type>(shape, energy_type(-1), energy_type(1)));
-                auto f = std::make_unique<nxtgm::Xarray>(array);
+                auto f = std::make_unique<nxtgm::XArray>(array);
                 auto fid = gm.add_energy_function(std::move(f));
                 gm.add_factor(vis, fid); 
             }
@@ -254,5 +234,67 @@ namespace nxtgm::tests
         std::uint32_t seed = 0;
 
     };
+
+
+    struct InfeasibleModel
+    {
+
+
+        std::pair<DiscreteGm, std::string> operator()(
+        ){
+            xt::random::seed(seed);
+
+            auto space = DiscreteSpace(n_variables, n_labels);
+            DiscreteGm gm(space);
+            
+            // unary factors        
+            for (std::size_t vi = 0; vi < n_variables; vi++)
+            {
+                auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
+                auto f = std::make_unique<nxtgm::Unary>(tensor);
+                auto fid = gm.add_energy_function(std::move(f));
+                gm.add_factor({vi}, fid);
+            }
+
+            // pairwise potts factors
+            for (std::size_t i = 0; i < n_variables - 1; i++)
+            {   
+                auto beta = xt::random::rand<energy_type>({1}, energy_type(-1), energy_type(1))(0);
+                auto f = std::make_unique<Potts>(n_labels, beta);
+            }
+
+
+            // unsatisfiable constraints
+            xt::xarray<energy_type > not_same = xt::zeros<energy_type>({n_labels, n_labels});
+            xt::xarray<energy_type > not_different = xt::ones<energy_type>({n_labels, n_labels});
+            for(std::size_t i=0; i<n_labels; ++i)
+            {
+                not_same(i, i) = 1;
+                not_different(i, i) = 0;
+            }
+            auto f_not_same  = std::make_unique<ArrayDiscreteConstraintFunction>(not_same);
+            auto f_not_different = std::make_unique<ArrayDiscreteConstraintFunction>(not_different);
+            auto fid_not_same = gm.add_constraint_function(std::move(f_not_same));
+            auto fid_not_different = gm.add_constraint_function(std::move(f_not_different));
+
+            // pairwise constraints along the chain
+            for (std::size_t i = 0; i < n_variables - 1; i++)
+            {
+                gm.add_constraint({i, i+1}, fid_not_same);
+                gm.add_constraint({i, i+1}, fid_not_different);
+            }
+
+
+            const std::string name = fmt::format("InfesibleModel(n_variables={}, n_labels={}, seed={})", n_variables, n_labels, seed);
+            ++seed;
+            return std::pair<DiscreteGm, std::string>(std::move(gm), name);
+        }
+
+        std::size_t n_variables;
+        discrete_label_type n_labels;
+        std::uint32_t seed =0;
+
+    };
+
 
 } // namespace nxtgm

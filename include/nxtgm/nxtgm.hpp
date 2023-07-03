@@ -26,5 +26,7 @@ namespace nxtgm
     template<typename T>
     using small_arity_vector = boost::container::small_vector<T, 4>;
 
+    constexpr energy_type constraint_feasiblility_limit = 1e-5;
+
 } 
 

@@ -5,8 +5,11 @@
 
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/utils/lp.hpp>
+#include <nlohmann/json.hpp>
 
 namespace nxtgm{
+    
+    class DiscreteEnergyFunctionBase;
 
 
     // when we build an ilp to solve a discrete gm, for each function (ie the values of a factor)
@@ -28,6 +31,7 @@ namespace nxtgm{
 
     class DiscreteEnergyFunctionBase{
         public:
+
         virtual ~DiscreteEnergyFunctionBase() = default;
      
     
@@ -55,6 +59,19 @@ namespace nxtgm{
 
         virtual std::unique_ptr<DiscreteEnergyFunctionBase> clone() const = 0;
 
+        virtual std::pair<std::unique_ptr<DiscreteEnergyFunctionBase>, energy_type> bind(
+            const span<std::size_t> & binded_vars,
+            const span<discrete_label_type> & binded_vars_labels
+        ) const;
 
+
+        virtual nlohmann::json serialize_json() const = 0;
     };  
+
+    using UserDeserializeFactory = std::unordered_map<std::string, std::function<std::unique_ptr<DiscreteEnergyFunctionBase>(const nlohmann::json &)>>;
+
+    std::unique_ptr<DiscreteEnergyFunctionBase> discrete_energy_function_deserialize_json(
+        const nlohmann::json & json,
+        const UserDeserializeFactory & user_factory =  UserDeserializeFactory()
+    );
 }

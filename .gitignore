@@ -40,3 +40,17 @@
 *.pyo
 *.pyd
 __pycache__/
+
+
+# profiling
+*.profraw
+
+# bld dir
+bld/
+
+.vscode/
+
+
+build.sh
+coverage.sh
+nxtgm.code-workspace

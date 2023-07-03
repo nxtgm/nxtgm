@@ -69,6 +69,7 @@ namespace nxtgm{
         bool is_simple()const{
             return is_simple_;
         }
+        discrete_label_type max_num_labels()const;
     private:
         std::vector<nxtgm::discrete_label_type> n_labels_;
         uint64_t n_variables_;

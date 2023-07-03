@@ -122,6 +122,24 @@ struct CheckOptimality
     bool proven = true;
 };
 
+
+struct CheckInfesibility
+{
+    static std::string name(){ return "CheckInfesibility"; }
+    void check(DiscreteGmOptimizerBase * optimizer, OptimizationStatus status) const
+    {
+        if(proven)
+        {
+            CHECK(status == OptimizationStatus::INFEASIBLE);
+        }
+        const auto & model = optimizer->model();
+        auto solution_value = model.evaluate(optimizer->best_solution(), false);
+        CHECK(!solution_value.is_feasible());
+    }
+    bool proven = true;
+};
+
+
 struct CheckLocalOptimality
 {
     static std::string name(){ return "CheckLocalOptimality"; }
@@ -129,7 +147,7 @@ struct CheckLocalOptimality
     {
         const auto & model = optimizer->model();
         const auto solution = optimizer->best_solution();
-        auto solution_value = model.evaluate(solution, false);
+        auto solution_value = model.evaluate(solution);
         auto solution_copy = solution;
 
         const auto num_var = model.space().size();
@@ -142,7 +160,11 @@ struct CheckLocalOptimality
                 }
                 solution_copy[vi] = li;
                 auto solution_copy_value = model.evaluate(solution_copy, false);
-                CHECK(solution_value <= solution_copy_value);
+                if(!CHECK(solution_value <= solution_copy_value))
+                {   
+                    std::cout<<"could improve solution by chaging label of variable "<<vi<<" from "<<l<<" to "<<li<<std::endl;
+                }
+
                 // reset solution_copy
                 solution_copy[vi] = l;
             }
@@ -168,6 +190,7 @@ template<
 
     std::cout<<testname<<":\n";
     progressbar progressBar(workload);
+    
     nxtgm::tuple_for_each(model_gen_tuple, [&](auto && model_gen){
 
         for(auto i=0; i<n_runs; ++i){
@@ -175,14 +198,12 @@ template<
             auto gen_result = model_gen();
             const DiscreteGm model = std::move(gen_result.first);
             const auto name = std::move(gen_result.second);
-            //INFO("Model Instance ",name);
+            INFO("Model Instance ",name);
             
             auto pi = 0;
             for(auto && solver_parameter : solver_parameters)
             {
-                //INFO("Paramter Index", pi);
                 auto solver = std::make_unique<SOLVER_TYPE>(model, solver_parameter);
-
                 OptimizationStatus status;
                 if(with_testing_callback)
                 {

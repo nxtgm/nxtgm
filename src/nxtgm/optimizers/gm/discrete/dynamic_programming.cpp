@@ -172,13 +172,14 @@ namespace nxtgm
                     if (vars[1] == node && node_order_[vars[0]] > node_order_[node])
                     {
                         const auto node2 = vars[0];
-                        discrete_label_type s;
-                        energy_type v;
-                        for (discrete_label_type l1 = 0; l1 < gm.num_labels(node); ++l1) {
-                            v=std::numeric_limits<energy_type>::infinity();
+                        for (discrete_label_type l1 = 0; l1 < gm.num_labels(node); ++l1)
+                        {
+                            discrete_label_type s;
+                            auto v =std::numeric_limits<energy_type>::infinity();
+                            
                             for (discrete_label_type l0 = 0; l0 < gm.num_labels(node2); ++l0) {
-                                const auto factor_value = factor({l0, l1});
-                                const auto v2 = factor_value + value_buffers_[node2][l0];
+          
+                                const auto v2 = factor({l0, l1}) + value_buffers_[node2][l0];
                                 if (v2 < v) {
                                     v = v2;
                                     s = l0;

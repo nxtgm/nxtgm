@@ -47,4 +47,20 @@ TEST_CASE("brute-force-naive"){
         );
     };
 
+    SUBCASE("infeasible")
+    {
+            nxtgm::tests::test_discrete_gm_optimizer<nxtgm::BruteForceNaive>(
+            std::string("brute-force-naive"),
+            {nxtgm::BruteForceNaive::parameters_type{}},
+            std::make_tuple(
+                nxtgm::tests::InfeasibleModel{4,2}
+            ),
+            10,
+            std::make_tuple(
+                nxtgm::tests::CheckOptimizationStatus{nxtgm::OptimizationStatus::INFEASIBLE},
+                nxtgm::tests::CheckInfesibility{}
+            )
+        );
+    }
+
 }

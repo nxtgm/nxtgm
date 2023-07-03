@@ -14,6 +14,7 @@ namespace nxtgm
         public:
             bool integer = true;
             std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
+            bool highs_log_to_console = false;
         };
 
         using base_type = DiscreteGmOptimizerBase;
@@ -44,7 +45,7 @@ namespace nxtgm
         const solution_type & best_solution()const override;
         const solution_type & current_solution()const override;
 
-
+        energy_type lower_bound() const override;
         
     private:
         void setup_lp();
@@ -56,6 +57,7 @@ namespace nxtgm
         SolutionValue best_sol_value_;
         SolutionValue current_sol_value_;
 
+        energy_type lower_bound_;
 
         // map from variable index to the beginning of the indicator variables
         IndicatorVariableMapping indicator_variable_mapping_;

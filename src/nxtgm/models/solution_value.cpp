@@ -4,9 +4,9 @@ namespace nxtgm
 {
     bool SolutionValue::operator<(const SolutionValue & other) const
     {
-        if(is_feasible_)
+        if(this->is_feasible())
         {
-            if(other.is_feasible_)
+            if(other.is_feasible())
             {
                 return energy_ < other.energy_;
             }
@@ -17,7 +17,7 @@ namespace nxtgm
         }
         else
         {
-            if(other.is_feasible_)
+            if(other.is_feasible())
             {                   
                 return false;
             }
@@ -37,9 +37,9 @@ namespace nxtgm
 
     bool SolutionValue::operator<=(const SolutionValue & other) const
     {
-        if(is_feasible_)
+        if(this->is_feasible())
         {
-            if(other.is_feasible_)
+            if(other.is_feasible())
             {
                 return energy_ <= other.energy_;
             }
@@ -50,7 +50,7 @@ namespace nxtgm
         }
         else
         {
-            if(other.is_feasible_)
+            if(other.is_feasible())
             {                   
                 return false;
             }
@@ -68,10 +68,21 @@ namespace nxtgm
         }
     }
 
+    SolutionValue& SolutionValue::operator+=(const SolutionValue & other){
+        energy_ += other.energy_;
+        how_violated_ += other.how_violated_;
+        return *this;
+    }
+    SolutionValue& SolutionValue::operator-=(const SolutionValue & other){
+        energy_ -= other.energy_;
+        how_violated_ -= other.how_violated_;
+        return *this;
+    }
+
     // print class
     std::ostream & operator<<(std::ostream & os, const SolutionValue & solution)
     {
-        os << "(" << solution.energy() << ", " << solution.is_feasible() << ", " << solution.how_violated() << ")";
+        os << "(" << solution.energy() << ", " << solution.how_violated() << ")";
         return os;
     }
 }
