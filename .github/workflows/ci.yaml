@@ -4,7 +4,7 @@ on:
     pull_request:
 
 jobs:
-  linux:
+  unix:
     strategy:
       matrix:
         include:
