@@ -10,10 +10,10 @@
 namespace nxtgm
 {
 
-    DynamicProgramming::DynamicProgramming(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & ) 
-        : base_type(gm), 
+    DynamicProgramming::DynamicProgramming(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & )
+        : base_type(gm),
         parameters_(parameters),
-        best_solution_(gm.num_variables()), 
+        best_solution_(gm.num_variables()),
         best_sol_value_(gm.evaluate(best_solution_)),
         factors_of_variables_(gm),
         value_buffers_(gm.space().size()),
@@ -29,7 +29,7 @@ namespace nxtgm
         {
             throw std::runtime_error("DynamicProgramming does not support constraints");
         }
-        
+
         // node order
         std::vector<std::size_t> num_children(gm.num_variables(), 0);
         std::vector<std::size_t> node_list;
@@ -106,12 +106,12 @@ namespace nxtgm
     ) {
         reporter_callback.begin();
         AutoStartedTimer timer;
-        
+
         const auto & gm = this->model();
         OptimizationStatus status = OptimizationStatus::OPTIMAL;
-        
+
         std::vector<discrete_label_type> factor_label_buffer(gm.max_factor_size(), 0);
- 
+
         for (std::size_t i = 1; i <= gm.num_variables(); ++i)
         {
 
@@ -176,9 +176,9 @@ namespace nxtgm
                         {
                             discrete_label_type s;
                             auto v =std::numeric_limits<energy_type>::infinity();
-                            
+
                             for (discrete_label_type l0 = 0; l0 < gm.num_labels(node2); ++l0) {
-          
+
                                 const auto v2 = factor({l0, l1}) + value_buffers_[node2][l0];
                                 if (v2 < v) {
                                     v = v2;
@@ -197,7 +197,7 @@ namespace nxtgm
         this->compute_labels();
 
         this->best_sol_value_ = gm.evaluate(this->best_solution_);
-    
+
         // indicate the end of the optimization
         reporter_callback.end();
 
@@ -269,6 +269,6 @@ namespace nxtgm
         }
     }
 
-    
+
 
 }

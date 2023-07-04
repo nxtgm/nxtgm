@@ -8,8 +8,8 @@
 class DefaultTesterFunction : public nxtgm::DiscreteEnergyFunctionBase{
 public:
     template<class TENSOR>
-    DefaultTesterFunction(TENSOR && values) : 
-        values(std::forward<TENSOR>(values)) 
+    DefaultTesterFunction(TENSOR && values) :
+        values(std::forward<TENSOR>(values))
     {
     }
     std::size_t arity() const override{
@@ -109,7 +109,7 @@ TEST_CASE("label-costs"){
         CHECK(function.energy({0,0,2}) == doctest::Approx(1.0 + 3.0));
         CHECK(function.energy({1,2,3}) == doctest::Approx(2.0 + 3.0 + 4.0));
     }
-    
+
     SUBCASE("less-labels")
     {
         nxtgm::LabelCosts function(3, {1.0, 2});
@@ -141,4 +141,3 @@ TEST_CASE("default-tester-function"){
     DefaultTesterFunction function( xt::arange<int>(0, 2*3*4).reshape({2,3,4}));
     nxtgm::tests::test_discrete_energy_function<DefaultTesterFunction>(&function);
 }
-

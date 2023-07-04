@@ -9,7 +9,7 @@ namespace nxtgm{
 
 
     struct IlpConstraintBuilderBuffer
-    {   
+    {
         void ensure_size(std::size_t max_constraint_size, std::size_t max_constraint_arity);
         std::vector<energy_type>           how_violated_buffer;
         std::vector<discrete_label_type>   label_buffer;
@@ -18,15 +18,15 @@ namespace nxtgm{
 
     class DiscreteConstraintFunctionBase {
         public:
-  
+
         virtual ~DiscreteConstraintFunctionBase() = default;
-        
+
         virtual std::size_t arity() const = 0;
         virtual discrete_label_type shape(std::size_t index) const = 0;
 
         virtual energy_type  how_violated(const discrete_label_type * discrete_labels) const  = 0;
 
-        // convenience function 
+        // convenience function
         virtual std::size_t size() const;
         virtual energy_type how_violated(std::initializer_list<discrete_label_type> labels) const;
         virtual std::unique_ptr<DiscreteConstraintFunctionBase> clone() const = 0;

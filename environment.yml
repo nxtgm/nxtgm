@@ -5,7 +5,7 @@ channels:
 dependencies:
   # Build tools
   - cmake
-  - doctest 
+  - doctest
   - cxx-compiler
   - boost-cpp
   - fmt

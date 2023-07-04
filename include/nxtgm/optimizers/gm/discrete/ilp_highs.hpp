@@ -9,7 +9,7 @@ namespace nxtgm
 
     class IlpHighs : public DiscreteGmOptimizerBase{
     public:
-        
+
         class parameters_type{
         public:
             bool integer = true;
@@ -22,7 +22,7 @@ namespace nxtgm
 
         using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
         using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
-        
+
         using base_type::optimize;
 
         inline static std::string name()
@@ -46,7 +46,7 @@ namespace nxtgm
         const solution_type & current_solution()const override;
 
         energy_type lower_bound() const override;
-        
+
     private:
         void setup_lp();
 
@@ -67,4 +67,3 @@ namespace nxtgm
         HighsModel highs_model_;
     };
 }
-

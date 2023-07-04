@@ -32,7 +32,7 @@ class TestReporterCallback : public DiscreteGmOptimizerBase::reporter_callback_b
 {
 public:
     using base_type = DiscreteGmOptimizerBase::reporter_callback_base_type;
-    TestReporterCallback(const DiscreteGmOptimizerBase * optimizer) 
+    TestReporterCallback(const DiscreteGmOptimizerBase * optimizer)
     : base_type(optimizer),
     called_begin_(false),
     called_end_(false),
@@ -44,13 +44,13 @@ public:
         CHECK(!called_begin_);
         called_begin_ = true;
     }
-    
+
     inline void end() override{
         CHECK(!called_end_);
         CHECK(called_begin_);
         called_end_ = true;
     }
-    
+
     bool report() override{
         CHECK(called_begin_);
         CHECK(!called_end_);
@@ -78,7 +78,7 @@ struct CheckFeasiblity
 {
     static std::string name(){ return "CheckFeasiblity"; }
     void check(DiscreteGmOptimizerBase * optimizer, OptimizationStatus status) const
-    {   
+    {
         const auto & model = optimizer->model();
         auto solution_value = model.evaluate(optimizer->best_solution(), false);
         CHECK(solution_value.is_feasible());
@@ -102,7 +102,7 @@ struct CheckOptimality
 
         CHECK(optimal_solution_value.is_feasible() == solution_value.is_feasible());
         if(optimal_solution_value.is_feasible()){
-            
+
 
             if(!CHECK(solution_value.energy() == doctest::Approx(optimal_solution_value.energy())))
             {
@@ -153,7 +153,7 @@ struct CheckLocalOptimality
         const auto num_var = model.space().size();
         for(std::size_t vi = 0; vi < num_var; ++vi){
             const auto l = solution[vi];
-            const auto num_labels = model.space()[vi];            
+            const auto num_labels = model.space()[vi];
             for(discrete_label_type li = 0; li < num_labels; ++li){
                 if(li == l){
                      continue;
@@ -161,7 +161,7 @@ struct CheckLocalOptimality
                 solution_copy[vi] = li;
                 auto solution_copy_value = model.evaluate(solution_copy, false);
                 if(!CHECK(solution_value <= solution_copy_value))
-                {   
+                {
                     std::cout<<"could improve solution by chaging label of variable "<<vi<<" from "<<l<<" to "<<li<<std::endl;
                 }
 
@@ -180,17 +180,17 @@ template<
 > void test_discrete_gm_optimizer(
     const std::string & testname,
     std::initializer_list<typename SOLVER_TYPE::parameters_type> solver_parameters,
-    MODEL_GEN_TUPLE&& model_gen_tuple, 
+    MODEL_GEN_TUPLE&& model_gen_tuple,
     std::size_t n_runs,
     CHECKER_TUPLE&& checker_tuple,
     bool with_testing_callback = true
 ){
-    
+
     const std::size_t workload = n_runs * solver_parameters.size() * std::tuple_size_v<MODEL_GEN_TUPLE>;
 
     std::cout<<testname<<":\n";
     progressbar progressBar(workload);
-    
+
     nxtgm::tuple_for_each(model_gen_tuple, [&](auto && model_gen){
 
         for(auto i=0; i<n_runs; ++i){
@@ -199,7 +199,7 @@ template<
             const DiscreteGm model = std::move(gen_result.first);
             const auto name = std::move(gen_result.second);
             INFO("Model Instance ",name);
-            
+
             auto pi = 0;
             for(auto && solver_parameter : solver_parameters)
             {

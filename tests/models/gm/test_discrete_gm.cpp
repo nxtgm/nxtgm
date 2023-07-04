@@ -32,7 +32,7 @@ TEST_CASE("test discrete gm") {
 
 TEST_CASE("test unique label chain") {
     auto model = nxtgm::tests::unique_label_chain<float, uint8_t>(3, 4);
-    std::cout<<"model space "<<model.space().size()<<std::endl; 
+    std::cout<<"model space "<<model.space().size()<<std::endl;
     using gm_type = std::decay_t<decltype(model)>;
 
     using solution_type = typename gm_type::space_type::solution_type;
@@ -59,5 +59,3 @@ TEST_CASE("test unique label chain") {
     CHECK_EQ(model(solution, false).is_feasible(), false);
 
 }
-
-

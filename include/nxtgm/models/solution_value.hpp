@@ -11,7 +11,7 @@ namespace nxtgm
     public:
 
         inline SolutionValue(
-            const energy_type  energy = 0, 
+            const energy_type  energy = 0,
             const energy_type  how_violated = 0
         )
         :   energy_(energy),
@@ -26,7 +26,7 @@ namespace nxtgm
         }
 
         inline bool is_feasible() const
-        {                        
+        {
             return how_violated_ < constraint_feasiblility_limit;
         }
 
@@ -48,4 +48,4 @@ namespace nxtgm
     // print class
     std::ostream & operator<<(std::ostream & os, const SolutionValue & solution);
 
-} 
+}

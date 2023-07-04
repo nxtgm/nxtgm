@@ -5,7 +5,7 @@
 namespace nxtgm
 {
     discrete_label_type DiscreteSpace::max_num_labels()const{
-        // get max element 
+        // get max element
         return *std::max_element(n_labels_.begin(), n_labels_.end());
     }
 
@@ -16,7 +16,7 @@ namespace nxtgm
         {
             return {
                 {"is_simple", true},
-                { "n_variables", n_variables_ }, 
+                { "n_variables", n_variables_ },
                 { "n_labels", n_labels_.front() }
             };
         }
@@ -24,7 +24,7 @@ namespace nxtgm
         {
             return {
                 {"is_simple", false},
-                { "n_variables", n_variables_ }, 
+                { "n_variables", n_variables_ },
                 { "n_labels", n_labels_}
             };
         }
@@ -41,7 +41,7 @@ namespace nxtgm
             return DiscreteSpace(json["n_labels"].get<std::vector<discrete_label_type>>());
         }
     }
-    
+
 
 
     IndicatorVariableMapping::IndicatorVariableMapping(const DiscreteSpace & space)
@@ -61,7 +61,7 @@ namespace nxtgm
                 n_variables_ += space[vi];
             }
         }
-    
+
     }
 
 

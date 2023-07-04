@@ -5,7 +5,7 @@
 
 
 TEST_CASE("icm"){
-    
+
     nxtgm::tests::test_discrete_gm_optimizer<nxtgm::Icm>(
         std::string("test-icm"),
         {nxtgm::Icm::parameters_type{}},

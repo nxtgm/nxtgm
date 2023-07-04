@@ -58,5 +58,5 @@ namespace nxtgm
         detail::visit_tuple_breakable<0>(std::forward<Tuple>(tuple), std::forward<F>(f));
     }
 
-    
+
 } // namespace nxtgm::utils

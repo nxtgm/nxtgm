@@ -2,7 +2,7 @@
 
 namespace nxtgm{
 
-    
+
     template<
         class INDEX_TYPE,
         class SHAPE_FUNCTOR,
@@ -34,7 +34,7 @@ namespace nxtgm{
 
             // Increment
             buffer[last_var]++;
-        
+
             // Carry
             while (buffer[index] == shape(index))
             {

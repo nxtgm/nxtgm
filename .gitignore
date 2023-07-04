@@ -32,7 +32,7 @@
 *.app
 
 
-# macOS 
+# macOS
 .DS_Store
 
 # python

@@ -3,7 +3,7 @@
 #include <nxtgm/models/solution_value.hpp>
 
 TEST_CASE("test_solution_value")
-{   
+{
     using sv = nxtgm::models::SolutionValue<double>;
 
 

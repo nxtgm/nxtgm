@@ -17,7 +17,7 @@ namespace nxtgm
 
     const_discrete_label_span local_solution_from_model_solution(
         const std::vector<std::size_t> & variables,
-        const std::vector<discrete_label_type> & solution,        
+        const std::vector<discrete_label_type> & solution,
         std::vector<discrete_label_type> & local_labels_buffer
     );
 
@@ -28,7 +28,7 @@ namespace nxtgm
 
 
         template <class VARIABLES>
-        DiscreteFactor(const VARIABLES &variables, const DiscreteEnergyFunctionBase *function) 
+        DiscreteFactor(const VARIABLES &variables, const DiscreteEnergyFunctionBase *function)
         : function_(function),
           variables_(variables.begin(), variables.end())
         {
@@ -91,7 +91,7 @@ namespace nxtgm
     public:
 
         template <class VARIABLES>
-        DiscreteConstraint(const VARIABLES &variables, const DiscreteConstraintFunctionBase *function) 
+        DiscreteConstraint(const VARIABLES &variables, const DiscreteConstraintFunctionBase *function)
         : function_(function),
           variables_(variables.begin(), variables.end())
         {
@@ -106,7 +106,7 @@ namespace nxtgm
         {
             return variables_;
         }
-    
+
         const std::size_t arity()const
         {
             return variables_.size();
@@ -145,7 +145,7 @@ namespace nxtgm
         const DiscreteConstraintFunctionBase *function_;
         std::vector<std::size_t> variables_;
     };
-    
+
 
 
 
@@ -155,14 +155,14 @@ namespace nxtgm
     public:
 
         using solution_type = std::vector<discrete_label_type>;
-       
+
         DiscreteGm(const DiscreteSpace & discrete_space);
 
         template<class NUM_LABELS_ITER>
         DiscreteGm(
             NUM_LABELS_ITER num_labels_begin,
             NUM_LABELS_ITER num_labels_end
-        ) : 
+        ) :
             space_(num_labels_begin, num_labels_end),
             factors_(),
             energy_functions_(),
@@ -176,7 +176,7 @@ namespace nxtgm
         }
 
         inline DiscreteGm(std::size_t num_var , discrete_label_type num_labels
-        ) : 
+        ) :
             space_(num_var, num_labels),
             factors_(),
             energy_functions_(),
@@ -223,7 +223,7 @@ namespace nxtgm
         inline std::size_t max_constraint_size() const
         {
             return max_constraint_size_;
-        }   
+        }
 
         inline std::size_t max_arity() const
         {
@@ -288,12 +288,12 @@ namespace nxtgm
             {
                 f(constraint);
             }
-        }   
-
-    
+        }
 
 
-        
+
+
+
         std::size_t add_energy_function(std::unique_ptr<DiscreteEnergyFunctionBase> function);
         std::size_t add_constraint_function(std::unique_ptr<DiscreteConstraintFunctionBase> function);
 
@@ -322,7 +322,7 @@ namespace nxtgm
         {
             const std::size_t arity = discrete_variables.size();
             max_constraint_arity_ = std::max(max_constraint_arity_, arity);
-        
+
             const auto size = shape_product(discrete_variables);
             max_constraint_size_ = std::max(max_constraint_size_, size);
 
@@ -340,7 +340,7 @@ namespace nxtgm
         {
             const std::size_t arity = discrete_variables.size();
             max_factor_arity_ = std::max(max_factor_arity_, arity);
-    
+
             const auto size = shape_product(discrete_variables);
             max_factor_size_ = std::max(max_factor_size_, size);
 
@@ -382,7 +382,7 @@ namespace nxtgm
             return product;
         }
 
-    
+
         DiscreteSpace space_;
         std::vector<DiscreteFactor> factors_;
         std::vector<std::unique_ptr<DiscreteEnergyFunctionBase>> energy_functions_;
@@ -430,4 +430,4 @@ namespace nxtgm
         }
     };
 
-} 
+}

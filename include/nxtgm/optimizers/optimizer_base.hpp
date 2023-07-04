@@ -36,7 +36,7 @@ namespace nxtgm
 
         using repair_callback_base_type = RepairCallbackBase<self_type>;
         using repair_callback_wrapper_type = RepairCallbackWrapper<repair_callback_base_type>;
-        
+
         inline OptimizerBase(const model_type & model) : model_(model){
         }
 
@@ -68,15 +68,15 @@ namespace nxtgm
             repair_callback_wrapper_type & repair_callback
         ) = 0;
 
-        
+
         virtual const model_type & model()const{
             return this->model_;
         }
         virtual const solution_type & best_solution() const = 0;
         virtual const solution_type & current_solution() const = 0;
-    
+
     private:
         const model_type & model_;
 
     };
-} 
+}

@@ -5,7 +5,7 @@
 namespace nxtgm
 {
     class IlpData
-    {   
+    {
     public:
         using value_tye = double;
 

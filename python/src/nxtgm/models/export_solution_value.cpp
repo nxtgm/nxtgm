@@ -10,12 +10,12 @@ namespace nxtgm
     {
         py::class_<SolutionValue>(pymodule, "SolutionValue")
             // readonly properties
-            
+
 
             .def_property_readonly("energy", &SolutionValue::energy)
             .def_property_readonly("is_feasible", &SolutionValue::is_feasible)
             .def_property_readonly("how_violated", &SolutionValue::how_violated)
-            // operator < 
+            // operator <
             .def("__lt__", [](const SolutionValue & solution, const SolutionValue & other)
             {
                 return solution < other;

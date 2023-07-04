@@ -10,7 +10,7 @@ namespace nxtgm
 
     class Icm : public DiscreteGmOptimizerBase{
     public:
-        
+
         class parameters_type{
         public:
             std::vector<std::size_t> roots;
@@ -22,7 +22,7 @@ namespace nxtgm
 
         using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
         using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
-        
+
         using base_type::optimize;
 
         inline static std::string name()
@@ -40,15 +40,15 @@ namespace nxtgm
 
         const solution_type & best_solution()const override;
         const solution_type & current_solution()const override;
-        
+
     private:
         void compute_labels();
-        
+
         parameters_type parameters_;
 
         Movemaker movemaker_;
         std::vector<uint8_t> in_queue_;
         std::queue<std::size_t> queue_;
-        
+
     };
 }

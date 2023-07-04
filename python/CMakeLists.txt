@@ -14,7 +14,7 @@ execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import numpy; print(numpy.get_i
 
 
 # add python bindings target
-pybind11_add_module(_nxtgm  
+pybind11_add_module(_nxtgm
     ${PY_SRC_DIR}/nxtgm/models/export_solution_value.cpp
     ${PY_SRC_DIR}/nxtgm/export_nxtgm.cpp
     ${PY_SRC_DIR}/nxtgm/energy_functions/export_discrete_energy_functions.cpp
@@ -24,13 +24,13 @@ pybind11_add_module(_nxtgm
 )
 
 # link dependencies
-target_link_libraries(_nxtgm PRIVATE 
+target_link_libraries(_nxtgm PRIVATE
     nxtgm
     xtensor-python
 )
 
 # include directories
-target_include_directories(_nxtgm PRIVATE 
+target_include_directories(_nxtgm PRIVATE
     ${NUMPY_INCLUDE_DIR}
 )
 
@@ -40,11 +40,11 @@ add_custom_command(TARGET _nxtgm POST_BUILD
                    $<TARGET_FILE:_nxtgm>
                    ${PY_MODULE_DIR}/nxtgm)
 
-# run pytest from cmake 
+# run pytest from cmake
 add_custom_target(python_tests
                   ${CMAKE_COMMAND}
-                     -E env PYTHONPATH=${PY_MODULE_DIR}  
-                     ${PYTHON_EXECUTABLE} -m 
+                     -E env PYTHONPATH=${PY_MODULE_DIR}
+                     ${PYTHON_EXECUTABLE} -m
                      pytest ${CMAKE_CURRENT_SOURCE_DIR}/tests -vvv -s
                   DEPENDS _nxtgm
                   WORKING_DIRECTORY ${PY_MODULE_DIR}

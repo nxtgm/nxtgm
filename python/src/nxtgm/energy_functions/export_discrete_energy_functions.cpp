@@ -19,7 +19,7 @@ namespace nxtgm
 
             // return shape as tuple
             .def_property_readonly("shape", [](const DiscreteEnergyFunctionBase * self)
-            {   
+            {
                 const auto arity = self->arity();
                 auto my_tuple = py::tuple(arity);
 
@@ -61,7 +61,7 @@ namespace nxtgm
             })
 
         ;
-        
+
 
         py::class_<Potts, DiscreteEnergyFunctionBase>(pymodule , "Potts")
             .def(py::init<std::size_t, energy_type>(), py::arg("num_labels"), py::arg("beta"))
@@ -75,7 +75,7 @@ namespace nxtgm
             {
                 return new LabelCosts(arity, values.begin(), values.end());
             }), py::arg("arity"), py::arg("label_costs"))
-            
+
         ;
     }
 }

@@ -48,27 +48,27 @@ namespace nxtgm
             const auto pos = factor.variable_position(variable);
 
             for(discrete_label_type l=0; l<num_labels; ++l)
-            {   
+            {
                 max_arity_labels_buffer_[pos] = l;
                 const auto energy = factor(max_arity_labels_buffer_.data());
                 max_num_labels_solution_value_buffer_[l] += SolutionValue(energy, 0);
             }
-        } 
+        }
         for(const auto cid: constraints_ids)
         {
             const auto & constraint = gm_.constraints()[cid];
             constraint.map_from_model(current_solution_, max_arity_labels_buffer_);
             const auto pos = constraint.variable_position(variable);
-            
+
             for(discrete_label_type l=0; l<num_labels; ++l)
-            {   
+            {
                 max_arity_labels_buffer_[pos] = l;
                 const auto how_violated = constraint(max_arity_labels_buffer_.data());
                 max_num_labels_solution_value_buffer_[l] += SolutionValue(0, how_violated);
-                    
+
             }
         }
-        
+
 
         // find argmin with stl in max_num_labels_solution_value_buffer_ vector
         auto min_value_iter = std::min_element(max_num_labels_solution_value_buffer_.begin(), max_num_labels_solution_value_buffer_.begin()+ num_labels);
@@ -77,7 +77,7 @@ namespace nxtgm
         if(best_label != current_label)
         {
             current_solution_[variable] = best_label;
-            
+
             // update energy
             const auto new_energy = current_solution_value_.energy() -  max_num_labels_solution_value_buffer_[current_label].energy() + max_num_labels_solution_value_buffer_[best_label].energy();
             const auto new_how_violated =current_solution_value_.how_violated() -  max_num_labels_solution_value_buffer_[current_label].how_violated() + max_num_labels_solution_value_buffer_[best_label].how_violated();

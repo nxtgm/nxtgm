@@ -8,8 +8,8 @@
 namespace nxtgm
 {
 
-    Icm::Icm(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & initial_solution) 
-        : base_type(gm), 
+    Icm::Icm(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & initial_solution)
+        : base_type(gm),
         parameters_(parameters),
         movemaker_(gm, initial_solution),
         in_queue_(gm.num_variables(), 1)
@@ -45,7 +45,7 @@ namespace nxtgm
 
             // if the solution improved we put all neighbors on the queue
             if(did_improve)
-            {   
+            {
                 // report the current solution to callack
                 if (reporter_callback  && !timer.paused_call([&](){return reporter_callback.report();}))
                 {

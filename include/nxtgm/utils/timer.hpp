@@ -3,7 +3,7 @@
 namespace  nxtgm
 {
     class AutoStartedTimer
-    {   
+    {
     public:
         using clock_type = std::chrono::high_resolution_clock;
         using time_point = std::chrono::time_point<clock_type>;
@@ -65,7 +65,7 @@ namespace  nxtgm
         }
 
 
-        
+
         duration_type elapsed()const
         {
 

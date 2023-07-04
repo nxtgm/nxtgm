@@ -4,11 +4,11 @@
 namespace nxtgm
 {
 
-    BruteForceNaive::BruteForceNaive(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & initial_solution) 
-        : base_type(gm), 
+    BruteForceNaive::BruteForceNaive(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & initial_solution)
+        : base_type(gm),
         parameters_(parameters),
-        best_solution_(initial_solution), 
-        current_solution_(initial_solution), 
+        best_solution_(initial_solution),
+        current_solution_(initial_solution),
         best_sol_value_(),
         current_sol_value_()
     {
@@ -28,11 +28,11 @@ namespace nxtgm
         reporter_callback_wrapper_type & reporter_callback,
         repair_callback_wrapper_type & /*repair_callback not used*/
     ) {
-        
+
         AutoStartedTimer timer;
 
         OptimizationStatus status = OptimizationStatus::OPTIMAL;
-        
+
         static const bool early_stop_infeasible = true;
 
         // indicate the start of the optimization
@@ -45,7 +45,7 @@ namespace nxtgm
 
         bool exit_via_callback = false;
         this->model().space().exitable_for_each_solution(
-            current_solution_, 
+            current_solution_,
             [&](const solution_type & solution
         ){
             // evaluate the current solution
@@ -81,7 +81,7 @@ namespace nxtgm
 
         // indicate the end of the optimization
         reporter_callback.end();
-        
+
         if(!this->best_sol_value_.is_feasible()){
             status = OptimizationStatus::INFEASIBLE;
         }

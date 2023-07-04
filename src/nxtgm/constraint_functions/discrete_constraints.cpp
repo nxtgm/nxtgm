@@ -5,8 +5,8 @@
 
 namespace nxtgm
 {
-    
-    PairwiseUniqueLables::PairwiseUniqueLables(discrete_label_type n_labels, energy_type scale) 
+
+    PairwiseUniqueLables::PairwiseUniqueLables(discrete_label_type n_labels, energy_type scale)
     :   n_labels_(n_labels),
         scale_(scale){
     }
@@ -17,13 +17,13 @@ namespace nxtgm
 
     discrete_label_type PairwiseUniqueLables::shape(std::size_t ) const  {
         return n_labels_;
-    }   
-    
+    }
+
     std::size_t PairwiseUniqueLables::size() const  {
         return n_labels_ * n_labels_;
     }
 
-    
+
     energy_type  PairwiseUniqueLables::how_violated(const discrete_label_type * discrete_labels) const {
         return discrete_labels[0] != discrete_labels[1] ? static_cast<energy_type>(0) :scale_;
     }
@@ -33,9 +33,9 @@ namespace nxtgm
     }
 
     void PairwiseUniqueLables::add_to_lp(
-        IlpData & ilp_data,  
-        const std::size_t * indicator_variables_mapping, 
-        IlpConstraintBuilderBuffer & /*buffer*/ 
+        IlpData & ilp_data,
+        const std::size_t * indicator_variables_mapping,
+        IlpConstraintBuilderBuffer & /*buffer*/
     )const
     {
         for(discrete_label_type l=0; l < n_labels_; ++l){
@@ -45,7 +45,7 @@ namespace nxtgm
             ilp_data.add_constraint_coefficient(indicator_variables_mapping[1] + l, 1.0);
 
         }
-        
+
     }
 
 
@@ -65,7 +65,7 @@ namespace nxtgm
         );
     }
 
-    
+
 
     std::size_t ArrayDiscreteConstraintFunction::arity() const{
         return how_violated_.dimension();
@@ -139,4 +139,4 @@ namespace nxtgm
 
         return std::make_unique<ArrayDiscreteConstraintFunction>(array);
     }
-} 
+}

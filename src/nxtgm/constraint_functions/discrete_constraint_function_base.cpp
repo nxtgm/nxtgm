@@ -46,10 +46,10 @@ namespace nxtgm{
         Identity<ArrayDiscreteConstraintFunction>
     >;
 
-  // yes, this if/else for each function is 
+  // yes, this if/else for each function is
     // a tight coupling between the serialization and the
-    // concrete function types. 
-    // A "more generic" solution would be to have a 
+    // concrete function types.
+    // A "more generic" solution would be to have a
     // singleton with a map from type to factory function
     // but this makes linkage more complicated
     std::unique_ptr<DiscreteConstraintFunctionBase> discrete_constraint_function_deserialize_json(
@@ -58,7 +58,7 @@ namespace nxtgm{
     ){
         const std::string type = json.at("type").get<std::string>();
         std::unique_ptr<DiscreteConstraintFunctionBase> result;
-        
+
         AllInternalDiscreteConstraintFunctionTypes all_types;
         tuple_breakable_for_each(all_types, [&](auto && tuple_element){
             using function_type = typename std::decay_t<decltype(tuple_element)>::type;

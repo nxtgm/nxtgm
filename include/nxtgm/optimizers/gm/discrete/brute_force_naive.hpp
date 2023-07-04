@@ -9,7 +9,7 @@ namespace nxtgm
 
     class BruteForceNaive : public DiscreteGmOptimizerBase{
     public:
-        
+
         class parameters_type{
         public:
             std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
@@ -20,13 +20,13 @@ namespace nxtgm
 
         using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
         using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
-        
+
         using base_type::optimize;
 
         inline static std::string name()
         {
             return "BruteForceNaive";
-        } 
+        }
         virtual ~BruteForceNaive() = default;
 
         BruteForceNaive(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & initial_solution = solution_type());
@@ -38,7 +38,7 @@ namespace nxtgm
 
         const solution_type & best_solution()const override;
         const solution_type & current_solution()const override;
-        
+
     private:
         parameters_type parameters_;
         solution_type best_solution_;

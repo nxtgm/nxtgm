@@ -18,7 +18,7 @@ namespace nxtgm
         else
         {
             if(other.is_feasible())
-            {                   
+            {
                 return false;
             }
             else
@@ -51,7 +51,7 @@ namespace nxtgm
         else
         {
             if(other.is_feasible())
-            {                   
+            {
                 return false;
             }
             else

@@ -24,7 +24,7 @@ namespace nxtgm{
         inline static std::string serialization_key(){
             return "potts";
         }
-        
+
         Potts(std::size_t num_labels, energy_type beta);
 
         std::size_t arity() const override;
@@ -40,9 +40,9 @@ namespace nxtgm{
         nlohmann::json serialize_json() const override;
 
         private:
-        std::size_t num_labels_; 
+        std::size_t num_labels_;
         energy_type beta_;
-        
+
     };
 
 
@@ -58,24 +58,24 @@ namespace nxtgm{
         inline static std::string serialization_key(){
             return "array";
         }
-        XTensor(const xtensor_type & values) : 
-            values_(values) 
+        XTensor(const xtensor_type & values) :
+            values_(values)
         {
         }
         template<class TENSOR>
-        XTensor(TENSOR && values) : 
-            values_(std::forward<TENSOR>(values)) 
+        XTensor(TENSOR && values) :
+            values_(std::forward<TENSOR>(values))
         {
         }
 
         discrete_label_type shape(std::size_t index) const override{
-            return values_.shape()[index];   
+            return values_.shape()[index];
         }
 
         std::size_t arity() const override {
             return ARITY;
-        }   
-    
+        }
+
         std::size_t size() const override {
             return values_.size();
         }
@@ -95,7 +95,7 @@ namespace nxtgm{
             std::transform(values_.data(), values_.data() + values_.size(), energies, energies, std::plus<energy_type>());
         }
         static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize_json(const nlohmann::json & json){
-            
+
             auto shape = json["shape"].get<std::vector<std::size_t>>();
             auto values = json["values"].get<std::vector<energy_type>>();
             auto values_span = xt::adapt(values, shape);
@@ -121,7 +121,7 @@ namespace nxtgm{
                 {"values", values}
             };
         }
-        
+
         private:
             xtensor_type values_;
     };
@@ -141,8 +141,8 @@ namespace nxtgm{
             return "array";
         }
         template<class TENSOR>
-        XArray(TENSOR && values) : 
-            values_(std::forward<TENSOR>(values)) 
+        XArray(TENSOR && values) :
+            values_(std::forward<TENSOR>(values))
         {
         }
 
@@ -169,32 +169,32 @@ namespace nxtgm{
     // pay a cost once a label is used, but only
     // once, no matter how often it is used
     class LabelCosts : public DiscreteEnergyFunctionBase
-    {    
+    {
         public:
 
         inline static std::string serialization_key(){
             return "label-costs";
         }
-        
+
         using base_type = DiscreteEnergyFunctionBase;
         using base_type::energy;
 
-        inline LabelCosts(std::size_t arity, std::initializer_list<energy_type> costs) : 
+        inline LabelCosts(std::size_t arity, std::initializer_list<energy_type> costs) :
             arity_(arity),
             costs_(costs),
             is_used_(costs_.size(), 0)
         {
         }
-        
+
 
         template<typename ITER>
-        LabelCosts(std::size_t arity, ITER begin , ITER end) : 
+        LabelCosts(std::size_t arity, ITER begin , ITER end) :
             arity_(arity),
             costs_(begin, end),
             is_used_(costs_.size(), 0)
         {
         }
-        
+
         discrete_label_type shape(std::size_t index) const override;
 
         std::size_t arity() const override;
@@ -205,7 +205,7 @@ namespace nxtgm{
 
         std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override;
         void add_to_lp(
-            IlpData & ilp_data, 
+            IlpData & ilp_data,
             const std::size_t * indicator_variables_mapping,
             IlpFactorBuilderBuffer & buffer
         ) const override;

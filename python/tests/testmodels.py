@@ -1,5 +1,7 @@
-import nxtgm
+from __future__ import annotations
+
 import numpy as np
+import nxtgm
 
 
 def add_random_unaries(gm, seed=0):
@@ -13,34 +15,34 @@ def add_random_unaries(gm, seed=0):
 
 
 def potts_chain(num_variables, num_labels, seed=0):
-    
+
     np.random.seed(seed)
     gm = nxtgm.DiscreteGm(num_variables, num_labels)
 
-    # unaries 
+    # unaries
     add_random_unaries(gm, seed=seed)
 
     # potts
     for i in range(num_variables-1):
-        # random beta 
+        # random beta
         beta = np.random.rand()
         potts = nxtgm.Potts(num_labels, beta)
         function_id = gm.add_function(potts)
-        gm.add_factor([i,i+1], function_id)
-    
+        gm.add_factor([i, i+1], function_id)
+
     return gm
 
 
 def potts_grid(shape, num_labels, seed=0):
-    
-    def get_vis(x,y):
+
+    def get_vis(x, y):
         return x*shape[1] + y
 
     np.random.seed(seed)
     num_variables = np.prod(shape)
     gm = nxtgm.DiscreteGm(num_variables, num_labels)
 
-    # unaries 
+    # unaries
     add_random_unaries(gm, seed=seed)
 
     # potts
@@ -52,7 +54,7 @@ def potts_grid(shape, num_labels, seed=0):
                 beta = np.random.rand()
                 potts = nxtgm.Potts(num_labels, beta)
                 function_id = gm.add_function(potts)
-                vis = [get_vis(x,y), get_vis(x+1,y)]
+                vis = [get_vis(x, y), get_vis(x+1, y)]
                 gm.add_factor(vis, function_id)
 
             # down
@@ -60,6 +62,5 @@ def potts_grid(shape, num_labels, seed=0):
                 beta = np.random.rand()
                 potts = nxtgm.Potts(num_labels, beta)
                 function_id = gm.add_function(potts)
-                vis = [get_vis(x,y), get_vis(x,y+1)]
+                vis = [get_vis(x, y), get_vis(x, y+1)]
                 gm.add_factor(vis, function_id)
-                

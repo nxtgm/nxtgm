@@ -13,7 +13,7 @@ namespace nxtgm::tests{
         std::vector<discrete_label_type> & shape,
         F && f
     ){
-        std::vector<discrete_label_type> labels(shape.size(), 0);   
+        std::vector<discrete_label_type> labels(shape.size(), 0);
 
         using L = discrete_label_type;
 
@@ -169,7 +169,7 @@ namespace nxtgm::tests{
                 f(labels.data());
             }
             break;
-        
+
         default:
             throw std::runtime_error("not implemented for dimension > 10");
         }
@@ -177,7 +177,7 @@ namespace nxtgm::tests{
 
     template<class T>
     inline void test_discrete_constraint_function(DiscreteConstraintFunctionBase * f)
-    {   
+    {
         const auto arity = f->arity();
         CHECK(arity > 0);
 
@@ -188,11 +188,11 @@ namespace nxtgm::tests{
             shape[i] = f->shape(i);
             size *= shape[i];
         }
-        
+
         // size sanity check
         CHECK(f->size() == size);
 
-        
+
         // serialize to json
         auto as_json =  f->serialize_json();
 
@@ -218,14 +218,14 @@ namespace nxtgm::tests{
                 const auto is_value = f->how_violated(labels);
                 const auto should_value = f_j->how_violated(labels);
                 if(!CHECK(is_value == doctest::Approx(should_value)))
-                {       
+                {
                     std::cout << "ERROR: how_violated() is consistent with json serialized+deserialized" << std::endl;
                     for(auto i=0; i < arity; ++i){
                         std::cout << labels[i] << " ";
                     }
                     std::cout << " -> IS " << is_value << " != SHOULD BE " <<should_value << std::endl;
                 }
-                ++i; 
+                ++i;
             });
 
         }
@@ -271,14 +271,14 @@ namespace nxtgm::tests{
 
             const auto is_value = f->energy(labels);
             if(!CHECK(is_value == doctest::Approx(energies_copy[i])))
-            {       
+            {
                 std::cout << "ERROR: energies() ... consistent with copy_energies" << std::endl;
                 for(auto i=0; i < arity; ++i){
                     std::cout << labels[i] << " ";
                 }
                 std::cout << " -> IS " << is_value << " != SHOULD BE " << energies_copy[i] << std::endl;
             }
-            ++i; 
+            ++i;
         });
 
 
@@ -311,7 +311,7 @@ namespace nxtgm::tests{
             std::vector<energy_type> energies_copy_should_from_json(size, 0);
 
             f_j->copy_energies(energies_copy_from_json.data(), discrete_labels_buffer.data());
-            
+
             // check that copy_energies and energies_copy_from_json are consistent
             for(std::size_t i = 0; i < size; ++i){
                 CHECK(energies_copy[i] == doctest::Approx(energies_copy_from_json[i]));
@@ -332,7 +332,7 @@ namespace nxtgm::tests{
             std::vector<energy_type> energies_copy_should_from_json(size, 0);
 
             f_j->copy_energies(energies_copy_from_json.data(), discrete_labels_buffer.data());
-            
+
             // check that copy_energies and energies_copy_from_json are consistent
             for(std::size_t i = 0; i < size; ++i){
                 CHECK(energies_copy[i] == doctest::Approx(energies_copy_from_json[i]));
@@ -353,13 +353,13 @@ namespace nxtgm::tests{
             std::vector<energy_type> energies_copy_should_from_json(size, 0);
 
             f_j->copy_energies(energies_copy_from_json.data(), discrete_labels_buffer.data());
-            
+
             // check that copy_energies and energies_copy_from_json are consistent
             for(std::size_t i = 0; i < size; ++i){
                 CHECK(energies_copy[i] == doctest::Approx(energies_copy_from_json[i]));
             }
         }
-        
+
     }
 
 

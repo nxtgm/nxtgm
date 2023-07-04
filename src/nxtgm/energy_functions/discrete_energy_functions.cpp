@@ -6,7 +6,7 @@
 namespace nxtgm{
 
 
-    Potts::Potts(std::size_t num_labels, energy_type beta) : 
+    Potts::Potts(std::size_t num_labels, energy_type beta) :
         num_labels_(num_labels),
         beta_(beta)
     {
@@ -18,8 +18,8 @@ namespace nxtgm{
 
     discrete_label_type Potts::shape(std::size_t ) const  {
         return num_labels_;
-    }   
-    
+    }
+
     std::size_t Potts::size() const  {
         return num_labels_ * num_labels_;
     }
@@ -62,18 +62,18 @@ namespace nxtgm{
     }
 
 
-    XArray::XArray(const xarray_type & values) : 
-    values_(values) 
+    XArray::XArray(const xarray_type & values) :
+    values_(values)
     {
     }
 
     discrete_label_type XArray::shape(std::size_t index) const {
-        return values_.shape()[index];   
+        return values_.shape()[index];
     }
 
     std::size_t XArray::arity() const  {
         return values_.dimension();
-    }   
+    }
 
     std::size_t XArray::size() const  {
         return values_.size();
@@ -136,7 +136,7 @@ namespace nxtgm{
     }
 
     energy_type LabelCosts::energy(const discrete_label_type * discrete_labels) const {
-        
+
         #ifndef NXTGM_NO_THREADS
         std::lock_guard<std::mutex> lck (mtx_);
         #endif
@@ -150,7 +150,7 @@ namespace nxtgm{
             result += is_used_[i] * costs_[i];
         }
         return result;
-    }   
+    }
 
     std::unique_ptr<DiscreteEnergyFunctionBase> LabelCosts::clone() const{
         return std::make_unique<LabelCosts>(arity_, costs_.begin(), costs_.end());
@@ -158,7 +158,7 @@ namespace nxtgm{
 
 
     void LabelCosts::add_to_lp(
-        IlpData & ilp_data, 
+        IlpData & ilp_data,
         const std::size_t * indicator_variables_mapping,
         IlpFactorBuilderBuffer & buffer
     ) const
@@ -183,18 +183,18 @@ namespace nxtgm{
         for(discrete_label_type l=0; l<static_cast<discrete_label_type>(costs_.size()); ++l){
             ilp_data.begin_constraint(-1.0*arity_, 0);
             ilp_data.add_constraint_coefficient(
-                label_indicator_variables_begin + l , 
+                label_indicator_variables_begin + l ,
                 1.0);
-            
+
             for(std::size_t ai=0; ai<arity_; ++ai){
                 ilp_data.add_constraint_coefficient(
-                    indicator_variables_mapping[ai] + l, 
+                    indicator_variables_mapping[ai] + l,
                     -1.0);
             }
         }
 
     }
-    
+
     nlohmann::json LabelCosts::serialize_json() const {
         return {
             {"type", LabelCosts::serialization_key()},

@@ -12,5 +12,4 @@ namespace nxtgm
             using base_type::base_type;
             using base_type::optimize;
     };
-} 
-
+}

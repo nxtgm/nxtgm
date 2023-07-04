@@ -61,9 +61,9 @@ target_compile_features(nxtgm PUBLIC cxx_std_17)
 # link libraries
 ###############################################################
 
-target_link_libraries(nxtgm PUBLIC 
-    fmt::fmt 
-    Boost::boost  
+target_link_libraries(nxtgm PUBLIC
+    fmt::fmt
+    Boost::boost
     highs::highs
     xtensor
     nlohmann_json::nlohmann_json
@@ -73,7 +73,7 @@ target_link_libraries(nxtgm PUBLIC
 ###############################################################
 # include directories
 ###############################################################
-target_include_directories(nxtgm PUBLIC 
+target_include_directories(nxtgm PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
@@ -100,4 +100,3 @@ endif()
 if(BUILD_PYTHON)
     add_subdirectory(python)
 endif()
-

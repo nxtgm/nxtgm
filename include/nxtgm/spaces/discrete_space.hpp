@@ -36,7 +36,7 @@ namespace nxtgm{
             : n_labels_(n_labels), n_variables_(n_labels.size()), is_simple_(false)
         {
         }
-        
+
         inline nxtgm::discrete_label_type operator[](std::size_t variable)const
         {
             return is_simple_ ? n_labels_.front() : n_labels_[variable];
@@ -83,9 +83,9 @@ namespace nxtgm{
 
 
     class IndicatorVariableMapping
-    {   
+    {
     public:
-        IndicatorVariableMapping(const DiscreteSpace & space); 
+        IndicatorVariableMapping(const DiscreteSpace & space);
         std::size_t operator[](std::size_t variable)const;
 
         inline std::size_t num_indicator_variables()const
@@ -133,7 +133,7 @@ namespace nxtgm{
     };
 
 
-    
+
 
 } // namespace nxtgm::space::discrete
 

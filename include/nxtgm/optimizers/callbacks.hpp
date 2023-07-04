@@ -20,7 +20,7 @@
 
 namespace nxtgm
 {
-   
+
 
 
 
@@ -33,7 +33,7 @@ namespace nxtgm
 
         ReporterCallback(const optimizer_base_type * optimizer) : base_type(optimizer) {
         }
-        
+
         void begin() override {
             t_begin_ = std::chrono::high_resolution_clock::now();
             t_last = t_begin_;
@@ -48,8 +48,8 @@ namespace nxtgm
             ++iteration_;
             return true;
         }
-        
-    private:     
+
+    private:
         void print(){
             const auto now = std::chrono::high_resolution_clock::now();
             const auto dt_total = now - t_begin_;
@@ -59,12 +59,12 @@ namespace nxtgm
             const auto current = this->optimizer()->current_solution_value();
             const auto best = this->optimizer()->best_solution_value();
             const auto lower_bound = this->optimizer()->lower_bound();
-            
+
             std::cout<<fmt::format("{:5} {:<10} {:<10}", iteration_,dt_last, dt_total);
             std::cout<<fmt::format("{:<12.3e} ", lower_bound);
             std::cout<<fmt::format("{:<12.3e} {:<6} {:<12.3e}   ", current.energy() , current.is_feasible(), current.how_violated());
             std::cout<<fmt::format("{:<12.3e} {:<6} {:<12.3e}\n", best.energy() , best.is_feasible(), best.how_violated());
-            
+
         }
 
         time_point_type t_begin_;
@@ -73,7 +73,7 @@ namespace nxtgm
     };
 
 
-    
+
 
 
 

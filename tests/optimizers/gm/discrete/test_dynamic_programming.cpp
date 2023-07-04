@@ -23,5 +23,5 @@ TEST_CASE("dynamic-programming"){
             nxtgm::tests::CheckOptimality{}
         )
     );
-    
+
 }

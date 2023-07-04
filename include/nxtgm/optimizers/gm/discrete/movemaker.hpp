@@ -24,7 +24,7 @@ namespace nxtgm
         inline const DiscreteGmConstraintsOfVariables & constraints_of_variables()const{
             return constraints_of_variables_;
         }
-        
+
 
     private:
 

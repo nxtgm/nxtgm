@@ -19,13 +19,13 @@
 #include <fmt/core.h>
 
 namespace nxtgm::tests
-{   
+{
 
 
     struct Star
-    {   
+    {
         std::pair<DiscreteGm, std::string> operator()()
-        {   
+        {
             xt::random::seed(seed);
 
             auto space = DiscreteSpace(n_arms + 1, n_labels);
@@ -67,8 +67,8 @@ namespace nxtgm::tests
 
             auto space = DiscreteSpace(n_variables, n_labels);
             DiscreteGm gm(space);
-            
-            // unary factors        
+
+            // unary factors
             for (std::size_t vi = 0; vi < n_variables; vi++)
             {
                 auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
@@ -79,7 +79,7 @@ namespace nxtgm::tests
 
             // pairwise potts factors
             for (std::size_t i = 0; i < n_variables - 1; i++)
-            {   
+            {
                 auto beta = xt::random::rand<energy_type>({1}, energy_type(-1), energy_type(1))(0);
                 auto f = std::make_unique<Potts>(n_labels, beta);
             }
@@ -103,10 +103,10 @@ namespace nxtgm::tests
 
             auto space = DiscreteSpace(n_variables, n_labels);
             DiscreteGm gm(space);
-            
+
             xt::random::seed(seed);
 
-            // unary factors        
+            // unary factors
             for (std::size_t vi = 0; vi < n_variables; vi++)
             {
                 auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
@@ -145,15 +145,15 @@ namespace nxtgm::tests
 
         std::pair<DiscreteGm, std::string> operator()(
         ){
-            
+
             using pairwise_function_type = nxtgm::XTensor<2>;
-            
+
             xt::random::seed(seed);
 
             auto space = DiscreteSpace(n_variables, n_labels);
             DiscreteGm gm(space);
 
-            // unary factors        
+            // unary factors
             for (std::size_t vi = 0; vi < n_variables; vi++)
             {
                 auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
@@ -164,7 +164,7 @@ namespace nxtgm::tests
 
             // pairwise factors
             for (std::size_t i = 0; i < n_variables - 1; i++)
-            {   
+            {
                 auto tensor = xt::random::rand<energy_type>({n_labels, n_labels}, energy_type(-1), energy_type(1));
                 auto f = std::make_unique<nxtgm::XTensor<2>>(tensor);
                 auto fid = gm.add_energy_function(std::move(f));
@@ -209,7 +209,7 @@ namespace nxtgm::tests
 
             // all variables
             auto all_vis = xt::eval(xt::arange<std::size_t>(0, n_variables));
- 
+
             for(auto fi=0; fi<n_factors; ++fi)
             {
                 xt::random::shuffle(all_vis);
@@ -219,7 +219,7 @@ namespace nxtgm::tests
                 auto array = xt::eval(xt::random::rand<energy_type>(shape, energy_type(-1), energy_type(1)));
                 auto f = std::make_unique<nxtgm::XArray>(array);
                 auto fid = gm.add_energy_function(std::move(f));
-                gm.add_factor(vis, fid); 
+                gm.add_factor(vis, fid);
             }
 
             const std::string name = fmt::format("RandomModel(n_variables={}, n_factors{}, max_factor_arity={}, n_labels_max={}, seed={})", n_variables, n_factors, max_factor_arity, n_labels_max, seed);
@@ -246,8 +246,8 @@ namespace nxtgm::tests
 
             auto space = DiscreteSpace(n_variables, n_labels);
             DiscreteGm gm(space);
-            
-            // unary factors        
+
+            // unary factors
             for (std::size_t vi = 0; vi < n_variables; vi++)
             {
                 auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
@@ -258,7 +258,7 @@ namespace nxtgm::tests
 
             // pairwise potts factors
             for (std::size_t i = 0; i < n_variables - 1; i++)
-            {   
+            {
                 auto beta = xt::random::rand<energy_type>({1}, energy_type(-1), energy_type(1))(0);
                 auto f = std::make_unique<Potts>(n_labels, beta);
             }

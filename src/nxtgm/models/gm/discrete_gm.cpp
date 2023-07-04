@@ -7,7 +7,7 @@ namespace nxtgm
 {
     const_discrete_label_span local_solution_from_model_solution(
         const std::vector<std::size_t> & variables,
-        const span<const discrete_label_type> & solution,        
+        const span<const discrete_label_type> & solution,
         std::vector<discrete_label_type> & local_labels_buffer
     ){
         const auto arity = variables.size();
@@ -21,7 +21,7 @@ namespace nxtgm
             i++;
         }
         return const_discrete_label_span(local_labels_buffer.data(), arity);
-        
+
     }
 
     DiscreteGm::DiscreteGm(const DiscreteSpace & discrete_space)
@@ -43,7 +43,7 @@ namespace nxtgm
         energy_functions_.push_back(std::move(function));
         return energy_functions_.size() - 1;
     }
-    
+
     std::size_t DiscreteGm::add_constraint_function(std::unique_ptr<DiscreteConstraintFunctionBase> function)
     {
         constraint_functions_.push_back(std::move(function));
@@ -57,7 +57,7 @@ namespace nxtgm
     {
         bool total_is_feasible = true;
         energy_type total_how_violated = 0;
-        
+
         // buffer holding the labels for the factors/constraints
         std::vector<discrete_label_type> local_labels_buffer(2);
 
@@ -87,7 +87,7 @@ namespace nxtgm
 
         energy_type total_energy = 0;
         for (const auto &factor : factors_)
-        {   
+        {
 
             const const_discrete_label_span labels = local_solution_from_model_solution(
                 factor.variables(),
@@ -101,12 +101,12 @@ namespace nxtgm
     }
 
     nlohmann::json DiscreteGm::serialize_json() const
-    {   
+    {
         nlohmann::json json_result;
         json_result["model_type"] = "discrete_gm";
 
         nlohmann::json jgm;
-        
+
         // json array
         auto jfactors = nlohmann::json::array();
         auto jconstraints = nlohmann::json::array();
@@ -218,4 +218,4 @@ namespace nxtgm
 
         return std::move(gm);
     }
-} 
+}

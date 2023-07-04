@@ -21,7 +21,7 @@ namespace nxtgm
                 return new DiscreteGm(n_labels_array.begin(), n_labels_array.end());
             }), py::arg("n_labels"))
 
-            
+
             // get space (reference with proper reference handling)
             .def_property_readonly("space", [](const DiscreteGm & gm)
             {
@@ -48,7 +48,7 @@ namespace nxtgm
             })
 
             // evaluate from xt::pytensor
-            .def("evaluate", [](const DiscreteGm & gm, const xt::pytensor<discrete_label_type, 1> & labels, bool early_exit_infeasible) {   
+            .def("evaluate", [](const DiscreteGm & gm, const xt::pytensor<discrete_label_type, 1> & labels, bool early_exit_infeasible) {
                 span<const discrete_label_type> labels_span(labels.data(), labels.size());
                 return gm.evaluate(labels_span);
             }, py::arg("labels"), py::arg("early_exit_infeasible") = false)
@@ -74,7 +74,7 @@ namespace nxtgm
             }, py::arg("energy_function"))
 
             .def("add_function",[](DiscreteGm & gm, const xt::pyarray<energy_type> & array)
-            {   
+            {
                 auto f = std::make_unique<nxtgm::XArray>(array);
                 return gm.add_energy_function(std::move(f));
             }, py::arg("energy_function"))

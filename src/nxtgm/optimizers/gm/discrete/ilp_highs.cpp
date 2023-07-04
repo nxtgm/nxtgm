@@ -45,11 +45,11 @@ namespace nxtgm{
         }
     }
 
-    IlpHighs::IlpHighs(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & initial_solution) 
-    :   base_type(gm), 
+    IlpHighs::IlpHighs(const DiscreteGm & gm, const parameters_type & parameters, const solution_type & initial_solution)
+    :   base_type(gm),
         parameters_(parameters),
-        best_solution_(),  
-        current_solution_(), 
+        best_solution_(),
+        current_solution_(),
         best_sol_value_(),
         current_sol_value_(),
         lower_bound_(-std::numeric_limits<energy_type>::infinity()),
@@ -71,7 +71,7 @@ namespace nxtgm{
 
     void IlpHighs::setup_lp()
     {
-        
+
         // shortcuts
         const auto   & model = this->model();
         const auto & space = model.space();
@@ -91,7 +91,7 @@ namespace nxtgm{
         // add all the factors to the ilp
         IlpFactorBuilderBuffer ilp_factor_builder_buffer;
         std::vector<std::size_t> indicator_variables_mapping_buffer(model.max_arity());
-       
+
         for(auto && factor : model.factors()){
             factor.map_from_model(indicator_variable_mapping_, indicator_variables_mapping_buffer);
             factor.function()->add_to_lp(ilp_data_, indicator_variables_mapping_buffer.data(), ilp_factor_builder_buffer);
@@ -102,7 +102,7 @@ namespace nxtgm{
         IlpConstraintBuilderBuffer ilp_constraint_builder_buffer;
         for(auto  && constraint : model.constraints())
         {
-            constraint.map_from_model(indicator_variable_mapping_, indicator_variables_mapping_buffer);   
+            constraint.map_from_model(indicator_variable_mapping_, indicator_variables_mapping_buffer);
             constraint.function()->add_to_lp(ilp_data_, indicator_variables_mapping_buffer.data(), ilp_constraint_builder_buffer);
         }
 
@@ -120,23 +120,23 @@ namespace nxtgm{
         highs_model_.lp_.a_matrix_.value_  = std::move(ilp_data_.avalue());
         highs_model_.lp_.a_matrix_.start_.push_back(highs_model_.lp_.a_matrix_.index_.size());
     }
-    
+
 
     OptimizationStatus IlpHighs::optimize(
         reporter_callback_wrapper_type & reporter_callback,
         repair_callback_wrapper_type & /*repair_callback not used*/
     ) {
-        
+
 
         reporter_callback.begin();
-        
+
         const bool continue_opt =  reporter_callback.report();
 
         // Create a Highs instance
         Highs highs;
         highs.setOptionValue("log_to_console", parameters_.highs_log_to_console);
         HighsStatus return_status;
-        
+
         // Pass the model to HiGHS
         return_status = highs.passModel(highs_model_);
         assert(return_status==HighsStatus::kOk);
@@ -144,7 +144,7 @@ namespace nxtgm{
 
         // Get a const reference to the LP data in HiGHS
         const HighsLp& lp = highs.getLp();
-    
+
         // Solve the model
         return_status = highs.run();
         OptimizationStatus status = highsModelStatusToOptimizationStatus(highs,  highs.getModelStatus());
@@ -159,12 +159,12 @@ namespace nxtgm{
         // get the lower bound
         lower_bound_ = highs.getHighsInfo().objective_function_value;
         reporter_callback.report();
-        
+
 
         // Get the model status
         assert(model_status==HighsModelStatus::kOptimal);
 
-        
+
 
         // Get the solution information
         const HighsInfo& info = highs.getInfo();
@@ -176,7 +176,7 @@ namespace nxtgm{
         const bool has_values = info.primal_solution_status;
         const bool has_duals = info.dual_solution_status;
         const bool has_basis = info.basis_validity;
-        
+
         // Get the solution values and basis
         const HighsSolution& solution = highs.getSolution();
         const HighsBasis& basis = highs.getBasis();
@@ -185,8 +185,8 @@ namespace nxtgm{
         {
             highs_model_.lp_.integrality_.resize(lp.num_col_);
             for (int col=0; col < lp.num_col_; col++)
-            {   
-                highs_model_.lp_.integrality_[col] = ilp_data_.is_integer()[col] ? 
+            {
+                highs_model_.lp_.integrality_[col] = ilp_data_.is_integer()[col] ?
                     HighsVarType::kInteger : HighsVarType::kContinuous;
             }
             highs.passModel(highs_model_);
@@ -204,11 +204,11 @@ namespace nxtgm{
             solution.col_value,
             best_solution_
         );
-        
+
         this->best_sol_value_ = this->model().evaluate(this->best_solution_);
         reporter_callback.end();
 
-        return status;        
+        return status;
     }
 
     energy_type IlpHighs::lower_bound() const{

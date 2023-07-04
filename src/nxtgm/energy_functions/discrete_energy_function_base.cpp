@@ -20,7 +20,7 @@ namespace nxtgm{
         return  xt::strided_view(xtensor, sv);
     }
 
-    
+
     void IlpFactorBuilderBuffer::ensure_size(std::size_t max_factor_size, std::size_t max_factor_arity)
     {
         if(energy_buffer.size() < max_factor_size){
@@ -37,7 +37,7 @@ namespace nxtgm{
     energy_type DiscreteEnergyFunctionBase::energy(std::initializer_list<discrete_label_type> discrete_labels) const {
         return this->energy( discrete_labels.begin());
     }
- 
+
     std::size_t DiscreteEnergyFunctionBase::size() const {
         std::size_t result = 1;
         for(std::size_t i = 0; i < arity(); ++i){
@@ -81,7 +81,7 @@ namespace nxtgm{
     }
 
     void DiscreteEnergyFunctionBase::add_to_lp(
-        IlpData & ilp_data, 
+        IlpData & ilp_data,
         const std::size_t * indicator_variables_mapping,
         IlpFactorBuilderBuffer & buffer
     ) const
@@ -111,7 +111,7 @@ namespace nxtgm{
 
             // where to the factor indicator variables start?
             const auto start = ilp_data.num_variables();
-            // todo: avoid allocation? 
+            // todo: avoid allocation?
             auto factor_indicator_vars = xt::eval(xt::arange(start, start + factor_size).reshape(
                 const_discrete_label_span(shape, arity)
             ));
@@ -126,7 +126,7 @@ namespace nxtgm{
                 {
                     const auto var_inidcator = indicator_variables_mapping[ai] + label;
                     auto constraint_vars = bind_at(factor_indicator_vars, ai, label);
-                    
+
                     ilp_data.begin_constraint(0.0, 0.0);
                     ilp_data.add_constraint_coefficient(var_inidcator, -1.0);
                     for(auto var : constraint_vars){
@@ -143,7 +143,7 @@ namespace nxtgm{
         const span<discrete_label_type> & binded_vars_labels
     ) const {
         throw std::runtime_error("Not implemented");
-    }   
+    }
 
     template<class T>
     struct Identity
@@ -158,10 +158,10 @@ namespace nxtgm{
         Identity<LabelCosts>
     >;
 
-    // yes, this if/else for each function is 
+    // yes, this if/else for each function is
     // a tight coupling between the serialization and the
-    // concrete function types. 
-    // A "more generic" solution would be to have a 
+    // concrete function types.
+    // A "more generic" solution would be to have a
     // singleton with a map from type to factory function
     // but this makes linkage more complicated
     std::unique_ptr<DiscreteEnergyFunctionBase> discrete_energy_function_deserialize_json(
@@ -170,7 +170,7 @@ namespace nxtgm{
     ){
         const std::string type = json.at("type").get<std::string>();
         std::unique_ptr<DiscreteEnergyFunctionBase> result;
-        
+
         AllInternalDiscreteEnergyFunctionTypes all_types;
         tuple_breakable_for_each(all_types, [&](auto && tuple_element){
             using function_type = typename std::decay_t<decltype(tuple_element)>::type;

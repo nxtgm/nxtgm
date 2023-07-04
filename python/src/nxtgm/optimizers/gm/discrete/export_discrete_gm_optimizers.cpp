@@ -14,7 +14,7 @@
 namespace py = pybind11;
 
 namespace nxtgm
-{   
+{
     template<class optimzier_type>
     auto export_optimizer(py::module_ & pymodule)
     {
@@ -45,7 +45,7 @@ namespace nxtgm
             .value("UNKNOWN", OptimizationStatus::UNKNOWN)
             .value("TIME_LIMIT_REACHED", OptimizationStatus::TIME_LIMIT_REACHED)
             .value("CALLBACK_EXIT", OptimizationStatus::CALLBACK_EXIT)
-        ;  
+        ;
 
         // reporter callback base
         using reporter_callback_base_type = DiscreteGmOptimizerBase::reporter_callback_base_type;
@@ -54,7 +54,7 @@ namespace nxtgm
 
         using reporter_callback = ReporterCallback<DiscreteGmOptimizerBase>;
         py::class_<reporter_callback, reporter_callback_base_type>(pymodule, "DiscreteGmOptimizerReporterCallback")
-            .def(py::init<const DiscreteGmOptimizerBase *>(), py::arg("optimizer"), 
+            .def(py::init<const DiscreteGmOptimizerBase *>(), py::arg("optimizer"),
                 py::keep_alive<0, 1>()
             )
         ;
@@ -104,7 +104,7 @@ namespace nxtgm
         ;
 
         export_optimizer<DynamicProgramming>(pymodule);
-        
+
         export_optimizer<Icm>(pymodule);
 
     }

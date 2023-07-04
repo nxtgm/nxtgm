@@ -12,10 +12,10 @@ namespace nxtgm::space
         public:
         using base_type = std::vector<typename SPACE_TYPE::label_type>;
         using space_type = SPACE_TYPE;
-        
+
         Solution(const space_type & space) : base_type(space.size(), 0)
         {
-            
+
         }
 
     };

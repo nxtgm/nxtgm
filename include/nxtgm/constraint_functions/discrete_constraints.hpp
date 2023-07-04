@@ -21,12 +21,12 @@ namespace nxtgm{
         std::size_t arity() const override;
         discrete_label_type shape(std::size_t ) const override;
         std::size_t size() const override;
-        
+
         energy_type how_violated(const discrete_label_type * discrete_labels) const override;
         std::unique_ptr<DiscreteConstraintFunctionBase> clone() const override;
         void add_to_lp(IlpData & ,  const std::size_t *, IlpConstraintBuilderBuffer &)const override;
         nlohmann::json serialize_json() const override;
-        
+
         static std::unique_ptr<DiscreteConstraintFunctionBase> deserialize_json(const nlohmann::json & json);
 
      private:
@@ -47,18 +47,18 @@ namespace nxtgm{
         template<class ARRAY>
         ArrayDiscreteConstraintFunction(ARRAY && how_violated)
         :   how_violated_(std::forward<ARRAY>(how_violated)){
-        } 
+        }
 
         std::size_t arity() const override;
         discrete_label_type shape(std::size_t ) const override;
         std::size_t size() const override;
-        
+
         energy_type how_violated(const discrete_label_type * discrete_labels) const override;
         std::unique_ptr<DiscreteConstraintFunctionBase> clone() const override;
         void add_to_lp(IlpData & ,  const std::size_t *, IlpConstraintBuilderBuffer &)const override;
         nlohmann::json serialize_json() const override;
         static std::unique_ptr<DiscreteConstraintFunctionBase> deserialize_json(const nlohmann::json & json);
-    
+
      private:
 
         xt::xarray<energy_type> how_violated_;
