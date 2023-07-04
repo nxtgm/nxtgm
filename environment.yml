@@ -10,7 +10,7 @@ dependencies:
   - boost-cpp
   - fmt
   - nlohmann_json
-  - hihgs
+  - highs
   - xtensor
   - python
   - pybind11
