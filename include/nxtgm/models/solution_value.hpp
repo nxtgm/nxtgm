@@ -3,49 +3,33 @@
 #include <iostream>
 #include <nxtgm/nxtgm.hpp>
 
-namespace nxtgm
-{
+namespace nxtgm {
 
-    class SolutionValue
-    {
-    public:
+class SolutionValue {
+public:
+  inline SolutionValue(const energy_type energy = 0,
+                       const energy_type how_violated = 0)
+      : energy_(energy), how_violated_(how_violated) {}
 
-        inline SolutionValue(
-            const energy_type  energy = 0,
-            const energy_type  how_violated = 0
-        )
-        :   energy_(energy),
-            how_violated_(how_violated)
-    {
+  inline energy_type energy() const { return energy_; }
 
-        }
+  inline bool is_feasible() const {
+    return how_violated_ < constraint_feasiblility_limit;
+  }
 
-        inline energy_type energy() const
-        {
-            return energy_;
-        }
+  inline energy_type how_violated() const { return how_violated_; }
 
-        inline bool is_feasible() const
-        {
-            return how_violated_ < constraint_feasiblility_limit;
-        }
+  bool operator<(const SolutionValue &other) const;
+  bool operator<=(const SolutionValue &other) const;
+  SolutionValue &operator+=(const SolutionValue &other);
+  SolutionValue &operator-=(const SolutionValue &other);
 
-        inline energy_type how_violated() const
-        {
-            return how_violated_;
-        }
+private:
+  energy_type energy_;
+  energy_type how_violated_;
+};
 
-        bool operator<(const SolutionValue & other)const;
-        bool operator<=(const SolutionValue & other)const;
-        SolutionValue& operator+=(const SolutionValue & other);
-        SolutionValue& operator-=(const SolutionValue & other);
+// print class
+std::ostream &operator<<(std::ostream &os, const SolutionValue &solution);
 
-    private:
-        energy_type energy_;
-        energy_type how_violated_;
-    };
-
-    // print class
-    std::ostream & operator<<(std::ostream & os, const SolutionValue & solution);
-
-}
+} // namespace nxtgm
