@@ -16,3 +16,4 @@ dependencies:
   - pybind11
   - xtensor-python
   - numpy
+  - pytest
