@@ -96,11 +96,11 @@ jobs:
             -   name: run cpp tests
                 shell: pwsh
                 run: |
-                    cd build
+                    cd buil
                     ninja
                     .\tests\cpp_tests.exe
             
-            -  name: "make python_tests"
+            -   name: "make python_tests"
                 shell: pwsh
                 run: |
                     cd build
