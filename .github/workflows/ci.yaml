@@ -58,7 +58,7 @@ jobs:
 
 
 
-    win:
+  win:
 
         runs-on: ${{ matrix.os }}
 
