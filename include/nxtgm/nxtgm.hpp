@@ -6,8 +6,10 @@
 
 #include <vector>
 
-namespace nxtgm {
-template <typename T> using span = boost::span<T>;
+namespace nxtgm
+{
+template <typename T>
+using span = boost::span<T>;
 
 using discrete_label_type = std::uint16_t;
 using discrete_solution = std::vector<discrete_label_type>;

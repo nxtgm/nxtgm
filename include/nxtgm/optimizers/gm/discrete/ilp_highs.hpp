@@ -4,65 +4,68 @@
 #include <nxtgm/models/gm/discrete_gm.hpp>
 #include <nxtgm/optimizers/gm/discrete/optimizer_base.hpp>
 
-namespace nxtgm {
+namespace nxtgm
+{
 
-class IlpHighs : public DiscreteGmOptimizerBase {
+class IlpHighs : public DiscreteGmOptimizerBase
+{
 public:
-  class parameters_type {
-  public:
-    bool integer = true;
-    std::chrono::duration<double> time_limit =
-        std::chrono::duration<double>::max();
-    bool highs_log_to_console = false;
-  };
+    class parameters_type
+    {
+    public:
+        bool integer = true;
+        std::chrono::duration<double> time_limit =
+            std::chrono::duration<double>::max();
+        bool highs_log_to_console = false;
+    };
 
-  using base_type = DiscreteGmOptimizerBase;
-  using solution_type = typename DiscreteGm::solution_type;
+    using base_type = DiscreteGmOptimizerBase;
+    using solution_type = typename DiscreteGm::solution_type;
 
-  using reporter_callback_wrapper_type =
-      typename base_type::reporter_callback_wrapper_type;
-  using repair_callback_wrapper_type =
-      typename base_type::repair_callback_wrapper_type;
+    using reporter_callback_wrapper_type =
+        typename base_type::reporter_callback_wrapper_type;
+    using repair_callback_wrapper_type =
+        typename base_type::repair_callback_wrapper_type;
 
-  using base_type::optimize;
+    using base_type::optimize;
 
-  inline static std::string name() { return "IlpHighs"; }
+    inline static std::string name() { return "IlpHighs"; }
 
-  IlpHighs(const DiscreteGm &gm, const parameters_type &parameters,
-           const solution_type &initial_solution = solution_type());
+    IlpHighs(const DiscreteGm& gm, const parameters_type& parameters,
+             const solution_type& initial_solution = solution_type());
 
-  virtual ~IlpHighs() = default;
+    virtual ~IlpHighs() = default;
 
-  OptimizationStatus
-  optimize(reporter_callback_wrapper_type &reporter_callback,
-           repair_callback_wrapper_type & /*repair_callback not used*/
-           ) override;
+    OptimizationStatus
+    optimize(reporter_callback_wrapper_type& reporter_callback,
+             repair_callback_wrapper_type& /*repair_callback not used*/
+             ) override;
 
-  SolutionValue best_solution_value() const override;
-  SolutionValue current_solution_value() const override;
+    SolutionValue best_solution_value() const override;
+    SolutionValue current_solution_value() const override;
 
-  const solution_type &best_solution() const override;
-  const solution_type &current_solution() const override;
+    const solution_type& best_solution() const override;
+    const solution_type& current_solution() const override;
 
-  energy_type lower_bound() const override;
+    energy_type lower_bound() const override;
 
 private:
-  void setup_lp();
+    void setup_lp();
 
-  parameters_type parameters_;
+    parameters_type parameters_;
 
-  solution_type best_solution_;
-  solution_type current_solution_;
-  SolutionValue best_sol_value_;
-  SolutionValue current_sol_value_;
+    solution_type best_solution_;
+    solution_type current_solution_;
+    SolutionValue best_sol_value_;
+    SolutionValue current_sol_value_;
 
-  energy_type lower_bound_;
+    energy_type lower_bound_;
 
-  // map from variable index to the beginning of the indicator variables
-  IndicatorVariableMapping indicator_variable_mapping_;
+    // map from variable index to the beginning of the indicator variables
+    IndicatorVariableMapping indicator_variable_mapping_;
 
-  IlpData ilp_data_;
+    IlpData ilp_data_;
 
-  HighsModel highs_model_;
+    HighsModel highs_model_;
 };
 } // namespace nxtgm
