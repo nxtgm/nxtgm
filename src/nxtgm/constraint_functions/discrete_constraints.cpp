@@ -51,11 +51,20 @@ namespace nxtgm
 
     nlohmann::json PairwiseUniqueLables::serialize_json() const {
         return {
-            {"type", "pairwise-unqiue-labels"},
+            {"type", PairwiseUniqueLables::serialization_key()},
             {"num_labels", n_labels_},
             {"scale", scale_}
         };
     }
+
+    std::unique_ptr<DiscreteConstraintFunctionBase> PairwiseUniqueLables::deserialize_json(const nlohmann::json & json)
+    {
+        return std::make_unique<PairwiseUniqueLables>(
+            json["num_labels"].get<discrete_label_type>(),
+            json["scale"].get<energy_type>()
+        );
+    }
+
     
 
     std::size_t ArrayDiscreteConstraintFunction::arity() const{
@@ -116,5 +125,18 @@ namespace nxtgm
             {"shape", shape},
             {"values", values}
         };
+    }
+
+
+    std::unique_ptr<DiscreteConstraintFunctionBase> ArrayDiscreteConstraintFunction::deserialize_json(const nlohmann::json & json)
+    {
+        std::vector<std::size_t> shape;
+        for(auto s: json["shape"]){
+            shape.push_back(s);
+        }
+        xt::xarray<energy_type> array(shape);
+        std::copy(json["values"].begin(), json["values"].end(), array.begin());
+
+        return std::make_unique<ArrayDiscreteConstraintFunction>(array);
     }
 } 

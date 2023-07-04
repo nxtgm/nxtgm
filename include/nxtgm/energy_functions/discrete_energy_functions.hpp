@@ -21,7 +21,7 @@ namespace nxtgm{
         using base_type = DiscreteEnergyFunctionBase;
         using base_type::energy;
 
-        inline static std::string serialization_name(){
+        inline static std::string serialization_key(){
             return "potts";
         }
         
@@ -55,7 +55,7 @@ namespace nxtgm{
         using base_type::energy;
 
         using xtensor_type = xt::xtensor<energy_type, ARITY>;
-        inline static std::string serialization_name(){
+        inline static std::string serialization_key(){
             return "array";
         }
         XTensor(const xtensor_type & values) : 
@@ -137,7 +137,7 @@ namespace nxtgm{
         using base_type::energy;
 
         using xarray_type = xt::xarray<energy_type>;
-        inline static std::string serialization_name(){
+        inline static std::string serialization_key(){
             return "array";
         }
         template<class TENSOR>
@@ -172,7 +172,7 @@ namespace nxtgm{
     {    
         public:
 
-        inline static std::string serialization_name(){
+        inline static std::string serialization_key(){
             return "label-costs";
         }
         

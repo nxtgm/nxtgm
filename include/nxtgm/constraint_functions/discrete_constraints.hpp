@@ -11,6 +11,9 @@ namespace nxtgm{
     class PairwiseUniqueLables: public DiscreteConstraintFunctionBase {
     public:
 
+        inline static std::string serialization_key(){
+            return "pairwise-unique";
+        }
         using DiscreteConstraintFunctionBase::how_violated;
 
         PairwiseUniqueLables(discrete_label_type n_labels, energy_type scale = 1);
@@ -23,6 +26,9 @@ namespace nxtgm{
         std::unique_ptr<DiscreteConstraintFunctionBase> clone() const override;
         void add_to_lp(IlpData & ,  const std::size_t *, IlpConstraintBuilderBuffer &)const override;
         nlohmann::json serialize_json() const override;
+        
+        static std::unique_ptr<DiscreteConstraintFunctionBase> deserialize_json(const nlohmann::json & json);
+
      private:
         discrete_label_type n_labels_;
         energy_type scale_;
@@ -31,6 +37,10 @@ namespace nxtgm{
 
     class ArrayDiscreteConstraintFunction: public DiscreteConstraintFunctionBase {
     public:
+
+        inline static std::string serialization_key(){
+            return "array";
+        }
 
         using DiscreteConstraintFunctionBase::how_violated;
 
@@ -47,10 +57,14 @@ namespace nxtgm{
         std::unique_ptr<DiscreteConstraintFunctionBase> clone() const override;
         void add_to_lp(IlpData & ,  const std::size_t *, IlpConstraintBuilderBuffer &)const override;
         nlohmann::json serialize_json() const override;
+        static std::unique_ptr<DiscreteConstraintFunctionBase> deserialize_json(const nlohmann::json & json);
+    
      private:
 
         xt::xarray<energy_type> how_violated_;
 
     };
+
+
 
 }

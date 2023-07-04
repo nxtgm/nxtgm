@@ -41,7 +41,7 @@ public:
     }
 
 
-    inline static std::string serialization_name(){
+    inline static std::string serialization_key(){
         return "array";
     }
 
@@ -58,7 +58,7 @@ public:
         }
 
         return {
-            {"type",  DefaultTesterFunction::serialization_name()},
+            {"type",  DefaultTesterFunction::serialization_key()},
             {"dimensions", values.dimension()},
             {"shape", shape},
             {"values", jsonvalues}

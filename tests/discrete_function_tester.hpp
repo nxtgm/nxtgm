@@ -175,6 +175,7 @@ namespace nxtgm::tests{
         }
     }
 
+    template<class T>
     inline void test_discrete_constraint_function(DiscreteConstraintFunctionBase * f)
     {   
         const auto arity = f->arity();
@@ -187,7 +188,49 @@ namespace nxtgm::tests{
             shape[i] = f->shape(i);
             size *= shape[i];
         }
+        
+        // size sanity check
+        CHECK(f->size() == size);
+
+        
+        // serialize to json
+        auto as_json =  f->serialize_json();
+
+        // check that "type" is in the json and that json is an object
+        CHECK(as_json.is_object());
+        CHECK(as_json.contains("type"));
+
+        // check that type is a string
+        CHECK(as_json["type"].is_string());
+
+        std::string type = as_json["type"];
+
+        CHECK(type == T::serialization_key());
+
+
+        // deserialize via factory function
+        {
+            auto f_j = nxtgm::discrete_constraint_function_deserialize_json(as_json);
+
+            auto i = 0;
+            for_each(shape, [&](auto labels){
+
+                const auto is_value = f->how_violated(labels);
+                const auto should_value = f_j->how_violated(labels);
+                if(!CHECK(is_value == doctest::Approx(should_value)))
+                {       
+                    std::cout << "ERROR: how_violated() is consistent with json serialized+deserialized" << std::endl;
+                    for(auto i=0; i < arity; ++i){
+                        std::cout << labels[i] << " ";
+                    }
+                    std::cout << " -> IS " << is_value << " != SHOULD BE " <<should_value << std::endl;
+                }
+                ++i; 
+            });
+
+        }
     }
+
 
     template<class T>
     inline void test_discrete_energy_function(DiscreteEnergyFunctionBase * f)
@@ -251,8 +294,29 @@ namespace nxtgm::tests{
 
         std::string type = as_json["type"];
 
-        CHECK(type == T::serialization_name());
+        CHECK(type == T::serialization_key());
 
+        // deserialize via static function
+        {
+            auto f_j = T::deserialize_json(as_json);
+
+            // check that the deserialized version is the same as the original
+            CHECK(f_j->size() == f->size());
+            CHECK(f_j->arity() == f->arity());
+            for(std::size_t i = 0; i < f->arity(); ++i){
+                CHECK(f_j->shape(i) == f->shape(i));
+            }
+
+            std::vector<energy_type> energies_copy_from_json(size, 0);
+            std::vector<energy_type> energies_copy_should_from_json(size, 0);
+
+            f_j->copy_energies(energies_copy_from_json.data(), discrete_labels_buffer.data());
+            
+            // check that copy_energies and energies_copy_from_json are consistent
+            for(std::size_t i = 0; i < size; ++i){
+                CHECK(energies_copy[i] == doctest::Approx(energies_copy_from_json[i]));
+            }
+        }
         // deserialize via static function
         {
             auto f_j = T::deserialize_json(as_json);

@@ -10,11 +10,10 @@
 #include <vector>
 #include <iostream>
 #include <numeric>
+#include <nlohmann/json.hpp>
 
 namespace nxtgm
 {
-
-
 
     const_discrete_label_span local_solution_from_model_solution(
         const std::vector<std::size_t> & variables,
@@ -366,6 +365,9 @@ namespace nxtgm
 
         SolutionValue evaluate(const span<const discrete_label_type> &solution, bool early_stop_infeasible = false) const;
         SolutionValue evaluate(const solution_type &solution, bool early_stop_infeasible = false) const;
+
+        nlohmann::json serialize_json() const;
+        static DiscreteGm deserialize_json(const nlohmann::json & json);
 
     private:
 

@@ -99,4 +99,123 @@ namespace nxtgm
         total_how_violated = total_how_violated < constraint_feasiblility_limit ? 0 : total_how_violated;
         return SolutionValue{total_energy, total_how_violated};
     }
+
+    nlohmann::json DiscreteGm::serialize_json() const
+    {   
+        nlohmann::json json_result;
+        json_result["model_type"] = "discrete_gm";
+
+        nlohmann::json jgm;
+        
+        // json array
+        auto jfactors = nlohmann::json::array();
+        auto jconstraints = nlohmann::json::array();
+        auto jenergy_functions = nlohmann::json::array();
+        auto jconstraint_functions = nlohmann::json::array();
+
+        // the space
+        jgm["space"] = space_.serialize_json();
+
+        // the energy functions
+        for(const auto & energy_function : energy_functions_)
+        {
+            jenergy_functions.push_back(energy_function->serialize_json());
+        }
+
+        // the constraint functions
+        for(const auto & constraint_function : constraint_functions_)
+        {
+            jconstraint_functions.push_back(constraint_function->serialize_json());
+        }
+
+        // for the factors we need to figure out the index of the function in the factor wrt the vector
+        // (extra scope to delete energy_function_index_map early)
+        {
+            std::unordered_map<const DiscreteEnergyFunctionBase*, std::size_t> energy_function_index_map;
+            for(std::size_t i=0; i<energy_functions_.size(); i++)
+            {
+                energy_function_index_map[energy_functions_[i].get()] = i;
+            }
+            for(const auto & factor : factors_)
+            {
+                jfactors.push_back({{
+                    {"functuin_index", energy_function_index_map[factor.function()]},
+                    {"variables", factor.variables()}
+                }});
+            }
+        }
+
+        // for the constraints we need to figure out the index of the function in the constrain wrt the vector
+        std::unordered_map<const DiscreteConstraintFunctionBase*, std::size_t> constraint_function_index_map;
+        for(std::size_t i=0; i<constraint_functions_.size(); i++)
+        {
+            constraint_function_index_map[constraint_functions_[i].get()] = i;
+        }
+        for(const auto & factor : constraints_)
+        {
+            jconstraints.push_back({{
+                {"functuin_index", constraint_function_index_map[factor.function()]},
+                {"variables", factor.variables()}
+            }});
+        }
+
+        jgm["energy_functions"] = jenergy_functions;
+        jgm["constraint_functions"] = jconstraint_functions;
+        jgm["factors"] = jfactors;
+        jgm["constraints"] = jconstraints;
+        json_result["gm"] = jgm;
+        return json_result;
+    }
+    DiscreteGm DiscreteGm::deserialize_json(const nlohmann::json & json){
+
+        if(json["model_type"] != "discrete_gm")
+        {
+            throw std::runtime_error("json does not contain a discrete_gm");
+        }
+
+        const auto  jgm = json["model"];
+        const auto  jspace = jgm["space"];
+        const auto  jenergy_functions = jgm["energy_functions"];
+        const auto  jconstraint_functions = jgm["constraint_functions"];
+        const auto  jfactors = jgm["factors"];
+        const auto  jconstraints = jgm["constraints"];
+
+        // space
+        const auto  space = DiscreteSpace::deserialize_json(jgm["space"]);
+
+        // construct gm itself
+        DiscreteGm gm(space);
+
+        // energy functions
+        for(const auto & jenergy_function : jenergy_functions)
+        {
+            auto  energy_function = discrete_energy_function_deserialize_json(jenergy_function);
+            gm.add_energy_function(std::move(energy_function));
+        }
+
+        // constraint functions
+        for(const auto & jconstraint_function : jconstraint_functions)
+        {
+            auto  constraint_function = discrete_constraint_function_deserialize_json(jconstraint_function);
+            gm.add_constraint_function(std::move(constraint_function));
+        }
+
+        // factors
+        for(const auto & jfactor : jfactors)
+        {
+            auto  function_index = jfactor["function_index"].get<std::size_t>();
+            auto variables = jfactor["variables"].get<std::vector<std::size_t>>();
+            gm.add_factor(variables, function_index);
+        }
+
+        // constraints
+        for(const auto & jconstraint : jconstraints)
+        {
+            auto  function_index = jconstraint["function_index"].get<std::size_t>();
+            auto variables = jconstraint["variables"].get<std::vector<std::size_t>>();
+            gm.add_factor(variables, function_index);
+        }
+
+        return std::move(gm);
+    }
 } 

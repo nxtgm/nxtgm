@@ -7,6 +7,8 @@
 #include <iostream>
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/utils/n_nested_loops.hpp>
+#include <nlohmann/json.hpp>
+
 
 namespace nxtgm{
 
@@ -14,6 +16,8 @@ namespace nxtgm{
     {
 
     public:
+        nlohmann::json serialize_json() const;
+        static DiscreteSpace deserialize_json(const nlohmann::json & json);
 
         // simple space
         inline DiscreteSpace(std::size_t n_variables, std::size_t n_labels)

@@ -9,7 +9,7 @@ TEST_CASE("pairwise-unique-labels"){
     CHECK_EQ(constraint.arity(), 2);
     CHECK_EQ(constraint.how_violated({0, 0}), doctest::Approx(10.0));
     CHECK_EQ(constraint.how_violated({0, 1}),doctest::Approx(0.0));
-    nxtgm::tests::test_discrete_constraint_function(&constraint);
+    nxtgm::tests::test_discrete_constraint_function<nxtgm::PairwiseUniqueLables>(&constraint);
 
 }
 
@@ -22,7 +22,7 @@ TEST_CASE("array-constraint"){
         CHECK_EQ(constraint.how_violated({0}), doctest::Approx(0.0));
         CHECK_EQ(constraint.how_violated({1}), doctest::Approx(0.0));
         CHECK_EQ(constraint.how_violated({2}), doctest::Approx(1.0));
-        nxtgm::tests::test_discrete_constraint_function(&constraint);
+        nxtgm::tests::test_discrete_constraint_function<nxtgm::ArrayDiscreteConstraintFunction>(&constraint);
     }
     SUBCASE("2D")
     {
@@ -39,6 +39,6 @@ TEST_CASE("array-constraint"){
         CHECK_EQ(constraint.how_violated({2,0}), doctest::Approx(0.0));
         CHECK_EQ(constraint.how_violated({2,1}), doctest::Approx(1.0));
         CHECK_EQ(constraint.how_violated({2,2}), doctest::Approx(0.0));
-        nxtgm::tests::test_discrete_constraint_function(&constraint);
+        nxtgm::tests::test_discrete_constraint_function<nxtgm::ArrayDiscreteConstraintFunction>(&constraint);
     }
 }

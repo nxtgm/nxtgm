@@ -7,11 +7,13 @@ dependencies:
   - cmake
   - doctest 
   - cxx-compiler
-  # swiss-army-knife
   - boost-cpp
   - fmt
+  - nlohmann_json
+  - hihgs
+  - xtensor
   # python-bindings
   - python
   - pybind11
-  # examples 
-  - xtensor
+  - xtensor-python
+  - numpy

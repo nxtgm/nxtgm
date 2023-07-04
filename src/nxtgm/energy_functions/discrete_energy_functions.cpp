@@ -51,7 +51,7 @@ namespace nxtgm{
 
     nlohmann::json Potts::serialize_json() const {
         return {
-            {"type", Potts::serialization_name()},
+            {"type", Potts::serialization_key()},
             {"num_labels", num_labels_},
             {"beta", beta_}
         };
@@ -107,7 +107,7 @@ namespace nxtgm{
         }
 
         return {
-            {"type", XArray::serialization_name()},
+            {"type", XArray::serialization_key()},
             {"shape", shape},
             {"values", values}
         };
@@ -197,7 +197,7 @@ namespace nxtgm{
     
     nlohmann::json LabelCosts::serialize_json() const {
         return {
-            {"type", LabelCosts::serialization_name()},
+            {"type", LabelCosts::serialization_key()},
             {"arity", arity_},
             {"values", costs_}
         };

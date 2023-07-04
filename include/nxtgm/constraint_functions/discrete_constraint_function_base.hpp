@@ -37,4 +37,10 @@ namespace nxtgm{
         virtual nlohmann::json serialize_json() const = 0;
     };
 
+    using DiscretConstraintFunctionSerializationFactory = std::unordered_map<std::string, std::function<std::unique_ptr<DiscreteConstraintFunctionBase>(const nlohmann::json &)>>;
+
+    std::unique_ptr<DiscreteConstraintFunctionBase> discrete_constraint_function_deserialize_json(
+        const nlohmann::json & json,
+        const DiscretConstraintFunctionSerializationFactory & user_factory =  DiscretConstraintFunctionSerializationFactory()
+    );
 }

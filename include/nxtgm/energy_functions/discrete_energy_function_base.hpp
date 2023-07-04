@@ -12,6 +12,7 @@ namespace nxtgm{
     class DiscreteEnergyFunctionBase;
 
 
+
     // when we build an ilp to solve a discrete gm, for each function (ie the values of a factor)
     // we call function->add_to_lp(...)
     // This way, functions classes can specialze the way they are added to the lp.
@@ -68,10 +69,10 @@ namespace nxtgm{
         virtual nlohmann::json serialize_json() const = 0;
     };  
 
-    using UserDeserializeFactory = std::unordered_map<std::string, std::function<std::unique_ptr<DiscreteEnergyFunctionBase>(const nlohmann::json &)>>;
+    using DiscretEnergyFunctionSerializationFactory = std::unordered_map<std::string, std::function<std::unique_ptr<DiscreteEnergyFunctionBase>(const nlohmann::json &)>>;
 
     std::unique_ptr<DiscreteEnergyFunctionBase> discrete_energy_function_deserialize_json(
         const nlohmann::json & json,
-        const UserDeserializeFactory & user_factory =  UserDeserializeFactory()
+        const DiscretEnergyFunctionSerializationFactory & user_factory =  DiscretEnergyFunctionSerializationFactory()
     );
 }
