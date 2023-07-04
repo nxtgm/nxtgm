@@ -12,7 +12,6 @@ dependencies:
   - nlohmann_json
   - hihgs
   - xtensor
-  # python-bindings
   - python
   - pybind11
   - xtensor-python
