@@ -83,7 +83,8 @@ jobs:
 
             -   name:  build
                 shell: pwsh
-                run: mkdir build
+                run: |
+                    mkdir build
                     cmake .. ^
                     -G Ninja ^
                     -DCMAKE_BUILD_TYPE=Release ^
