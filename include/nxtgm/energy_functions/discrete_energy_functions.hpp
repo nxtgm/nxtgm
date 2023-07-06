@@ -10,6 +10,8 @@
 #include <cstdint>
 #include <xtensor/xadapt.hpp>
 
+#include <nxtgm/utils/sparse_array.hpp>
+
 #ifndef NXTGM_NO_THREADS
 #include <mutex> // std::mutex
 #endif
@@ -217,4 +219,54 @@ private:
     mutable std::mutex mtx_;
 #endif
 };
+
+class SparseDiscreteEnergyFunction : public DiscreteEnergyFunctionBase
+{
+public:
+    using base_type = DiscreteEnergyFunctionBase;
+    using base_type::energy;
+
+    inline static std::string serialization_key() { return "sparse"; }
+
+    template <class SHAPE>
+    SparseDiscreteEnergyFunction(SHAPE&& shape)
+        : data_(std::forward<SHAPE>(shape))
+    {
+    }
+
+    std::size_t arity() const override;
+    discrete_label_type shape(std::size_t) const override;
+    std::size_t size() const override;
+    energy_type
+    energy(const discrete_label_type* discrete_labels) const override;
+    std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override;
+
+    void copy_energies(energy_type* energies,
+                       discrete_label_type*) const override;
+    void add_energies(energy_type* energies,
+                      discrete_label_type*) const override;
+
+    static std::unique_ptr<DiscreteEnergyFunctionBase>
+    deserialize_json(const nlohmann::json& json);
+    nlohmann::json serialize_json() const override;
+
+    void add_to_lp(IlpData& ilp_data,
+                   const std::size_t* indicator_variables_mapping,
+                   IlpFactorBuilderBuffer& buffer) const override;
+
+    // not part of the general api
+    void set_energy(std::initializer_list<discrete_label_type> labels,
+                    energy_type energy);
+    void set_energy(const discrete_label_type* labels, energy_type energy);
+
+    void flat_index_to_labels(std::size_t flat_index,
+                              discrete_label_type* labels) const;
+
+    auto& data() { return data_; }
+    const auto& data() const { return data_; }
+
+private:
+    SparseArray<energy_type> data_;
+};
+
 } // namespace nxtgm

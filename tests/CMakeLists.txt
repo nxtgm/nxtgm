@@ -4,6 +4,7 @@ find_package(doctest REQUIRED)
 # Make test executable
 add_executable(cpp_tests main.cpp
     # test_version.cpp
+    utils/test_sparse_array.cpp
     # models/test_solution_value.cpp
     constraint_functions/test_discrete_constraints.cpp
     energy_functions/test_discrete_energy_functions.cpp

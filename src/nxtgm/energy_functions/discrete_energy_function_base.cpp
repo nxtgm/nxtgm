@@ -168,11 +168,11 @@ struct Identity
 };
 
 using AllInternalDiscreteEnergyFunctionTypes =
-    std::tuple<Identity<XArray>, Identity<Potts>, Identity<LabelCosts>>;
+    std::tuple<Identity<XArray>, Identity<Potts>, Identity<LabelCosts>,
+               Identity<SparseDiscreteEnergyFunction>>;
 
-// yes, this if/else for each function is
-// a tight coupling between the serialization and the
-// concrete function types.
+// this function introduces a tight coupling between
+// the serialization and the concrete function types.
 // A "more generic" solution would be to have a
 // singleton with a map from type to factory function
 // but this makes linkage more complicated
