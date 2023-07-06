@@ -33,10 +33,21 @@ jobs:
           post-cleanup: 'all'
 
 
-      - name: Build docs
+      - name: cmake configure
         shell: bash -l {0}
         run: |
           mkdir -p bld
+          cd bld
+          cmake \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DBUILD_TESTS=ON \
+              -DBUILD_PYTHON=ON \
+              -DBUILD_DOCS=ON \
+          .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+
+      - name: Build docs
+        shell: bash -l {0}
+        run: |
           cd docs_doxygen
           npm install https://github.com/jothepro/doxygen-awesome-css#v2.2.1 --save-devs
           cd ../bld
@@ -45,14 +56,8 @@ jobs:
       - name: Build
         shell: bash -l {0}
         run: |
-            cd bld
-            cmake \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DBUILD_TESTS=ON \
-                -DBUILD_PYTHON=ON \
-                -DBUILD_DOCS=ON \
-            .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
-            make -j ${{ steps.cpu-cores.outputs.count }}
+          cd bld
+          make -j ${{ steps.cpu-cores.outputs.count }}
 
       - name: Run C++ tets
         shell: bash -l {0}
