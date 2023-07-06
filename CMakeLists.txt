@@ -13,6 +13,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 option(BUILD_TESTS          "Build tests" ON)
 option(BUILD_PYTHON         "Build python bindings" ON)
 option(BUILD_WITH_COVERAGE  "Build with coverage" OFF)
+option(BUILD_DOCS          "Build doxygen documentation" ON)
 
 
 ###############################################################
@@ -99,4 +100,12 @@ endif()
 ###############################################################
 if(BUILD_PYTHON)
     add_subdirectory(python)
+endif()
+
+
+###############################################################
+# docs
+###############################################################
+if(BUILD_DOCS)
+    add_subdirectory(docs_doxygen)
 endif()
