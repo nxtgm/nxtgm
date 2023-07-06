@@ -149,6 +149,35 @@ TEST_CASE("label-costs")
     }
 }
 
+TEST_CASE("sparse")
+{
+
+    SUBCASE("unittest")
+    {
+        std::vector<nxtgm::discrete_label_type> shape{4, 5, 6};
+        nxtgm::SparseDiscreteEnergyFunction function(shape);
+        function.data()(1, 0, 1) = 1.0;
+        function.data()(3, 1, 2) = 5.0;
+
+        CHECK(function.arity() == 3);
+        CHECK(function.size() == 4 * 5 * 6);
+        CHECK(function.shape(0) == 4);
+        CHECK(function.shape(1) == 5);
+        CHECK(function.shape(2) == 6);
+
+        CHECK(function.energy({0, 0, 0}) == doctest::Approx(0.0));
+        CHECK(function.energy({1, 1, 1}) == doctest::Approx(0.0));
+        CHECK(function.energy({2, 2, 2}) == doctest::Approx(0.0));
+        CHECK(function.energy({1, 2, 3}) == doctest::Approx(0.0));
+
+        CHECK(function.energy({1, 0, 1}) == doctest::Approx(1.0));
+        CHECK(function.energy({3, 1, 2}) == doctest::Approx(5.0));
+
+        nxtgm::tests::test_discrete_energy_function<
+            nxtgm::SparseDiscreteEnergyFunction>(&function);
+    }
+}
+
 TEST_CASE("default-tester-function")
 {
     DefaultTesterFunction function(

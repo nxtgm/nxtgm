@@ -215,4 +215,98 @@ LabelCosts::deserialize_json(const nlohmann::json& json)
                                         json["values"].end());
 }
 
+std::size_t SparseDiscreteEnergyFunction::arity() const
+{
+    return data_.dimension();
+}
+discrete_label_type SparseDiscreteEnergyFunction::shape(std::size_t i) const
+{
+    return data_.shape(i);
+}
+std::size_t SparseDiscreteEnergyFunction::size() const { return data_.size(); }
+energy_type SparseDiscreteEnergyFunction::energy(
+    const discrete_label_type* discrete_labels) const
+{
+    return data_[discrete_labels];
+}
+
+std::unique_ptr<DiscreteEnergyFunctionBase>
+SparseDiscreteEnergyFunction::clone() const
+{
+    auto uptr =
+        std::make_unique<SparseDiscreteEnergyFunction>(this->data_.shape());
+    uptr.get()->data_.non_zero_entries() = this->data_.non_zero_entries();
+    return uptr;
+}
+
+void SparseDiscreteEnergyFunction::copy_energies(energy_type* energies,
+                                                 discrete_label_type*) const
+{
+    std::fill(energies, energies + data_.size(), 0);
+
+    for (const auto& item : data_.non_zero_entries())
+    {
+        energies[item.first] = item.second;
+    }
+}
+void SparseDiscreteEnergyFunction::add_energies(energy_type* energies,
+                                                discrete_label_type*) const
+{
+    for (const auto& item : data_.non_zero_entries())
+    {
+        energies[item.first] += item.second;
+    }
+}
+
+std::unique_ptr<DiscreteEnergyFunctionBase>
+SparseDiscreteEnergyFunction::deserialize_json(const nlohmann::json& json)
+{
+    std::vector<discrete_label_type> shape = json["shape"];
+    std::unordered_map<std::size_t, energy_type> non_zero_entries =
+        json["non_zero_entries"];
+
+    auto f = std::make_unique<SparseDiscreteEnergyFunction>(shape);
+    f.get()->data_.non_zero_entries() = non_zero_entries;
+    return f;
+}
+
+nlohmann::json SparseDiscreteEnergyFunction::serialize_json() const
+{
+    return {{"type", SparseDiscreteEnergyFunction::serialization_key()},
+            {"shape", this->data_.shape()},
+            {"non_zero_entries", this->data_.non_zero_entries()}};
+}
+
+void SparseDiscreteEnergyFunction::add_to_lp(
+    IlpData& ilp_data, const std::size_t* indicator_variables_mapping,
+    IlpFactorBuilderBuffer& buffer) const
+{
+    const auto arity = this->arity();
+
+    auto& labels = buffer.label_buffer;
+    if (labels.size() < arity)
+    {
+        labels.resize(2 * arity);
+    }
+
+    // for each entry in energies_
+    for (const auto& item : data_.non_zero_entries())
+    {
+
+        // add indicator variable
+        auto indicator_var =
+            ilp_data.add_variable(0.0, 1.0, double(item.second), false);
+
+        ilp_data.begin_constraint(0.0, arity - 1);
+        ilp_data.add_constraint_coefficient(indicator_var, -arity);
+
+        // add constraint
+        for (std::size_t i = 0; i < arity; ++i)
+        {
+            ilp_data.add_constraint_coefficient(indicator_variables_mapping[i],
+                                                1.0);
+        }
+    }
+}
+
 } // namespace nxtgm

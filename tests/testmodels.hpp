@@ -17,6 +17,8 @@
 
 #include <fmt/core.h>
 
+#include <cmath>
+
 namespace nxtgm::tests
 {
 
@@ -246,6 +248,71 @@ struct RandomModel
     std::size_t n_factors = 4;
     std::size_t max_factor_arity = 3;
     discrete_label_type n_labels_max = 3;
+    std::uint32_t seed = 0;
+};
+
+struct RandomSparseModel
+{
+
+    std::pair<DiscreteGm, std::string> operator()()
+    {
+        xt::random::seed(seed);
+
+        // num labels
+        auto num_labels = xt::eval(xt::random::randint<discrete_label_type>(
+            {n_variables}, 2, n_labels_max + 1));
+        DiscreteSpace space(num_labels.begin(), num_labels.end());
+        DiscreteGm gm(space);
+
+        // all variables
+        auto all_vis = xt::eval(xt::arange<std::size_t>(0, n_variables));
+
+        for (auto fi = 0; fi < n_factors; ++fi)
+        {
+            xt::random::shuffle(all_vis);
+            auto arity = xt::random::randint<std::size_t>(
+                {1}, 1, max_factor_arity + 1)[0];
+            auto vis = xt::view(all_vis, xt::range(0, arity));
+            auto shape = xt::index_view(num_labels, vis);
+
+            auto f =
+                std::make_unique<nxtgm::SparseDiscreteEnergyFunction>(shape);
+
+            auto size = f->size();
+            const auto n_nonzero = std::max(
+                std::size_t(1), std::size_t(std::ceil(density * size)));
+
+            for (auto i = 0; i < n_nonzero; ++i)
+            {
+                std::vector<discrete_label_type> coordinates(arity);
+                for (auto j = 0; j < arity; ++j)
+                {
+                    coordinates[j] = xt::random::randint<discrete_label_type>(
+                        {1}, 0, shape[j])[0];
+                }
+
+                f->set_energy(coordinates.data(),
+                              xt::random::rand<energy_type>(
+                                  {1}, energy_type(-1), energy_type(1))[0]);
+            }
+
+            auto fid = gm.add_energy_function(std::move(f));
+            gm.add_factor(vis, fid);
+        }
+
+        const std::string name = fmt::format(
+            "RandomModel(n_variables={}, n_factors{}, max_factor_arity={}, "
+            "n_labels_max={}, seed={})",
+            n_variables, n_factors, max_factor_arity, n_labels_max, seed);
+        ++seed;
+        return std::pair<DiscreteGm, std::string>(std::move(gm), name);
+    }
+
+    std::size_t n_variables = 3;
+    std::size_t n_factors = 4;
+    std::size_t max_factor_arity = 3;
+    discrete_label_type n_labels_max = 3;
+    float density = 0.1;
     std::uint32_t seed = 0;
 };
 
