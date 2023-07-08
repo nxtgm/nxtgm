@@ -1,0 +1,97 @@
+# Configuration file for the Sphinx documentation builder.
+#
+# For the full list of built-in configuration values, see the documentation:
+# https://www.sphinx-doc.org/en/master/usage/configuration.html
+
+# -- Project information -----------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+
+project = 'nxtgm'
+copyright = '2023, Dr. Thorsten Beier'
+author = 'Dr. Thorsten Beier'
+
+from pathlib import Path
+import sys
+
+NXTGM_PY_MODULE_PATH =  Path("@CMAKE_SOURCE_DIR@") / "python"/"module"
+sys.path.insert(0, str(NXTGM_PY_MODULE_PATH))
+
+
+# import the package we want to document
+import nxtgm
+
+# -- General configuration ---------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
+
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.autosectionlabel',
+    'sphinx.ext.todo',
+    'sphinx.ext.coverage',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.ifconfig',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.inheritance_diagram',
+    'sphinx_gallery.gen_gallery',
+    'breathe'
+]
+
+
+
+templates_path = ['_templates']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'breathe/*']
+
+
+
+# -- Options for HTML output -------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
+
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+#
+html_theme = 'sphinx_rtd_theme'
+html_theme_options = {
+    'canonical_url': '',
+    'analytics_id': '',
+    'display_version': True,
+    'prev_next_buttons_location': 'bottom',
+    'style_external_links': False,
+
+    'logo_only': False,
+
+    # Toc options
+    'collapse_navigation': True,
+    'sticky_navigation': True,
+    'navigation_depth': 4,
+    'includehidden': True,
+    'titles_only': False
+}
+# html_logo = ''
+# github_url = ''
+#html_baseurl = 'baZINGA'
+
+
+html_static_path = []
+
+
+# -- Breathe configuration -------------------------------------------------
+from pathlib import Path
+CMAKE_CURRENT_BINARY_DIR = Path("@CMAKE_CURRENT_BINARY_DIR@")
+XML_OUTPUT_DIR = CMAKE_CURRENT_BINARY_DIR /"docs_doxygen"/"xml/"
+
+
+breathe_projects = {
+	"nxtgm": str(XML_OUTPUT_DIR),
+}
+breathe_default_project = "nxtgm"
+breathe_default_members = ('members', 'undoc-members')
+
+
+
+
+# -- Sphinx Gallery configuration -------------------------------------------------
+sphinx_gallery_conf = {
+     'examples_dirs': str(Path("@CMAKE_SOURCE_DIR@") / "python"/"examples"),
+     'gallery_dirs': 'examples/python_examples',  # path to where to save gallery generated output
+}

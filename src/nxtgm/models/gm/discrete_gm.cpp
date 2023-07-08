@@ -56,50 +56,9 @@ SolutionValue
 DiscreteGm::evaluate(const span<const discrete_label_type>& solution,
                      bool early_stop_infeasible) const
 {
-    bool total_is_feasible = true;
-    energy_type total_how_violated = 0;
-
-    // buffer holding the labels for the factors/constraints
-    std::vector<discrete_label_type> local_labels_buffer(2);
-
-    for (const auto& constraint : constraints_)
-    {
-        const const_discrete_label_span labels =
-            local_solution_from_model_solution(constraint.variables(), solution,
-                                               local_labels_buffer);
-        const auto how_violated =
-            constraint.function()->how_violated(labels.data());
-        if (how_violated >= constraint_feasiblility_limit)
-        {
-            if (early_stop_infeasible)
-            {
-                return SolutionValue{
-                    std::numeric_limits<energy_type>::infinity(), how_violated};
-            }
-            else
-            {
-                total_how_violated += how_violated;
-            }
-        }
-        else
-        {
-            total_how_violated += how_violated;
-        }
-    }
-
-    energy_type total_energy = 0;
-    for (const auto& factor : factors_)
-    {
-
-        const const_discrete_label_span labels =
-            local_solution_from_model_solution(factor.variables(), solution,
-                                               local_labels_buffer);
-        total_energy += factor.function()->energy(labels.data());
-    }
-    total_how_violated = total_how_violated < constraint_feasiblility_limit
-                             ? 0
-                             : total_how_violated;
-    return SolutionValue{total_energy, total_how_violated};
+    return this->evaluate_if(
+        solution, early_stop_infeasible, [](auto) { return true; },
+        [](auto) { return true; });
 }
 
 nlohmann::json DiscreteGm::serialize_json() const

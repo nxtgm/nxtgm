@@ -23,4 +23,7 @@ dependencies:
   - sphinx_rtd_theme
   - breathe
   - sphinx-sitemap
-  - nodejs
+  # for examples
+  - sphinx-gallery
+  - matplotlib
+  - scikit-image

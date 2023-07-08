@@ -14,6 +14,7 @@ namespace nxtgm
 class DiscreteSpace
 {
 
+private:
 public:
     nlohmann::json serialize_json() const;
     static DiscreteSpace deserialize_json(const nlohmann::json& json);
@@ -57,9 +58,10 @@ public:
     template <class F, class SOLUTION>
     void exitable_for_each_solution(SOLUTION& solution, F&& f) const
     {
+        // since operator[] acts like the shape we can use
+        // *this as shape
         exitable_n_nested_loops<discrete_label_type>(
-            this->size(), [&](const auto vi) { return this->operator[](vi); },
-            solution, std::forward<F>(f));
+            this->size(), *this, solution, std::forward<F>(f));
     }
     bool is_simple() const { return is_simple_; }
     discrete_label_type max_num_labels() const;

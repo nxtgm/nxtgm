@@ -50,7 +50,7 @@ struct Identity
 };
 
 using AllInternalDiscreteConstraintFunctionTypes =
-    std::tuple<Identity<PairwiseUniqueLables>,
+    std::tuple<Identity<UniqueLables>,
                Identity<ArrayDiscreteConstraintFunction>>;
 
 // yes, this if/else for each function is

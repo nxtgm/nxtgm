@@ -57,27 +57,25 @@ void DiscreteEnergyFunctionBase::copy_energies(
     energy_type* energies, discrete_label_type* discrete_labels_buffer) const
 {
     const auto arity = this->arity();
-    auto shapef = [this](std::size_t index) { return this->shape(index); };
 
     auto flat_index = 0;
-    n_nested_loops<discrete_label_type>(arity, shapef, discrete_labels_buffer,
-                                        [&](auto&& _)
-                                        {
-                                            energies[flat_index] = this->energy(
-                                                discrete_labels_buffer);
-                                            ++flat_index;
-                                        });
+    n_nested_loops<discrete_label_type>(
+        arity, DiscreteEnergyFunctionShape(this), discrete_labels_buffer,
+        [&](auto&& _)
+        {
+            energies[flat_index] = this->energy(discrete_labels_buffer);
+            ++flat_index;
+        });
 }
 
 void DiscreteEnergyFunctionBase::add_energies(
     energy_type* energies, discrete_label_type* discrete_labels_buffer) const
 {
     const auto arity = this->arity();
-    auto shapef = [this](std::size_t index) { return this->shape(index); };
 
     auto flat_index = 0;
     n_nested_loops<discrete_label_type>(
-        arity, shapef, discrete_labels_buffer,
+        arity, DiscreteEnergyFunctionShape(this), discrete_labels_buffer,
         [&](auto&& _)
         {
             energies[flat_index] += this->energy(discrete_labels_buffer);

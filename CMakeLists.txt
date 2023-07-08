@@ -107,5 +107,25 @@ endif()
 # docs
 ###############################################################
 if(BUILD_DOCS)
-    add_subdirectory(docs_doxygen)
+    add_subdirectory(docs)
 endif()
+
+
+###############################################################
+# install
+###############################################################
+
+# gnu install dirs
+include(GNUInstallDirs)
+
+# install targets
+install(TARGETS nxtgm
+    EXPORT nxtgmTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+# install headers
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/nxtgm
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)

@@ -1,3 +1,4 @@
+#include <nxtgm/constraint_functions/discrete_constraints.hpp>
 #include <nxtgm/energy_functions/discrete_energy_functions.hpp>
 #include <nxtgm/models/gm/discrete_gm.hpp>
 #include <pybind11/pybind11.h>
@@ -92,6 +93,32 @@ void export_discrete_gm(py::module_& pymodule)
             "add_factor",
             [](DiscreteGm& gm, const xt::pytensor<std::size_t, 1>& vis,
                std::size_t fid) { return gm.add_factor(vis, fid); },
+            py::arg("variables"), py::arg("function_id"))
+
+        .def(
+            "add_constraint_function",
+            [](DiscreteGm& gm, DiscreteConstraintFunctionBase* f)
+            {
+                auto cloned = f->clone();
+                return gm.add_constraint_function(std::move(cloned));
+            },
+            py::arg("discrete_constraint_function"))
+
+        .def(
+            "add_contraint_function",
+            [](DiscreteGm& gm, const xt::pyarray<energy_type>& array)
+            {
+                auto f =
+                    std::make_unique<nxtgm::ArrayDiscreteConstraintFunction>(
+                        array);
+                return gm.add_constraint_function(std::move(f));
+            },
+            py::arg("discrete_constraint_function"))
+
+        .def(
+            "add_constraint",
+            [](DiscreteGm& gm, const xt::pytensor<std::size_t, 1>& vis,
+               std::size_t fid) { return gm.add_constraint(vis, fid); },
             py::arg("variables"), py::arg("function_id"))
 
         ;

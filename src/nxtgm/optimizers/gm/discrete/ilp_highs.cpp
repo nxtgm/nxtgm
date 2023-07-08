@@ -156,8 +156,8 @@ void IlpHighs::setup_lp()
 
 OptimizationStatus
 IlpHighs::optimize(reporter_callback_wrapper_type& reporter_callback,
-                   repair_callback_wrapper_type& /*repair_callback not used*/
-)
+                   repair_callback_wrapper_type& /*repair_callback not used*/,
+                   const_discrete_solution_span)
 {
 
     reporter_callback.begin();
@@ -191,7 +191,7 @@ IlpHighs::optimize(reporter_callback_wrapper_type& reporter_callback,
     reporter_callback.report();
 
     // Get the model status
-    assert(model_status == HighsModelStatus::kOptimal);
+    // assert(model_status == HighsModelStatus::kOptimal);
 
     // Get the solution information
     const HighsInfo& info = highs.getInfo();

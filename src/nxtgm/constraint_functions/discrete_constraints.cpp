@@ -1,67 +1,76 @@
-
 #include <nxtgm/constraint_functions/discrete_constraints.hpp>
-
 #include <nxtgm/utils/n_nested_loops.hpp>
 
 namespace nxtgm
 {
 
-PairwiseUniqueLables::PairwiseUniqueLables(discrete_label_type n_labels,
-                                           energy_type scale)
-    : n_labels_(n_labels), scale_(scale)
+UniqueLables::UniqueLables(std::size_t arity, discrete_label_type n_labels,
+                           energy_type scale)
+    : arity_(arity), n_labels_(n_labels), scale_(scale)
 {
+    // std::cout<<"wup"<<std::endl;
 }
 
-std::size_t PairwiseUniqueLables::arity() const { return 2; }
+std::size_t UniqueLables::arity() const { return arity_; }
 
-discrete_label_type PairwiseUniqueLables::shape(std::size_t) const
+discrete_label_type UniqueLables::shape(std::size_t) const { return n_labels_; }
+
+std::size_t UniqueLables::size() const { return std::pow(n_labels_, arity_); }
+
+energy_type
+UniqueLables::how_violated(const discrete_label_type* discrete_labels) const
 {
-    return n_labels_;
+    auto n_duplicates = 0;
+
+    for (auto i = 0; i < arity_ - 1; ++i)
+    {
+        for (auto j = i + 1; j < arity_; ++j)
+        {
+            if (discrete_labels[i] == discrete_labels[j])
+            {
+                ++n_duplicates;
+            }
+        }
+    }
+    return n_duplicates == 0 ? static_cast<energy_type>(0)
+                             : scale_ * n_duplicates;
 }
 
-std::size_t PairwiseUniqueLables::size() const { return n_labels_ * n_labels_; }
-
-energy_type PairwiseUniqueLables::how_violated(
-    const discrete_label_type* discrete_labels) const
+std::unique_ptr<DiscreteConstraintFunctionBase> UniqueLables::clone() const
 {
-    return discrete_labels[0] != discrete_labels[1]
-               ? static_cast<energy_type>(0)
-               : scale_;
+    return std::make_unique<UniqueLables>(arity_, n_labels_, scale_);
 }
 
-std::unique_ptr<DiscreteConstraintFunctionBase>
-PairwiseUniqueLables::clone() const
-{
-    return std::make_unique<PairwiseUniqueLables>(n_labels_, scale_);
-}
-
-void PairwiseUniqueLables::add_to_lp(
-    IlpData& ilp_data, const std::size_t* indicator_variables_mapping,
-    IlpConstraintBuilderBuffer& /*buffer*/
+void UniqueLables::add_to_lp(IlpData& ilp_data,
+                             const std::size_t* indicator_variables_mapping,
+                             IlpConstraintBuilderBuffer& /*buffer*/
 ) const
 {
     for (discrete_label_type l = 0; l < n_labels_; ++l)
     {
 
         ilp_data.begin_constraint(0.0, 1.0);
-        ilp_data.add_constraint_coefficient(indicator_variables_mapping[0] + l,
-                                            1.0);
-        ilp_data.add_constraint_coefficient(indicator_variables_mapping[1] + l,
-                                            1.0);
+        for (auto i = 0; i < arity_; ++i)
+        {
+            ilp_data.add_constraint_coefficient(
+                indicator_variables_mapping[i] + l, 1.0);
+        }
     }
 }
 
-nlohmann::json PairwiseUniqueLables::serialize_json() const
+nlohmann::json UniqueLables::serialize_json() const
 {
-    return {{"type", PairwiseUniqueLables::serialization_key()},
+    return {{"type", UniqueLables::serialization_key()},
+            {"arity", arity_},
             {"num_labels", n_labels_},
             {"scale", scale_}};
 }
 
 std::unique_ptr<DiscreteConstraintFunctionBase>
-PairwiseUniqueLables::deserialize_json(const nlohmann::json& json)
+UniqueLables::deserialize_json(const nlohmann::json& json)
 {
-    return std::make_unique<PairwiseUniqueLables>(
+    return std::make_unique<UniqueLables>(
+        json["arity"].get<std::size_t>(),
         json["num_labels"].get<discrete_label_type>(),
         json["scale"].get<energy_type>());
 }
@@ -96,8 +105,7 @@ void ArrayDiscreteConstraintFunction::add_to_lp(
     IlpConstraintBuilderBuffer& buffer) const
 {
     const auto arity = this->arity();
-    auto shapef = [this](std::size_t index) { return this->shape(index); };
-
+    const auto shape = DiscreteConstraintFunctionShape(this);
     if (buffer.label_buffer.size() < arity)
     {
         buffer.label_buffer.resize(arity * 2);
@@ -105,7 +113,7 @@ void ArrayDiscreteConstraintFunction::add_to_lp(
 
     auto flat_index = 0;
     n_nested_loops<discrete_label_type>(
-        arity, shapef, buffer.label_buffer,
+        arity, shape, buffer.label_buffer,
         [&](auto&& _)
         {
             auto hv = how_violated_[flat_index];

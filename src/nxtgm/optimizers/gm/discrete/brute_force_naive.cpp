@@ -5,22 +5,13 @@ namespace nxtgm
 {
 
 BruteForceNaive::BruteForceNaive(const DiscreteGm& gm,
-                                 const parameters_type& parameters,
-                                 const solution_type& initial_solution)
-    : base_type(gm), parameters_(parameters), best_solution_(initial_solution),
-      current_solution_(initial_solution), best_sol_value_(),
+                                 const parameters_type& parameters)
+    : base_type(gm), parameters_(parameters),
+      best_solution_(gm.space().size(), 0),
+      current_solution_(gm.space().size(), 0), best_sol_value_(),
       current_sol_value_()
 {
-    if (initial_solution.empty())
-    {
-        current_solution_.resize(gm.space().size(), 0);
-    }
-    else
-    {
-        current_solution_ = initial_solution;
-    }
-    best_solution_ = current_solution_;
-    current_sol_value_ = best_sol_value_;
+
     best_sol_value_ =
         gm.evaluate(best_solution_, false /* early exit when infeasible*/);
     current_sol_value_ = best_sol_value_;
@@ -28,9 +19,10 @@ BruteForceNaive::BruteForceNaive(const DiscreteGm& gm,
 
 OptimizationStatus BruteForceNaive::optimize(
     reporter_callback_wrapper_type& reporter_callback,
-    repair_callback_wrapper_type& /*repair_callback not used*/
-)
+    repair_callback_wrapper_type& /*repair_callback not used*/,
+    const_discrete_solution_span)
 {
+    // if the starting point is not empty, use it as the initial solution
 
     AutoStartedTimer timer;
 

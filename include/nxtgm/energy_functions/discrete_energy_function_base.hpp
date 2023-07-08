@@ -64,6 +64,27 @@ public:
     virtual nlohmann::json serialize_json() const = 0;
 };
 
+// helper class to have a shape object
+// with operator[] and size()
+class DiscreteEnergyFunctionShape
+{
+public:
+    inline DiscreteEnergyFunctionShape(
+        const DiscreteEnergyFunctionBase* function)
+        : function_(function)
+    {
+    }
+
+    inline std::size_t size() const { return function_->arity(); }
+    inline discrete_label_type operator[](std::size_t index) const
+    {
+        return function_->shape(index);
+    }
+
+private:
+    const DiscreteEnergyFunctionBase* function_;
+};
+
 using DiscretEnergyFunctionSerializationFactory = std::unordered_map<
     std::string, std::function<std::unique_ptr<DiscreteEnergyFunctionBase>(
                      const nlohmann::json&)>>;

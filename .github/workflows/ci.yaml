@@ -48,8 +48,6 @@ jobs:
       - name: Build docs
         shell: bash -l {0}
         run: |
-          cd docs_doxygen
-          npm install https://github.com/jothepro/doxygen-awesome-css#v2.2.1 --save-devs
           cd ../bld
           make docs
 

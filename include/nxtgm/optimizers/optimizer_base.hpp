@@ -18,6 +18,8 @@ enum class OptimizationStatus
     INFEASIBLE,
     UNKNOWN,
     TIME_LIMIT_REACHED,
+    ITERATION_LIMIT_REACHED,
+    CONVERGED,
     CALLBACK_EXIT
 };
 
@@ -62,19 +64,22 @@ public:
 
     virtual OptimizationStatus
     optimize(reporter_callback_base_type* reporter_callback = nullptr,
-             repair_callback_base_type* repair_callback = nullptr)
+             repair_callback_base_type* repair_callback = nullptr,
+             const_discrete_solution_span starting_point =
+                 const_discrete_solution_span())
     {
         reporter_callback_wrapper_type reporter_callback_wrapper(
             reporter_callback);
         repair_callback_wrapper_type repair_callback_wrapper(repair_callback);
 
         return this->optimize(reporter_callback_wrapper,
-                              repair_callback_wrapper);
+                              repair_callback_wrapper, starting_point);
     }
 
     virtual OptimizationStatus
     optimize(reporter_callback_wrapper_type& reporter_callback,
-             repair_callback_wrapper_type& repair_callback) = 0;
+             repair_callback_wrapper_type& repair_callback,
+             const_discrete_solution_span starting_point) = 0;
 
     virtual const model_type& model() const { return this->model_; }
     virtual const solution_type& best_solution() const = 0;

@@ -13,6 +13,10 @@ using span = boost::span<T>;
 
 using discrete_label_type = std::uint16_t;
 using discrete_solution = std::vector<discrete_label_type>;
+
+using const_discrete_solution_span = span<const discrete_label_type>;
+using discrete_solution_span = span<discrete_label_type>;
+
 using continuous_label_type = double;
 using energy_type = double;
 

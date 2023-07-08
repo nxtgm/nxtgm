@@ -6,9 +6,8 @@
 namespace nxtgm
 {
 
-Icm::Icm(const DiscreteGm& gm, const parameters_type& parameters,
-         const solution_type& initial_solution)
-    : base_type(gm), parameters_(parameters), movemaker_(gm, initial_solution),
+Icm::Icm(const DiscreteGm& gm, const parameters_type& parameters)
+    : base_type(gm), parameters_(parameters), movemaker_(gm),
       in_queue_(gm.num_variables(), 1)
 {
     // put all variables on queue
@@ -20,9 +19,15 @@ Icm::Icm(const DiscreteGm& gm, const parameters_type& parameters,
 
 OptimizationStatus
 Icm::optimize(reporter_callback_wrapper_type& reporter_callback,
-              repair_callback_wrapper_type& /*repair_callback not used*/
-)
+              repair_callback_wrapper_type& /*repair_callback not used*/,
+              const_discrete_solution_span starting_point)
 {
+    // set the starting point
+    if (starting_point.size() > 0)
+    {
+        movemaker_.set_current_solution(starting_point);
+    }
+
     // indicate the start of the optimization
     reporter_callback.begin();
 

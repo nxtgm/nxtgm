@@ -30,11 +30,11 @@ public:
     inline static std::string name() { return "DynamicProgramming"; }
     virtual ~DynamicProgramming() = default;
 
-    DynamicProgramming(const DiscreteGm& gm, const parameters_type& parameters,
-                       const solution_type& initial_solution = solution_type());
+    DynamicProgramming(const DiscreteGm& gm, const parameters_type& parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type&,
-                                repair_callback_wrapper_type&) override;
+                                repair_callback_wrapper_type&,
+                                const_discrete_solution_span) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;

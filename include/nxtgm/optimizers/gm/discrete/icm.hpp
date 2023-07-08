@@ -32,11 +32,11 @@ public:
     inline static std::string name() { return "Icm"; }
     virtual ~Icm() = default;
 
-    Icm(const DiscreteGm& gm, const parameters_type& parameters,
-        const solution_type& initial_solution = solution_type());
+    Icm(const DiscreteGm& gm, const parameters_type& parameters);
 
-    OptimizationStatus optimize(reporter_callback_wrapper_type&,
-                                repair_callback_wrapper_type&) override;
+    OptimizationStatus
+    optimize(reporter_callback_wrapper_type&, repair_callback_wrapper_type&,
+             const_discrete_solution_span starting_point) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;

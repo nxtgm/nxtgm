@@ -184,7 +184,7 @@ struct UniqueLabelChain
         }
 
         // pairwise constraints (all pairs, not just neighbours)
-        auto f = std::make_unique<PairwiseUniqueLables>(n_labels);
+        auto f = std::make_unique<UniqueLables>(2, n_labels);
         auto fid = gm.add_constraint_function(std::move(f));
         for (std::size_t i = 0; i < n_variables - 1; i++)
         {

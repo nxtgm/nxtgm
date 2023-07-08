@@ -13,8 +13,7 @@ namespace nxtgm
 {
 
 DynamicProgramming::DynamicProgramming(const DiscreteGm& gm,
-                                       const parameters_type& parameters,
-                                       const solution_type&)
+                                       const parameters_type& parameters)
     : base_type(gm), parameters_(parameters),
       best_solution_(gm.num_variables()),
       best_sol_value_(gm.evaluate(best_solution_)), factors_of_variables_(gm),
@@ -111,7 +110,8 @@ DynamicProgramming::DynamicProgramming(const DiscreteGm& gm,
 
 OptimizationStatus DynamicProgramming::optimize(
     reporter_callback_wrapper_type& reporter_callback,
-    repair_callback_wrapper_type& /*repair_callback not used*/
+    repair_callback_wrapper_type& /*repair_callback not used*/,
+    const_discrete_solution_span /*initial_solution not used*/
 )
 {
     reporter_callback.begin();

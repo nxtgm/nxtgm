@@ -17,7 +17,7 @@ namespace nxtgm
 
 const_discrete_label_span local_solution_from_model_solution(
     const std::vector<std::size_t>& variables,
-    const std::vector<discrete_label_type>& solution,
+    const span<const discrete_label_type>& solution,
     std::vector<discrete_label_type>& local_labels_buffer);
 
 class DiscreteFactor
@@ -319,6 +319,68 @@ public:
     SolutionValue evaluate(const solution_type& solution,
                            bool early_stop_infeasible = false) const;
 
+    template <class USE_FACTOR, class USE_CONSTRAINT>
+    SolutionValue evaluate_if(const span<const discrete_label_type>& solution,
+                              bool early_stop_infeasible,
+                              USE_FACTOR&& use_factor,
+                              USE_CONSTRAINT&& use_constraint) const
+    {
+        bool total_is_feasible = true;
+        energy_type total_how_violated = 0;
+
+        // buffer holding the labels for the factors/constraints
+        std::vector<discrete_label_type> local_labels_buffer(2);
+
+        std::size_t ci = 0;
+        for (const auto& constraint : constraints_)
+        {
+            if (use_constraint(ci))
+            {
+                const const_discrete_label_span labels =
+                    local_solution_from_model_solution(
+                        constraint.variables(), solution, local_labels_buffer);
+                const auto how_violated =
+                    constraint.function()->how_violated(labels.data());
+                if (how_violated >= constraint_feasiblility_limit)
+                {
+                    if (early_stop_infeasible)
+                    {
+                        return SolutionValue{
+                            std::numeric_limits<energy_type>::infinity(),
+                            how_violated};
+                    }
+                    else
+                    {
+                        total_how_violated += how_violated;
+                    }
+                }
+                else
+                {
+                    total_how_violated += how_violated;
+                }
+            }
+            ++ci;
+        }
+
+        energy_type total_energy = 0;
+        std::size_t fi = 0;
+        for (const auto& factor : factors_)
+        {
+            if (use_factor(fi))
+            {
+                const const_discrete_label_span labels =
+                    local_solution_from_model_solution(
+                        factor.variables(), solution, local_labels_buffer);
+                total_energy += factor.function()->energy(labels.data());
+                ++fi;
+            }
+        }
+        total_how_violated = total_how_violated < constraint_feasiblility_limit
+                                 ? 0
+                                 : total_how_violated;
+        return SolutionValue{total_energy, total_how_violated};
+    }
+
     nlohmann::json serialize_json() const;
     static DiscreteGm deserialize_json(const nlohmann::json& json);
 
@@ -351,16 +413,27 @@ class DiscreteGmFactorsOfVariables
 {
 public:
     using base_type = std::vector<std::vector<std::size_t>>;
-    inline DiscreteGmFactorsOfVariables(const DiscreteGm& gm)
+
+    template <class USE_FACTOR>
+    inline DiscreteGmFactorsOfVariables(const DiscreteGm& gm,
+                                        USE_FACTOR&& use_factor)
         : base_type(gm.space().size())
     {
         for (std::size_t fi = 0; fi < gm.factors().size(); ++fi)
         {
-            for (const auto& vi : gm.factors()[fi].variables())
+            if (use_factor(fi))
             {
-                (*this)[vi].push_back(fi);
+                for (const auto& vi : gm.factors()[fi].variables())
+                {
+                    (*this)[vi].push_back(fi);
+                }
             }
         }
+    }
+
+    inline DiscreteGmFactorsOfVariables(const DiscreteGm& gm)
+        : DiscreteGmFactorsOfVariables(gm, [](std::size_t) { return true; })
+    {
     }
 };
 
@@ -369,16 +442,26 @@ class DiscreteGmConstraintsOfVariables
 {
 public:
     using base_type = std::vector<std::vector<std::size_t>>;
-    inline DiscreteGmConstraintsOfVariables(const DiscreteGm& gm)
+
+    template <class USE_CONSTRAINT>
+    inline DiscreteGmConstraintsOfVariables(const DiscreteGm& gm,
+                                            USE_CONSTRAINT&& use_constraint)
         : base_type(gm.space().size())
     {
         for (std::size_t fi = 0; fi < gm.constraints().size(); ++fi)
         {
-            for (const auto& vi : gm.constraints()[fi].variables())
+            if (use_constraint(fi))
             {
-                (*this)[vi].push_back(fi);
+                for (const auto& vi : gm.constraints()[fi].variables())
+                {
+                    (*this)[vi].push_back(fi);
+                }
             }
         }
+    }
+    DiscreteGmConstraintsOfVariables(const DiscreteGm& gm)
+        : DiscreteGmConstraintsOfVariables(gm, [](std::size_t) { return true; })
+    {
     }
 };
 
