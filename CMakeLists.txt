@@ -59,6 +59,9 @@ add_library(nxtgm SHARED
 # compiler settings / features
 ###############################################################
 target_compile_features(nxtgm PUBLIC cxx_std_17)
+if (WIN32)
+    set_property(TARGET nxtgm PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS true)
+endif()
 
 ###############################################################
 # link libraries
