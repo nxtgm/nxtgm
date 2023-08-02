@@ -369,7 +369,7 @@ struct RandomSparseModel
     std::size_t min_factor_arity = 1;
     std::size_t max_factor_arity = 3;
     discrete_label_type n_labels_max = 3;
-    float density = 0.1;
+    float density = 0.1f;
     std::uint32_t seed = 0;
 };
 

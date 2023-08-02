@@ -59,6 +59,9 @@ add_library(nxtgm SHARED
 # compiler settings / features
 ###############################################################
 target_compile_features(nxtgm PUBLIC cxx_std_17)
+if (WIN32)
+    set_property(TARGET nxtgm PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS true)
+endif()
 
 ###############################################################
 # link libraries
@@ -119,12 +122,32 @@ endif()
 
 # gnu install dirs
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+set(NXTGM_CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}" CACHE STRING "install path for nxtgmConfig.cmake")
+
 
 # install targets
 install(TARGETS nxtgm
     EXPORT nxtgmTargets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
+
+# install the targets file
+INSTALL(
+    EXPORT nxtgmTargets
+    FILE nxtgmTargets.cmake
+    DESTINATION "${NXTGM_CMAKECONFIG_INSTALL_DIR}"
+    NAMESPACE nxtgm::
+)
+
+# configure the config file
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/nxtgmConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/nxtgmConfig.cmake
+    INSTALL_DESTINATION ${NXTGM_CMAKECONFIG_INSTALL_DIR}
 )
 
 # install headers

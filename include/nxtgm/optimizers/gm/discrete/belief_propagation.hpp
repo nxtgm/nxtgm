@@ -54,7 +54,7 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
     void damp_messages();
 
     parameters_type parameters_;
-    uint iteration_;
+    std::size_t iteration_;
 
     // since we do damping, we need to store old and current messages
     std::vector<energy_type> message_storage_[2];

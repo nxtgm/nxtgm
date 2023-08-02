@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import os
 
 import numpy as np
 import nxtgm
@@ -130,6 +131,7 @@ class TestDiscreteGm:
 
 class TestOptimizers:
 
+    @pytest.mark.skipif(os.name == 'nt', reason='not supported on windows')
     def test_ilp_highs(self):
         gm = potts_chain(num_variables=10, num_labels=2)  # noqa 405
 
