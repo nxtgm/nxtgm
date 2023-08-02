@@ -13,8 +13,8 @@ from __future__ import annotations
 import numpy as np
 import nxtgm
 # this example assume there are less or qual number of seats than persons
-n_persons = 500
-n_seats = n_persons // 10
+n_persons = 15
+n_seats = 10
 assert n_seats <= n_persons
 
 np.random.seed(0)
@@ -116,21 +116,11 @@ best_solution = optimizer.best_solution()
 print(best_solution)
 
 
-# # optimize the model with Matching-ICM
-# Optimizer = nxtgm.MatchingIcm
-# parameters = Optimizer.parameters(subgraph_size=4)
-# optimizer = Optimizer(gm, parameters)
-# callack = Optimizer.ReporterCallback(optimizer)
-# optimizer.optimize(callack)
-# best_solution = optimizer.best_solution()
-# print(best_solution)
-
-
-# # %%
-# # optimize with an ILP solver
-# Optimizer = nxtgm.IlpHighs
-# optimizer = Optimizer(gm)
-# callack = Optimizer.ReporterCallback(optimizer)
-# optimizer.optimize(callack)
-# best_solution = optimizer.best_solution()
-# print(best_solution)
+# %%
+# optimize with an ILP solver
+Optimizer = nxtgm.IlpHighs
+optimizer = Optimizer(gm)
+callack = Optimizer.ReporterCallback(optimizer)
+optimizer.optimize(callack)
+best_solution = optimizer.best_solution()
+print(best_solution)

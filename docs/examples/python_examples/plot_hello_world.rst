@@ -169,7 +169,7 @@ and the energy for the variable being 1 is 30.0
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.017 seconds)
+   **Total running time of the script:** ( 0 minutes  0.002 seconds)
 
 
 .. _sphx_glr_download_examples_python_examples_plot_hello_world.py:

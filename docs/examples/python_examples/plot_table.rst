@@ -36,8 +36,8 @@ The contraints ensure that a person can only sit on one chair
     import numpy as np
     import nxtgm
     # this example assume there are less or qual number of seats than persons
-    n_persons = 10
-    n_seats = n_persons
+    n_persons = 15
+    n_seats = 10
     assert n_seats <= n_persons
 
     np.random.seed(0)
@@ -176,11 +176,13 @@ and is the same for all binary factors
 constraints so that each person is only seated once
 so we need a constraint for each pair of seats
 
-.. GENERATED FROM PYTHON SOURCE LINES 82-127
+.. GENERATED FROM PYTHON SOURCE LINES 82-120
 
 .. code-block:: default
 
-    constraint_function = nxtgm.UniqueLables(arity=gm.num_variables , num_labels=n_persons)
+    constraint_function = nxtgm.UniqueLables(
+        arity=gm.num_variables, num_labels=n_persons,
+    )
     constrain_function_id = gm.add_constraint_function(constraint_function)
     variables = list(range(gm.num_variables))
     gm.add_constraint(variables, constrain_function_id)
@@ -215,15 +217,6 @@ so we need a constraint for each pair of seats
     print(best_solution)
 
 
-    # optimize the model with Matching-ICM
-    Optimizer = nxtgm.MatchingIcm
-    parameters = Optimizer.parameters(subgraph_size=4)
-    optimizer = Optimizer(gm, parameters)
-    callack = Optimizer.ReporterCallback(optimizer)
-    optimizer.optimize(callack)
-    best_solution = optimizer.best_solution()
-    print(best_solution)
-
 
 
 
@@ -233,18 +226,17 @@ so we need a constraint for each pair of seats
 
  .. code-block:: none
 
-    [6 7 2 3 1 8 0 4 5 9]
-    [6 0 8 3 1 7 2 4 5 9]
-    [9 6 2 4 3 1 0 8 5 7]
+    [ 0 12 13  7  6  1  4  3 10  9]
+    [ 9  0  2  3 10  6  1  4  7 11]
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 128-129
+.. GENERATED FROM PYTHON SOURCE LINES 121-122
 
 optimize with an ILP solver
 
-.. GENERATED FROM PYTHON SOURCE LINES 129-135
+.. GENERATED FROM PYTHON SOURCE LINES 122-128
 
 .. code-block:: default
 
@@ -262,7 +254,7 @@ optimize with an ILP solver
 
  .. code-block:: none
 
-    [0 8 9 6 2 7 1 3 4 5]
+    [ 9 10  3  6  1  7 13 12  2  0]
 
 
 
@@ -270,7 +262,7 @@ optimize with an ILP solver
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.176 seconds)
+   **Total running time of the script:** ( 0 minutes  1.473 seconds)
 
 
 .. _sphx_glr_download_examples_python_examples_plot_table.py:

@@ -36,6 +36,8 @@ configure_file(
     "${BINARY_BUILD_DIR}/conf.py"
     @ONLY)
 
+add_custom_target(docs)
+
 add_custom_target(docs_sphinx
     ${SPHINX_EXECUTABLE}
         -q -b html -vvv
@@ -46,3 +48,4 @@ add_custom_target(docs_sphinx
     COMMENT "Building HTML documentation with Sphinx")
 
 add_dependencies(docs_sphinx docs_doxygen)
+add_dependencies(docs docs_sphinx)
