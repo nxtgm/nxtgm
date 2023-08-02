@@ -65,8 +65,9 @@ OptimizationStatus BeliefPropagation::optimize(reporter_callback_wrapper_type &r
         return OptimizationStatus::CALLBACK_EXIT;
     }
 
-    for (iteration_ = 0; iteration_ < parameters_.max_iterations; ++iteration_)
+    for (std::size_t i = 0; i < parameters_.max_iterations; ++i)
     {
+        this->iteration_ = i;
         this->compute_variable_to_factor_messages();
         this->compute_factor_to_variable_messages();
         this->damp_messages();
