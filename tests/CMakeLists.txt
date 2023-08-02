@@ -1,3 +1,6 @@
+enable_testing()
+
+
 # Prepare doctest for other targets to use
 find_package(doctest REQUIRED)
 
