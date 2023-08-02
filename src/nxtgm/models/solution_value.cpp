@@ -2,7 +2,7 @@
 
 namespace nxtgm
 {
-bool SolutionValue::operator<(const SolutionValue& other) const
+bool SolutionValue::operator<(const SolutionValue &other) const
 {
     if (this->is_feasible())
     {
@@ -35,7 +35,7 @@ bool SolutionValue::operator<(const SolutionValue& other) const
     }
 }
 
-bool SolutionValue::operator<=(const SolutionValue& other) const
+bool SolutionValue::operator<=(const SolutionValue &other) const
 {
     if (this->is_feasible())
     {
@@ -68,13 +68,13 @@ bool SolutionValue::operator<=(const SolutionValue& other) const
     }
 }
 
-SolutionValue& SolutionValue::operator+=(const SolutionValue& other)
+SolutionValue &SolutionValue::operator+=(const SolutionValue &other)
 {
     energy_ += other.energy_;
     how_violated_ += other.how_violated_;
     return *this;
 }
-SolutionValue& SolutionValue::operator-=(const SolutionValue& other)
+SolutionValue &SolutionValue::operator-=(const SolutionValue &other)
 {
     energy_ -= other.energy_;
     how_violated_ -= other.how_violated_;
@@ -82,7 +82,7 @@ SolutionValue& SolutionValue::operator-=(const SolutionValue& other)
 }
 
 // print class
-std::ostream& operator<<(std::ostream& os, const SolutionValue& solution)
+std::ostream &operator<<(std::ostream &os, const SolutionValue &solution)
 {
     os << "(" << solution.energy() << ", " << solution.how_violated() << ")";
     return os;

@@ -13,10 +13,11 @@ from __future__ import annotations
 import numpy as np
 import nxtgm
 # this example assume there are less or qual number of seats than persons
-n_persons = 20
-n_seats = n_persons // 2
+n_persons = 500
+n_seats = n_persons // 10
 assert n_seats <= n_persons
 
+np.random.seed(0)
 # %%
 # each person can prefer a table position
 # we will encode this as a n_persons x n_seats matrix
@@ -78,27 +79,58 @@ for seat in range(n_seats):
 # %%
 # constraints so that each person is only seated once
 # so we need a constraint for each pair of seats
-constraint_function = nxtgm.PairwiseUniqueLables(num_labels=n_persons)
+constraint_function = nxtgm.UniqueLables(
+    arity=gm.num_variables, num_labels=n_persons,
+)
 constrain_function_id = gm.add_constraint_function(constraint_function)
-for seat1 in range(n_seats-1):
-    for seat2 in range(seat1 + 1, n_seats):
-        variables = [seat1, seat2]
-        gm.add_constraint(variables, constrain_function_id)
+variables = list(range(gm.num_variables))
+gm.add_constraint(variables, constrain_function_id)
 
-# %%
-# optimize the model with ICM
-Optimizer = nxtgm.Icm
-optimizer = Optimizer(gm)
+# # %%
+# # optimize the model with ICM
+# Optimizer = nxtgm.Icm
+# optimizer = Optimizer(gm)
+# callack = Optimizer.ReporterCallback(optimizer)
+# optimizer.optimize(callack)
+# best_solution = optimizer.best_solution()
+# print(best_solution)
+
+
+# optimize the model with Matching-ICM
+Optimizer = nxtgm.MatchingIcm
+parameters = Optimizer.parameters(subgraph_size=2)
+optimizer = Optimizer(gm, parameters)
 callack = Optimizer.ReporterCallback(optimizer)
 optimizer.optimize(callack)
 best_solution = optimizer.best_solution()
 print(best_solution)
 
-# %%
-# optimize with an ILP solver
-Optimizer = nxtgm.IlpHighs
-optimizer = Optimizer(gm)
+
+# optimize the model with Matching-ICM
+Optimizer = nxtgm.MatchingIcm
+parameters = Optimizer.parameters(subgraph_size=3)
+optimizer = Optimizer(gm, parameters)
 callack = Optimizer.ReporterCallback(optimizer)
 optimizer.optimize(callack)
 best_solution = optimizer.best_solution()
 print(best_solution)
+
+
+# # optimize the model with Matching-ICM
+# Optimizer = nxtgm.MatchingIcm
+# parameters = Optimizer.parameters(subgraph_size=4)
+# optimizer = Optimizer(gm, parameters)
+# callack = Optimizer.ReporterCallback(optimizer)
+# optimizer.optimize(callack)
+# best_solution = optimizer.best_solution()
+# print(best_solution)
+
+
+# # %%
+# # optimize with an ILP solver
+# Optimizer = nxtgm.IlpHighs
+# optimizer = Optimizer(gm)
+# callack = Optimizer.ReporterCallback(optimizer)
+# optimizer.optimize(callack)
+# best_solution = optimizer.best_solution()
+# print(best_solution)

@@ -34,8 +34,7 @@ struct Star
         // unaries
         for (std::size_t vi = 0; vi < space.size(); ++vi)
         {
-            auto tensor = xt::random::rand<energy_type>(
-                {n_labels}, energy_type(-1), energy_type(1));
+            auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
             auto f = std::make_unique<nxtgm::XTensor<1>>(tensor);
             auto fid = gm.add_energy_function(std::move(f));
             gm.add_factor({vi}, fid);
@@ -44,14 +43,12 @@ struct Star
         // pairwise
         for (std::size_t arm_index = 0; arm_index < n_arms; ++arm_index)
         {
-            auto tensor = xt::random::rand<energy_type>(
-                {n_labels, n_labels}, energy_type(-1), energy_type(1));
+            auto tensor = xt::random::rand<energy_type>({n_labels, n_labels}, energy_type(-1), energy_type(1));
             auto f = std::make_unique<nxtgm::XTensor<2>>(tensor);
             auto fid = gm.add_energy_function(std::move(f));
             gm.add_factor({std::size_t(0), arm_index + 1}, fid);
         }
-        const std::string name = fmt::format(
-            "Star(n_arms={}, n_labels={}, seed={})", n_arms, n_labels, seed);
+        const std::string name = fmt::format("Star(n_arms={}, n_labels={}, seed={})", n_arms, n_labels, seed);
         return std::pair<DiscreteGm, std::string>(std::move(gm), "Star");
     }
 
@@ -73,8 +70,7 @@ struct PottsChain
         // unary factors
         for (std::size_t vi = 0; vi < n_variables; vi++)
         {
-            auto tensor = xt::random::rand<energy_type>(
-                {n_labels}, energy_type(-1), energy_type(1));
+            auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
             auto f = std::make_unique<nxtgm::Unary>(tensor);
             auto fid = gm.add_energy_function(std::move(f));
             gm.add_factor({vi}, fid);
@@ -83,14 +79,73 @@ struct PottsChain
         // pairwise potts factors
         for (std::size_t i = 0; i < n_variables - 1; i++)
         {
-            auto beta = xt::random::rand<energy_type>({1}, energy_type(-1),
-                                                      energy_type(1))(0);
+            auto beta = xt::random::rand<energy_type>({1}, submodular ? 0.0 : energy_type(-1), energy_type(1))(0);
+
             auto f = std::make_unique<Potts>(n_labels, beta);
         }
 
+        // pairwise potts factors
+        for (std::size_t i = 0; i < n_variables - 1; i++)
+        {
+            auto beta = xt::random::rand<energy_type>({1}, energy_type(-1), energy_type(1))(0);
+            std::vector<std::size_t> shape = {n_labels, n_labels};
+            auto f = std::make_unique<SparseDiscreteEnergyFunction>(shape);
+            for (auto l = 0; l < n_labels; ++l)
+            {
+                f->data()(l, l) = beta;
+            }
+            auto fid = gm.add_energy_function(std::move(f));
+            gm.add_factor({i, i + 1}, fid);
+        }
+
+        const std::string name = fmt::format("PottsChain(n_variables={}, n_labels={}, submodular={} seed={})",
+                                             n_variables, n_labels, submodular, seed);
+        ++seed;
+        return std::pair<DiscreteGm, std::string>(std::move(gm), name);
+    }
+
+    std::size_t n_variables;
+    discrete_label_type n_labels;
+    bool submodular = false;
+    std::uint32_t seed = 0;
+};
+
+struct SparsePottsChain
+{
+
+    std::pair<DiscreteGm, std::string> operator()()
+    {
+        xt::random::seed(seed);
+
+        auto space = DiscreteSpace(n_variables, n_labels);
+        DiscreteGm gm(space);
+
+        // unary factors
+        for (std::size_t vi = 0; vi < n_variables; vi++)
+        {
+            auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
+
+            auto f = std::make_unique<nxtgm::Unary>(tensor);
+            auto fid = gm.add_energy_function(std::move(f));
+            gm.add_factor({vi}, fid);
+        }
+
+        // pairwise potts factors
+        for (std::size_t i = 0; i < n_variables - 1; i++)
+        {
+            auto beta = xt::random::rand<energy_type>({1}, energy_type(-1), energy_type(1))(0);
+            std::vector<std::size_t> shape = {n_labels, n_labels};
+            auto f = std::make_unique<SparseDiscreteEnergyFunction>(shape);
+            for (auto l = 0; l < n_labels; ++l)
+            {
+                f->data()(l, l) = beta;
+            }
+            auto fid = gm.add_energy_function(std::move(f));
+            gm.add_factor({i, i + 1}, fid);
+        }
+
         const std::string name =
-            fmt::format("PottsChain(n_variables={}, n_labels={}, seed={})",
-                        n_variables, n_labels, seed);
+            fmt::format("SparsePottsChain(n_variables={}, n_labels={}, seed={})", n_variables, n_labels, seed);
         ++seed;
         return std::pair<DiscreteGm, std::string>(std::move(gm), name);
     }
@@ -113,8 +168,7 @@ struct PottsChainWithLabelCosts
         // unary factors
         for (std::size_t vi = 0; vi < n_variables; vi++)
         {
-            auto tensor = xt::random::rand<energy_type>(
-                {n_labels}, energy_type(-1), energy_type(1));
+            auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
             auto f = std::make_unique<nxtgm::Unary>(tensor);
             auto fid = gm.add_energy_function(std::move(f));
             gm.add_factor({vi}, fid);
@@ -123,24 +177,22 @@ struct PottsChainWithLabelCosts
         // pairwise potts factors
         for (std::size_t i = 0; i < n_variables - 1; i++)
         {
-            auto beta = xt::random::rand<energy_type>({1}, energy_type(-1),
-                                                      energy_type(1))(0);
+            auto beta = xt::random::rand<energy_type>({1}, energy_type(-1), energy_type(1))(0);
             auto f = std::make_unique<Potts>(n_labels, beta);
+            auto fid = gm.add_energy_function(std::move(f));
+            gm.add_factor({i, i + 1}, fid);
         }
 
         // global label costs
-        auto label_costs = xt::random::rand<energy_type>(
-            {n_labels}, energy_type(-1), energy_type(1));
-        auto f = std::make_unique<LabelCosts>(n_variables, label_costs.begin(),
-                                              label_costs.end());
+        auto label_costs = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
+        auto f = std::make_unique<LabelCosts>(n_variables, label_costs.begin(), label_costs.end());
         auto fid = gm.add_energy_function(std::move(f));
         std::vector<std::size_t> vars(n_variables);
         std::iota(std::begin(vars), std::end(vars), 0);
         gm.add_factor(vars, fid);
 
-        const std::string name = fmt::format(
-            "PottsChainWithLabelCosts(n_variables={}, n_labels={}, seed={})",
-            n_variables, n_labels, seed);
+        const std::string name =
+            fmt::format("PottsChainWithLabelCosts(n_variables={}, n_labels={}, seed={})", n_variables, n_labels, seed);
         ++seed;
         return std::pair<DiscreteGm, std::string>(std::move(gm), name);
     }
@@ -166,8 +218,7 @@ struct UniqueLabelChain
         // unary factors
         for (std::size_t vi = 0; vi < n_variables; vi++)
         {
-            auto tensor = xt::random::rand<energy_type>(
-                {n_labels}, energy_type(-1), energy_type(1));
+            auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
             auto f = std::make_unique<nxtgm::Unary>(tensor);
             auto fid = gm.add_energy_function(std::move(f));
             gm.add_factor({vi}, fid);
@@ -176,33 +227,45 @@ struct UniqueLabelChain
         // pairwise factors
         for (std::size_t i = 0; i < n_variables - 1; i++)
         {
-            auto tensor = xt::random::rand<energy_type>(
-                {n_labels, n_labels}, energy_type(-1), energy_type(1));
+            auto tensor = xt::random::rand<energy_type>({n_labels, n_labels}, energy_type(-1), energy_type(1));
             auto f = std::make_unique<nxtgm::XTensor<2>>(tensor);
             auto fid = gm.add_energy_function(std::move(f));
             gm.add_factor({i, i + 1}, fid);
         }
 
         // pairwise constraints (all pairs, not just neighbours)
-        auto f = std::make_unique<UniqueLables>(2, n_labels);
-        auto fid = gm.add_constraint_function(std::move(f));
-        for (std::size_t i = 0; i < n_variables - 1; i++)
+        if (use_pairwise_constraints)
         {
-            for (std::size_t j = i + 1; j < n_variables; j++)
+            auto f = std::make_unique<UniqueLables>(2, n_labels);
+            auto fid = gm.add_constraint_function(std::move(f));
+            for (std::size_t i = 0; i < n_variables - 1; i++)
             {
+                for (std::size_t j = i + 1; j < n_variables; j++)
+                {
 
-                gm.add_constraint({i, j}, fid);
+                    gm.add_constraint({i, j}, fid);
+                }
             }
         }
-        const std::string name = fmt::format(
-            "UniqueLabelChain(n_variables={}, n_labels={}, seed={})",
-            n_variables, n_labels, seed);
+        else
+        {
+            auto f = std::make_unique<UniqueLables>(n_variables, n_labels);
+            auto fid = gm.add_constraint_function(std::move(f));
+
+            std::vector<std::size_t> vars(n_variables);
+            std::iota(std::begin(vars), std::end(vars), 0);
+
+            gm.add_constraint(vars, fid);
+        }
+        const std::string name =
+            fmt::format("UniqueLabelChain(n_variables={}, n_labels={}, seed={})", n_variables, n_labels, seed);
         ++seed;
         return std::pair<DiscreteGm, std::string>(std::move(gm), name);
     }
 
     std::size_t n_variables = 3;
     discrete_label_type n_labels = 3;
+    bool use_pairwise_constraints = false;
     std::uint32_t seed = 0;
 };
 
@@ -214,8 +277,7 @@ struct RandomModel
         xt::random::seed(seed);
 
         // num labels
-        auto num_labels = xt::eval(xt::random::randint<discrete_label_type>(
-            {n_variables}, 2, n_labels_max + 1));
+        auto num_labels = xt::eval(xt::random::randint<discrete_label_type>({n_variables}, 2, n_labels_max + 1));
         DiscreteSpace space(num_labels.begin(), num_labels.end());
         DiscreteGm gm(space);
 
@@ -225,21 +287,18 @@ struct RandomModel
         for (auto fi = 0; fi < n_factors; ++fi)
         {
             xt::random::shuffle(all_vis);
-            auto arity = xt::random::randint<std::size_t>(
-                {1}, 1, max_factor_arity + 1)[0];
+            auto arity = xt::random::randint<std::size_t>({1}, 1, max_factor_arity + 1)[0];
             auto vis = xt::view(all_vis, xt::range(0, arity));
             auto shape = xt::index_view(num_labels, vis);
-            auto array = xt::eval(xt::random::rand<energy_type>(
-                shape, energy_type(-1), energy_type(1)));
+            auto array = xt::eval(xt::random::rand<energy_type>(shape, energy_type(-1), energy_type(1)));
             auto f = std::make_unique<nxtgm::XArray>(array);
             auto fid = gm.add_energy_function(std::move(f));
             gm.add_factor(vis, fid);
         }
 
-        const std::string name = fmt::format(
-            "RandomModel(n_variables={}, n_factors{}, max_factor_arity={}, "
-            "n_labels_max={}, seed={})",
-            n_variables, n_factors, max_factor_arity, n_labels_max, seed);
+        const std::string name = fmt::format("RandomModel(n_variables={}, n_factors{}, max_factor_arity={}, "
+                                             "n_labels_max={}, seed={})",
+                                             n_variables, n_factors, max_factor_arity, n_labels_max, seed);
         ++seed;
         return std::pair<DiscreteGm, std::string>(std::move(gm), name);
     }
@@ -259,8 +318,7 @@ struct RandomSparseModel
         xt::random::seed(seed);
 
         // num labels
-        auto num_labels = xt::eval(xt::random::randint<discrete_label_type>(
-            {n_variables}, 2, n_labels_max + 1));
+        auto num_labels = xt::eval(xt::random::randint<discrete_label_type>({n_variables}, 2, n_labels_max + 1));
         DiscreteSpace space(num_labels.begin(), num_labels.end());
         DiscreteGm gm(space);
 
@@ -270,46 +328,45 @@ struct RandomSparseModel
         for (auto fi = 0; fi < n_factors; ++fi)
         {
             xt::random::shuffle(all_vis);
-            auto arity = xt::random::randint<std::size_t>(
-                {1}, 1, max_factor_arity + 1)[0];
+            auto arity = xt::random::randint<std::size_t>({1}, min_factor_arity, max_factor_arity + 1)[0];
             auto vis = xt::view(all_vis, xt::range(0, arity));
             auto shape = xt::index_view(num_labels, vis);
 
-            auto f =
-                std::make_unique<nxtgm::SparseDiscreteEnergyFunction>(shape);
+            auto f = std::make_unique<nxtgm::SparseDiscreteEnergyFunction>(shape);
 
             auto size = f->size();
-            const auto n_nonzero = std::max(
-                std::size_t(1), std::size_t(std::ceil(density * size)));
+            const auto n_nonzero = std::max(std::size_t(1), std::size_t(std::ceil(density * size)));
 
+            // std::cout<<"adding "<<n_nonzero<<" non-zero entries to factor
+            // "<<fi<<std::endl;
             for (auto i = 0; i < n_nonzero; ++i)
             {
                 std::vector<discrete_label_type> coordinates(arity);
                 for (auto j = 0; j < arity; ++j)
                 {
-                    coordinates[j] = xt::random::randint<discrete_label_type>(
-                        {1}, 0, shape[j])[0];
+                    coordinates[j] = xt::random::randint<discrete_label_type>({1}, 0, shape[j])[0];
                 }
 
                 f->set_energy(coordinates.data(),
-                              xt::random::rand<energy_type>(
-                                  {1}, energy_type(-1), energy_type(1))[0]);
+                              xt::random::rand<energy_type>({1}, energy_type(-1), energy_type(1))[0]);
             }
 
             auto fid = gm.add_energy_function(std::move(f));
             gm.add_factor(vis, fid);
         }
 
-        const std::string name = fmt::format(
-            "RandomModel(n_variables={}, n_factors{}, max_factor_arity={}, "
-            "n_labels_max={}, seed={})",
-            n_variables, n_factors, max_factor_arity, n_labels_max, seed);
+        const std::string name =
+            fmt::format("RandomSparseModel(n_variables={}, "
+                        "n_factors{},min_factor_arity={}, max_factor_arity={}, "
+                        "n_labels_max={}, seed={})",
+                        n_variables, n_factors, min_factor_arity, max_factor_arity, n_labels_max, seed);
         ++seed;
         return std::pair<DiscreteGm, std::string>(std::move(gm), name);
     }
 
     std::size_t n_variables = 3;
     std::size_t n_factors = 4;
+    std::size_t min_factor_arity = 1;
     std::size_t max_factor_arity = 3;
     discrete_label_type n_labels_max = 3;
     float density = 0.1;
@@ -329,8 +386,7 @@ struct InfeasibleModel
         // unary factors
         for (std::size_t vi = 0; vi < n_variables; vi++)
         {
-            auto tensor = xt::random::rand<energy_type>(
-                {n_labels}, energy_type(-1), energy_type(1));
+            auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
             auto f = std::make_unique<nxtgm::Unary>(tensor);
             auto fid = gm.add_energy_function(std::move(f));
             gm.add_factor({vi}, fid);
@@ -339,28 +395,22 @@ struct InfeasibleModel
         // pairwise potts factors
         for (std::size_t i = 0; i < n_variables - 1; i++)
         {
-            auto beta = xt::random::rand<energy_type>({1}, energy_type(-1),
-                                                      energy_type(1))(0);
+            auto beta = xt::random::rand<energy_type>({1}, energy_type(-1), energy_type(1))(0);
             auto f = std::make_unique<Potts>(n_labels, beta);
         }
 
         // unsatisfiable constraints
-        xt::xarray<energy_type> not_same =
-            xt::zeros<energy_type>({n_labels, n_labels});
-        xt::xarray<energy_type> not_different =
-            xt::ones<energy_type>({n_labels, n_labels});
+        xt::xarray<energy_type> not_same = xt::zeros<energy_type>({n_labels, n_labels});
+        xt::xarray<energy_type> not_different = xt::ones<energy_type>({n_labels, n_labels});
         for (std::size_t i = 0; i < n_labels; ++i)
         {
             not_same(i, i) = 1;
             not_different(i, i) = 0;
         }
-        auto f_not_same =
-            std::make_unique<ArrayDiscreteConstraintFunction>(not_same);
-        auto f_not_different =
-            std::make_unique<ArrayDiscreteConstraintFunction>(not_different);
+        auto f_not_same = std::make_unique<ArrayDiscreteConstraintFunction>(not_same);
+        auto f_not_different = std::make_unique<ArrayDiscreteConstraintFunction>(not_different);
         auto fid_not_same = gm.add_constraint_function(std::move(f_not_same));
-        auto fid_not_different =
-            gm.add_constraint_function(std::move(f_not_different));
+        auto fid_not_different = gm.add_constraint_function(std::move(f_not_different));
 
         // pairwise constraints along the chain
         for (std::size_t i = 0; i < n_variables - 1; i++)
@@ -370,8 +420,7 @@ struct InfeasibleModel
         }
 
         const std::string name =
-            fmt::format("InfesibleModel(n_variables={}, n_labels={}, seed={})",
-                        n_variables, n_labels, seed);
+            fmt::format("InfesibleModel(n_variables={}, n_labels={}, seed={})", n_variables, n_labels, seed);
         ++seed;
         return std::pair<DiscreteGm, std::string>(std::move(gm), name);
     }

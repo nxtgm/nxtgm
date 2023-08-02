@@ -27,18 +27,20 @@ The unary factors encode how much each person likes each chair.
 The binary factors encode how much each person likes the person next to them.
 The contraints ensure that a person can only sit on one chair
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-19
+.. GENERATED FROM PYTHON SOURCE LINES 11-21
 
 .. code-block:: default
 
+    from __future__ import annotations
 
     import numpy as np
     import nxtgm
     # this example assume there are less or qual number of seats than persons
-    n_persons = 20
-    n_seats = n_persons // 2
+    n_persons = 10
+    n_seats = n_persons
     assert n_seats <= n_persons
 
+    np.random.seed(0)
 
 
 
@@ -46,12 +48,12 @@ The contraints ensure that a person can only sit on one chair
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 20-22
+.. GENERATED FROM PYTHON SOURCE LINES 22-24
 
 each person can prefer a table position
 we will encode this as a n_persons x n_seats matrix
 
-.. GENERATED FROM PYTHON SOURCE LINES 22-24
+.. GENERATED FROM PYTHON SOURCE LINES 24-26
 
 .. code-block:: default
 
@@ -64,19 +66,21 @@ we will encode this as a n_persons x n_seats matrix
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 25-29
+.. GENERATED FROM PYTHON SOURCE LINES 27-31
 
 n_persons x n_persons matrix to encode how much each person
 likes each other person. The eneries are in [-1 , 1] where
 -1 means they hate each other and 1 means they love each other.
 0 means they are indifferent
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-33
+.. GENERATED FROM PYTHON SOURCE LINES 31-37
 
 .. code-block:: default
 
     person_person_preference = np.random.rand(n_persons, n_persons) * 2 - 1
-    person_person_preference = (person_person_preference + person_person_preference.T) / 2
+    person_person_preference = (
+        person_person_preference + person_person_preference.T
+    ) / 2
 
 
 
@@ -86,12 +90,12 @@ likes each other person. The eneries are in [-1 , 1] where
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 34-36
+.. GENERATED FROM PYTHON SOURCE LINES 38-40
 
 create a graphical model with n_seats variables
 each variable can have n_persons labels
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-38
+.. GENERATED FROM PYTHON SOURCE LINES 40-42
 
 .. code-block:: default
 
@@ -104,18 +108,18 @@ each variable can have n_persons labels
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-41
+.. GENERATED FROM PYTHON SOURCE LINES 43-45
 
 add a unary factor for each seat
 the unary factor encodes how much each person likes each seat
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-48
+.. GENERATED FROM PYTHON SOURCE LINES 45-52
 
 .. code-block:: default
 
     for seat in range(n_seats):
 
-        values = person_seat_preference[:,seat]
+        values = person_seat_preference[:, seat]
         assert values.shape == (n_persons,)
         function_id = gm.add_function(values)
         gm.add_factor([seat], function_id)
@@ -127,7 +131,7 @@ the unary factor encodes how much each person likes each seat
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-54
+.. GENERATED FROM PYTHON SOURCE LINES 53-58
 
 Add a binary factor for neighboring seats.
 The binary factor encodes how much each person likes the person next to them
@@ -135,7 +139,7 @@ we assume a round tablel.
 The value table for the binary factor is a n_persons x n_persons matrix
 and is the same for all binary factors
 
-.. GENERATED FROM PYTHON SOURCE LINES 54-75
+.. GENERATED FROM PYTHON SOURCE LINES 58-79
 
 .. code-block:: default
 
@@ -167,39 +171,54 @@ and is the same for all binary factors
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 76-78
+.. GENERATED FROM PYTHON SOURCE LINES 80-82
 
 constraints so that each person is only seated once
 so we need a constraint for each pair of seats
 
-.. GENERATED FROM PYTHON SOURCE LINES 78-85
+.. GENERATED FROM PYTHON SOURCE LINES 82-127
 
 .. code-block:: default
 
-    constraint_function = nxtgm.PairwiseUniqueLables(num_labels=n_persons)
+    constraint_function = nxtgm.UniqueLables(arity=gm.num_variables , num_labels=n_persons)
     constrain_function_id = gm.add_constraint_function(constraint_function)
-    for seat1 in range(n_seats-1):
-        for seat2 in range(seat1 + 1, n_seats):
-            variables = [seat1, seat2]
-            gm.add_constraint(variables, constrain_function_id)
+    variables = list(range(gm.num_variables))
+    gm.add_constraint(variables, constrain_function_id)
+
+    # # %%
+    # # optimize the model with ICM
+    # Optimizer = nxtgm.Icm
+    # optimizer = Optimizer(gm)
+    # callack = Optimizer.ReporterCallback(optimizer)
+    # optimizer.optimize(callack)
+    # best_solution = optimizer.best_solution()
+    # print(best_solution)
 
 
+    # optimize the model with Matching-ICM
+    Optimizer = nxtgm.MatchingIcm
+    parameters = Optimizer.parameters(subgraph_size=2)
+    optimizer = Optimizer(gm, parameters)
+    callack = Optimizer.ReporterCallback(optimizer)
+    optimizer.optimize(callack)
+    best_solution = optimizer.best_solution()
+    print(best_solution)
 
 
+    # optimize the model with Matching-ICM
+    Optimizer = nxtgm.MatchingIcm
+    parameters = Optimizer.parameters(subgraph_size=3)
+    optimizer = Optimizer(gm, parameters)
+    callack = Optimizer.ReporterCallback(optimizer)
+    optimizer.optimize(callack)
+    best_solution = optimizer.best_solution()
+    print(best_solution)
 
 
-
-
-.. GENERATED FROM PYTHON SOURCE LINES 86-87
-
-optimize the model with ICM
-
-.. GENERATED FROM PYTHON SOURCE LINES 87-94
-
-.. code-block:: default
-
-    Optimizer = nxtgm.Icm
-    optimizer = Optimizer(gm)
+    # optimize the model with Matching-ICM
+    Optimizer = nxtgm.MatchingIcm
+    parameters = Optimizer.parameters(subgraph_size=4)
+    optimizer = Optimizer(gm, parameters)
     callack = Optimizer.ReporterCallback(optimizer)
     optimizer.optimize(callack)
     best_solution = optimizer.best_solution()
@@ -209,20 +228,23 @@ optimize the model with ICM
 
 
 
+
 .. rst-class:: sphx-glr-script-out
 
  .. code-block:: none
 
-    [ 3 10  8 14 19 13 15  6  7  0]
+    [6 7 2 3 1 8 0 4 5 9]
+    [6 0 8 3 1 7 2 4 5 9]
+    [9 6 2 4 3 1 0 8 5 7]
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 95-96
+.. GENERATED FROM PYTHON SOURCE LINES 128-129
 
 optimize with an ILP solver
 
-.. GENERATED FROM PYTHON SOURCE LINES 96-101
+.. GENERATED FROM PYTHON SOURCE LINES 129-135
 
 .. code-block:: default
 
@@ -235,11 +257,12 @@ optimize with an ILP solver
 
 
 
+
 .. rst-class:: sphx-glr-script-out
 
  .. code-block:: none
 
-    [19 10  8  6 15 13  1  0  7  9]
+    [0 8 9 6 2 7 1 3 4 5]
 
 
 
@@ -247,7 +270,7 @@ optimize with an ILP solver
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.360 seconds)
+   **Total running time of the script:** ( 0 minutes  1.176 seconds)
 
 
 .. _sphx_glr_download_examples_python_examples_plot_table.py:

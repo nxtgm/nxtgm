@@ -4,21 +4,28 @@
 namespace nxtgm
 {
 
-UniqueLables::UniqueLables(std::size_t arity, discrete_label_type n_labels,
-                           energy_type scale)
+UniqueLables::UniqueLables(std::size_t arity, discrete_label_type n_labels, energy_type scale)
     : arity_(arity), n_labels_(n_labels), scale_(scale)
 {
     // std::cout<<"wup"<<std::endl;
 }
 
-std::size_t UniqueLables::arity() const { return arity_; }
+std::size_t UniqueLables::arity() const
+{
+    return arity_;
+}
 
-discrete_label_type UniqueLables::shape(std::size_t) const { return n_labels_; }
+discrete_label_type UniqueLables::shape(std::size_t) const
+{
+    return n_labels_;
+}
 
-std::size_t UniqueLables::size() const { return std::pow(n_labels_, arity_); }
+std::size_t UniqueLables::size() const
+{
+    return std::pow(n_labels_, arity_);
+}
 
-energy_type
-UniqueLables::how_violated(const discrete_label_type* discrete_labels) const
+energy_type UniqueLables::how_violated(const discrete_label_type *discrete_labels) const
 {
     auto n_duplicates = 0;
 
@@ -32,8 +39,7 @@ UniqueLables::how_violated(const discrete_label_type* discrete_labels) const
             }
         }
     }
-    return n_duplicates == 0 ? static_cast<energy_type>(0)
-                             : scale_ * n_duplicates;
+    return n_duplicates == 0 ? static_cast<energy_type>(0) : scale_ * n_duplicates;
 }
 
 std::unique_ptr<DiscreteConstraintFunctionBase> UniqueLables::clone() const
@@ -41,10 +47,7 @@ std::unique_ptr<DiscreteConstraintFunctionBase> UniqueLables::clone() const
     return std::make_unique<UniqueLables>(arity_, n_labels_, scale_);
 }
 
-void UniqueLables::add_to_lp(IlpData& ilp_data,
-                             const std::size_t* indicator_variables_mapping,
-                             IlpConstraintBuilderBuffer& /*buffer*/
-) const
+void UniqueLables::add_to_lp(IlpData &ilp_data, const std::size_t *indicator_variables_mapping) const
 {
     for (discrete_label_type l = 0; l < n_labels_; ++l)
     {
@@ -52,27 +55,22 @@ void UniqueLables::add_to_lp(IlpData& ilp_data,
         ilp_data.begin_constraint(0.0, 1.0);
         for (auto i = 0; i < arity_; ++i)
         {
-            ilp_data.add_constraint_coefficient(
-                indicator_variables_mapping[i] + l, 1.0);
+            ilp_data.add_constraint_coefficient(indicator_variables_mapping[i] + l, 1.0);
         }
     }
 }
 
 nlohmann::json UniqueLables::serialize_json() const
 {
-    return {{"type", UniqueLables::serialization_key()},
-            {"arity", arity_},
-            {"num_labels", n_labels_},
-            {"scale", scale_}};
+    return {
+        {"type", UniqueLables::serialization_key()}, {"arity", arity_}, {"num_labels", n_labels_}, {"scale", scale_}};
 }
 
-std::unique_ptr<DiscreteConstraintFunctionBase>
-UniqueLables::deserialize_json(const nlohmann::json& json)
+std::unique_ptr<DiscreteConstraintFunctionBase> UniqueLables::deserialize_json(const nlohmann::json &json)
 {
-    return std::make_unique<UniqueLables>(
-        json["arity"].get<std::size_t>(),
-        json["num_labels"].get<discrete_label_type>(),
-        json["scale"].get<energy_type>());
+    return std::make_unique<UniqueLables>(json["arity"].get<std::size_t>(),
+                                          json["num_labels"].get<discrete_label_type>(),
+                                          json["scale"].get<energy_type>());
 }
 
 std::size_t ArrayDiscreteConstraintFunction::arity() const
@@ -88,47 +86,35 @@ std::size_t ArrayDiscreteConstraintFunction::size() const
     return how_violated_.size();
 }
 
-energy_type ArrayDiscreteConstraintFunction::how_violated(
-    const discrete_label_type* discrete_labels) const
+energy_type ArrayDiscreteConstraintFunction::how_violated(const discrete_label_type *discrete_labels) const
 {
-    const_discrete_label_span labels(discrete_labels,
-                                     how_violated_.dimension());
+    const_discrete_label_span labels(discrete_labels, how_violated_.dimension());
     return how_violated_[labels];
 }
-std::unique_ptr<DiscreteConstraintFunctionBase>
-ArrayDiscreteConstraintFunction::clone() const
+std::unique_ptr<DiscreteConstraintFunctionBase> ArrayDiscreteConstraintFunction::clone() const
 {
     return std::make_unique<ArrayDiscreteConstraintFunction>(how_violated_);
 }
-void ArrayDiscreteConstraintFunction::add_to_lp(
-    IlpData& ilp_data, const std::size_t* indicator_variables_mapping,
-    IlpConstraintBuilderBuffer& buffer) const
+void ArrayDiscreteConstraintFunction::add_to_lp(IlpData &ilp_data, const std::size_t *indicator_variables_mapping) const
 {
     const auto arity = this->arity();
     const auto shape = DiscreteConstraintFunctionShape(this);
-    if (buffer.label_buffer.size() < arity)
-    {
-        buffer.label_buffer.resize(arity * 2);
-    }
 
     auto flat_index = 0;
-    n_nested_loops<discrete_label_type>(
-        arity, shape, buffer.label_buffer,
-        [&](auto&& _)
+
+    small_arity_vector<discrete_label_type> labels(arity);
+    n_nested_loops<discrete_label_type>(arity, shape, labels, [&](auto &&_) {
+        auto hv = how_violated_[flat_index];
+        if (hv > constraint_feasiblility_limit)
         {
-            auto hv = how_violated_[flat_index];
-            if (hv > constraint_feasiblility_limit)
+            ilp_data.begin_constraint(0.0, arity - 1);
+            for (std::size_t i = 0; i < arity; ++i)
             {
-                ilp_data.begin_constraint(0.0, arity - 1);
-                for (std::size_t i = 0; i < arity; ++i)
-                {
-                    ilp_data.add_constraint_coefficient(
-                        indicator_variables_mapping[i] + buffer.label_buffer[i],
-                        1.0);
-                }
+                ilp_data.add_constraint_coefficient(indicator_variables_mapping[i] + labels[i], 1.0);
             }
-            ++flat_index;
-        });
+        }
+        ++flat_index;
+    });
 }
 
 nlohmann::json ArrayDiscreteConstraintFunction::serialize_json() const
@@ -146,14 +132,11 @@ nlohmann::json ArrayDiscreteConstraintFunction::serialize_json() const
         values.push_back(*it);
     }
 
-    return {{"type", "array"},
-            {"dimensions", how_violated_.dimension()},
-            {"shape", shape},
-            {"values", values}};
+    return {{"type", "array"}, {"dimensions", how_violated_.dimension()}, {"shape", shape}, {"values", values}};
 }
 
-std::unique_ptr<DiscreteConstraintFunctionBase>
-ArrayDiscreteConstraintFunction::deserialize_json(const nlohmann::json& json)
+std::unique_ptr<DiscreteConstraintFunctionBase> ArrayDiscreteConstraintFunction::deserialize_json(
+    const nlohmann::json &json)
 {
     std::vector<std::size_t> shape;
     for (auto s : json["shape"])

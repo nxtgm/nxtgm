@@ -12,11 +12,8 @@ TEST_CASE("test discrete gm")
     using value_type = float;
     using discrete_label_type = uint8_t;
     constexpr discrete_label_type n_states = 2;
-    using discrete_space_type =
-        nxtgm::space::discrete::StaticSimpleSpace<discrete_label_type,
-                                                  n_states - 1>;
-    using discrete_gm_type =
-        nxtgm::models::gm::discrete::Gm<value_type, discrete_space_type>;
+    using discrete_space_type = nxtgm::space::discrete::StaticSimpleSpace<discrete_label_type, n_states - 1>;
+    using discrete_gm_type = nxtgm::models::gm::discrete::Gm<value_type, discrete_space_type>;
 
     // binary simple chain model
     auto n_var = 4;

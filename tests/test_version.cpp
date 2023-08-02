@@ -5,7 +5,5 @@
 
 TEST_CASE("testing the factorial function")
 {
-    CHECK_EQ(NXTGM_VERSION,
-             fmt::format("{}.{}.{}", NXTGM_VERSION_MAJOR, NXTGM_VERSION_MINOR,
-                         NXTGM_VERSION_PATCH));
+    CHECK_EQ(NXTGM_VERSION, fmt::format("{}.{}.{}", NXTGM_VERSION_MAJOR, NXTGM_VERSION_MINOR, NXTGM_VERSION_PATCH));
 }

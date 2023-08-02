@@ -36,7 +36,7 @@ configure_file(
     "${BINARY_BUILD_DIR}/conf.py"
     @ONLY)
 
-add_custom_target(docs_sphinx ALL
+add_custom_target(docs_sphinx
     ${SPHINX_EXECUTABLE}
         -q -b html -vvv
         -c "${BINARY_BUILD_DIR}"

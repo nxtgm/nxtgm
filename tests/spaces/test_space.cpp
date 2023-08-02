@@ -13,8 +13,7 @@ TEST_CASE("discrete-space")
 
     const std::size_t num_vars = 3;
     nxtgm::DiscreteSpace space(std::vector<nxtgm::discrete_label_type>{
-        nxtgm::discrete_label_type(2), nxtgm::discrete_label_type(3),
-        nxtgm::discrete_label_type(4)});
+        nxtgm::discrete_label_type(2), nxtgm::discrete_label_type(3), nxtgm::discrete_label_type(4)});
 
     auto solution = solution_type(space.size());
 
@@ -32,8 +31,7 @@ TEST_CASE("discrete-space")
                 solutions_shoulds.push_back(sol);
             }
 
-    space.for_each_solution(solution, [&](const solution_type& solution)
-                            { solutions.push_back(solution); });
+    space.for_each_solution(solution, [&](const solution_type &solution) { solutions.push_back(solution); });
 
     CHECK_EQ(solutions.size(), solutions_shoulds.size());
     for (std::size_t i = 0; i < solutions.size(); ++i)
@@ -49,8 +47,7 @@ TEST_CASE("discrete-space-serialization")
     {
         const std::size_t num_vars = 3;
         nxtgm::DiscreteSpace space(std::vector<nxtgm::discrete_label_type>{
-            nxtgm::discrete_label_type(2), nxtgm::discrete_label_type(3),
-            nxtgm::discrete_label_type(4)});
+            nxtgm::discrete_label_type(2), nxtgm::discrete_label_type(3), nxtgm::discrete_label_type(4)});
 
         auto as_json = space.serialize_json();
 

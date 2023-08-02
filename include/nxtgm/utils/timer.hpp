@@ -4,20 +4,23 @@ namespace nxtgm
 {
 class AutoStartedTimer
 {
-public:
+  public:
     using clock_type = std::chrono::high_resolution_clock;
     using time_point = std::chrono::time_point<clock_type>;
     using duration_type = std::chrono::duration<double>;
 
-private:
+  private:
     struct RAIIPauseResume
     {
-        inline RAIIPauseResume(AutoStartedTimer& timer) : timer_(timer)
+        inline RAIIPauseResume(AutoStartedTimer &timer) : timer_(timer)
         {
             timer_.pause();
         }
-        inline ~RAIIPauseResume() { timer_.resume(); }
-        AutoStartedTimer& timer_;
+        inline ~RAIIPauseResume()
+        {
+            timer_.resume();
+        }
+        AutoStartedTimer &timer_;
     };
 
     void start()
@@ -52,11 +55,14 @@ private:
         }
     }
 
-public:
-    AutoStartedTimer() { this->start(); }
+  public:
+    AutoStartedTimer()
+    {
+        this->start();
+    }
 
     template <typename Fn>
-    std::invoke_result_t<Fn> paused_call(Fn&& fn)
+    std::invoke_result_t<Fn> paused_call(Fn &&fn)
     {
         RAIIPauseResume pause_resume(*this);
         return fn();
@@ -68,7 +74,7 @@ public:
         return duration_ + (clock_type::now() - start_);
     }
 
-private:
+  private:
     time_point start_;
     duration_type duration_;
     bool running_;

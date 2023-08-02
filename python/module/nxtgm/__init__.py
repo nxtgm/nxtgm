@@ -22,6 +22,7 @@ def _extend():
         DynamicProgramming,  # noqa: F405
         BruteForceNaive,  # noqa: F405
         Icm,  # noqa: F405
+        MatchingIcm,  # noqa: F405
     ]
     for solver in all_solvers:
         cls_name = solver.__name__

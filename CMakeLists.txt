@@ -51,6 +51,8 @@ add_library(nxtgm SHARED
     src/nxtgm/optimizers/gm/discrete/ilp_highs.cpp
     src/nxtgm/optimizers/gm/discrete/dynamic_programming.cpp
     src/nxtgm/optimizers/gm/discrete/icm.cpp
+    src/nxtgm/optimizers/gm/discrete/matching_icm.cpp
+    src/nxtgm/optimizers/gm/discrete/belief_propagation.cpp
 )
 
 ###############################################################

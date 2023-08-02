@@ -23,10 +23,13 @@ Hello World
 
 This example introduces the basic usage of nxtgm.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-10
+.. GENERATED FROM PYTHON SOURCE LINES 7-13
 
 .. code-block:: default
 
+    from __future__ import annotations
+
+    import numpy as np
     import nxtgm
 
 
@@ -37,7 +40,7 @@ This example introduces the basic usage of nxtgm.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 11-16
+.. GENERATED FROM PYTHON SOURCE LINES 14-19
 
 The absolute minimal (pointless) example
 ------------------------
@@ -45,7 +48,7 @@ The absolute minimal (pointless) example
 Here we create a graphical model with a single variable
 which can have two values, 0 or 1.
 
-.. GENERATED FROM PYTHON SOURCE LINES 16-19
+.. GENERATED FROM PYTHON SOURCE LINES 19-22
 
 .. code-block:: default
 
@@ -59,7 +62,7 @@ which can have two values, 0 or 1.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 20-26
+.. GENERATED FROM PYTHON SOURCE LINES 23-29
 
 We can now  add a single unary factor to the model.
 The factor is a simple table with two entries.
@@ -68,11 +71,10 @@ the second entry is the energy for the variable being 1.
 the "value_table" for a factor is called "function".
 we first add such a function
 
-.. GENERATED FROM PYTHON SOURCE LINES 26-29
+.. GENERATED FROM PYTHON SOURCE LINES 29-31
 
 .. code-block:: default
 
-    import numpy as np
     function_id = gm.add_function(np.array([42.0, 30.0]))
 
 
@@ -82,11 +84,11 @@ we first add such a function
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 30-31
+.. GENERATED FROM PYTHON SOURCE LINES 32-33
 
 We can now add a factor to the model.
 
-.. GENERATED FROM PYTHON SOURCE LINES 31-35
+.. GENERATED FROM PYTHON SOURCE LINES 33-37
 
 .. code-block:: default
 
@@ -107,7 +109,7 @@ We can now add a factor to the model.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 36-41
+.. GENERATED FROM PYTHON SOURCE LINES 38-43
 
 We can now optimize the model and find the best labels for all
 variables in the model. In this case its a single variable.
@@ -115,7 +117,7 @@ The result is a numpy array with the best label for each variable.
 Since this model is very simple (and the result is obvious) we
 use a brute force optimizer.
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-48
+.. GENERATED FROM PYTHON SOURCE LINES 43-50
 
 .. code-block:: default
 
@@ -139,18 +141,19 @@ use a brute force optimizer.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-52
+.. GENERATED FROM PYTHON SOURCE LINES 51-54
 
 Get the best solution from the optimizer
 in our case it will be [1] since the energy for the variable being 0 is  42.0
 and the energy for the variable being 1 is 30.0
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-53
+.. GENERATED FROM PYTHON SOURCE LINES 54-56
 
 .. code-block:: default
 
     best_solution = optimizer.best_solution()
     best_solution
+
 
 
 
@@ -166,7 +169,7 @@ and the energy for the variable being 1 is 30.0
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.002 seconds)
+   **Total running time of the script:** ( 0 minutes  0.017 seconds)
 
 
 .. _sphx_glr_download_examples_python_examples_plot_hello_world.py:

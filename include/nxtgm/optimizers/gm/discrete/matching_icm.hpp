@@ -1,17 +1,22 @@
 #pragma once
 
-#include <chrono>
+#include <nxtgm/optimizers/gm/discrete/movemaker.hpp>
 #include <nxtgm/optimizers/gm/discrete/optimizer_base.hpp>
+
+#include <chrono>
+#include <queue>
+#include <vector>
 
 namespace nxtgm
 {
 
-class BruteForceNaive : public DiscreteGmOptimizerBase
+class MatchingIcm : public DiscreteGmOptimizerBase
 {
   public:
     class parameters_type
     {
       public:
+        std::size_t subgraph_size = 2;
         std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
     };
 
@@ -25,11 +30,11 @@ class BruteForceNaive : public DiscreteGmOptimizerBase
 
     inline static std::string name()
     {
-        return "BruteForceNaive";
+        return "MatchingIcm";
     }
-    virtual ~BruteForceNaive() = default;
+    virtual ~MatchingIcm() = default;
 
-    BruteForceNaive(const DiscreteGm &gm, const parameters_type &parameters);
+    MatchingIcm(const DiscreteGm &gm, const parameters_type &parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span starting_point) override;
@@ -41,10 +46,12 @@ class BruteForceNaive : public DiscreteGmOptimizerBase
     const solution_type &current_solution() const override;
 
   private:
+    void compute_labels();
+
     parameters_type parameters_;
-    solution_type best_solution_;
-    solution_type current_solution_;
-    SolutionValue best_sol_value_;
-    SolutionValue current_sol_value_;
+
+    MatchingMovemaker movemaker_;
+    std::vector<std::size_t> in_queue_;
+    std::queue<std::size_t> queue_;
 };
 } // namespace nxtgm
