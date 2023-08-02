@@ -10,45 +10,37 @@
 namespace nxtgm
 {
 
-OptimizationStatus
-highsModelStatusToOptimizationStatus(Highs& highs,
-                                     HighsModelStatus model_status)
+OptimizationStatus highsModelStatusToOptimizationStatus(Highs &highs, HighsModelStatus model_status)
 {
     if (model_status == HighsModelStatus::kOptimal)
     {
         return OptimizationStatus::OPTIMAL;
     }
-    else if (model_status == HighsModelStatus::kModelError ||
-             model_status == HighsModelStatus::kSolveError)
+    else if (model_status == HighsModelStatus::kModelError || model_status == HighsModelStatus::kSolveError)
     {
-        throw std::runtime_error("Error in Highs:" +
-                                 highs.modelStatusToString(model_status));
+        throw std::runtime_error("Error in Highs:" + highs.modelStatusToString(model_status));
         return OptimizationStatus::UNKNOWN;
     }
-    else if (model_status == HighsModelStatus::kInfeasible ||
-             model_status == HighsModelStatus::kUnboundedOrInfeasible)
+    else if (model_status == HighsModelStatus::kInfeasible || model_status == HighsModelStatus::kUnboundedOrInfeasible)
     {
         return OptimizationStatus::INFEASIBLE;
     }
     else if (model_status == HighsModelStatus::kUnbounded)
     {
-        throw std::runtime_error(
-            "nxgtm internal error: unbounded Model in Highs:" +
-            highs.modelStatusToString(model_status));
+        throw std::runtime_error("nxgtm internal error: unbounded Model in Highs:" +
+                                 highs.modelStatusToString(model_status));
         return OptimizationStatus::UNKNOWN;
     }
     else if (model_status == HighsModelStatus::kObjectiveBound)
     {
-        throw std::runtime_error(
-            "nxgtm internal error: kObjectiveBound is unexpected status:" +
-            highs.modelStatusToString(model_status));
+        throw std::runtime_error("nxgtm internal error: kObjectiveBound is unexpected status:" +
+                                 highs.modelStatusToString(model_status));
         return OptimizationStatus::UNKNOWN;
     }
     else if (model_status == HighsModelStatus::kObjectiveTarget)
     {
-        throw std::runtime_error(
-            "nxgtm internal error: kObjectiveBound is unexpected status:" +
-            highs.modelStatusToString(model_status));
+        throw std::runtime_error("nxgtm internal error: kObjectiveBound is unexpected status:" +
+                                 highs.modelStatusToString(model_status));
         return OptimizationStatus::UNKNOWN;
     }
     else if (model_status == HighsModelStatus::kTimeLimit)
@@ -61,17 +53,14 @@ highsModelStatusToOptimizationStatus(Highs& highs,
     }
     else
     {
-        throw std::runtime_error("nxgtm internal error: unexpected status:" +
-                                 highs.modelStatusToString(model_status));
+        throw std::runtime_error("nxgtm internal error: unexpected status:" + highs.modelStatusToString(model_status));
         return OptimizationStatus::UNKNOWN;
     }
 }
 
-IlpHighs::IlpHighs(const DiscreteGm& gm, const parameters_type& parameters,
-                   const solution_type& initial_solution)
-    : base_type(gm), parameters_(parameters), best_solution_(),
-      current_solution_(), best_sol_value_(), current_sol_value_(),
-      lower_bound_(-std::numeric_limits<energy_type>::infinity()), ilp_data_(),
+IlpHighs::IlpHighs(const DiscreteGm &gm, const parameters_type &parameters, const solution_type &initial_solution)
+    : base_type(gm), parameters_(parameters), best_solution_(), current_solution_(), best_sol_value_(),
+      current_sol_value_(), lower_bound_(-std::numeric_limits<energy_type>::infinity()), ilp_data_(),
       indicator_variable_mapping_(gm.space()), highs_model_()
 {
     if (initial_solution.empty())
@@ -93,14 +82,12 @@ void IlpHighs::setup_lp()
 {
 
     // shortcuts
-    const auto& model = this->model();
-    const auto& space = model.space();
+    const auto &model = this->model();
+    const auto &space = model.space();
 
     // add inter variables for all the indicator variables
     // (objective will be added later)
-    ilp_data_.add_variables(
-        indicator_variable_mapping_.num_indicator_variables(), 0.0, 1.0, 0.0,
-        true);
+    ilp_data_.add_variables(indicator_variable_mapping_.num_indicator_variables(), 0.0, 1.0, 0.0, true);
 
     // sum to one constraints
     for (std::size_t vi = 0; vi < space.size(); ++vi)
@@ -108,34 +95,24 @@ void IlpHighs::setup_lp()
         ilp_data_.begin_constraint(1.0, 1.0);
         for (discrete_label_type l = 0; l < space[vi]; ++l)
         {
-            ilp_data_.add_constraint_coefficient(
-                indicator_variable_mapping_[vi] + l, 1.0);
+            ilp_data_.add_constraint_coefficient(indicator_variable_mapping_[vi] + l, 1.0);
         }
     }
 
     // add all the factors to the ilp
-    IlpFactorBuilderBuffer ilp_factor_builder_buffer;
-    std::vector<std::size_t> indicator_variables_mapping_buffer(
-        model.max_arity());
+    std::vector<std::size_t> indicator_variables_mapping_buffer(model.max_arity());
 
-    for (auto&& factor : model.factors())
+    for (auto &&factor : model.factors())
     {
-        factor.map_from_model(indicator_variable_mapping_,
-                              indicator_variables_mapping_buffer);
-        factor.function()->add_to_lp(ilp_data_,
-                                     indicator_variables_mapping_buffer.data(),
-                                     ilp_factor_builder_buffer);
+        factor.map_from_model(indicator_variable_mapping_, indicator_variables_mapping_buffer);
+        factor.function()->add_to_lp(ilp_data_, indicator_variables_mapping_buffer.data());
     };
 
     // add constraints to the ilp
-    IlpConstraintBuilderBuffer ilp_constraint_builder_buffer;
-    for (auto&& constraint : model.constraints())
+    for (auto &&constraint : model.constraints())
     {
-        constraint.map_from_model(indicator_variable_mapping_,
-                                  indicator_variables_mapping_buffer);
-        constraint.function()->add_to_lp(
-            ilp_data_, indicator_variables_mapping_buffer.data(),
-            ilp_constraint_builder_buffer);
+        constraint.map_from_model(indicator_variable_mapping_, indicator_variables_mapping_buffer);
+        constraint.function()->add_to_lp(ilp_data_, indicator_variables_mapping_buffer.data());
     }
 
     // pass to highs
@@ -150,14 +127,12 @@ void IlpHighs::setup_lp()
     highs_model_.lp_.a_matrix_.start_ = std::move(ilp_data_.astart());
     highs_model_.lp_.a_matrix_.index_ = std::move(ilp_data_.aindex());
     highs_model_.lp_.a_matrix_.value_ = std::move(ilp_data_.avalue());
-    highs_model_.lp_.a_matrix_.start_.push_back(
-        highs_model_.lp_.a_matrix_.index_.size());
+    highs_model_.lp_.a_matrix_.start_.push_back(highs_model_.lp_.a_matrix_.index_.size());
 }
 
-OptimizationStatus
-IlpHighs::optimize(reporter_callback_wrapper_type& reporter_callback,
-                   repair_callback_wrapper_type& /*repair_callback not used*/
-)
+OptimizationStatus IlpHighs::optimize(reporter_callback_wrapper_type &reporter_callback,
+                                      repair_callback_wrapper_type & /*repair_callback not used*/,
+                                      const_discrete_solution_span)
 {
 
     reporter_callback.begin();
@@ -171,15 +146,18 @@ IlpHighs::optimize(reporter_callback_wrapper_type& reporter_callback,
 
     // Pass the model to HiGHS
     return_status = highs.passModel(highs_model_);
-    assert(return_status == HighsStatus::kOk);
+    if (return_status != HighsStatus::kOk)
+    {
+        throw std::runtime_error(std::string("nxgtm internal error: failed to pass model to highs:") +
+                                 highsStatusToString(return_status));
+    }
 
     // Get a const reference to the LP data in HiGHS
-    const HighsLp& lp = highs.getLp();
+    const HighsLp &lp = highs.getLp();
 
     // Solve the model
     return_status = highs.run();
-    OptimizationStatus status =
-        highsModelStatusToOptimizationStatus(highs, highs.getModelStatus());
+    OptimizationStatus status = highsModelStatusToOptimizationStatus(highs, highs.getModelStatus());
     if (status == OptimizationStatus::INFEASIBLE)
     {
         reporter_callback.end();
@@ -191,10 +169,10 @@ IlpHighs::optimize(reporter_callback_wrapper_type& reporter_callback,
     reporter_callback.report();
 
     // Get the model status
-    assert(model_status == HighsModelStatus::kOptimal);
+    // assert(model_status == HighsModelStatus::kOptimal);
 
     // Get the solution information
-    const HighsInfo& info = highs.getInfo();
+    const HighsInfo &info = highs.getInfo();
     // std::cout << "Simplex iteration count: " << info.simplex_iteration_count
     // << std::endl; std::cout << "Objective function value: " <<
     // info.objective_function_value << std::endl; std::cout << "Primal solution
@@ -209,8 +187,8 @@ IlpHighs::optimize(reporter_callback_wrapper_type& reporter_callback,
     const bool has_basis = info.basis_validity;
 
     // Get the solution values and basis
-    const HighsSolution& solution = highs.getSolution();
-    const HighsBasis& basis = highs.getBasis();
+    const HighsSolution &solution = highs.getSolution();
+    const HighsBasis &basis = highs.getBasis();
 
     if (parameters_.integer)
     {
@@ -218,15 +196,13 @@ IlpHighs::optimize(reporter_callback_wrapper_type& reporter_callback,
         for (int col = 0; col < lp.num_col_; col++)
         {
             highs_model_.lp_.integrality_[col] =
-                ilp_data_.is_integer()[col] ? HighsVarType::kInteger
-                                            : HighsVarType::kContinuous;
+                ilp_data_.is_integer()[col] ? HighsVarType::kInteger : HighsVarType::kContinuous;
         }
         highs.passModel(highs_model_);
         return_status = highs.run();
         assert(return_status == HighsStatus::kOk);
 
-        status =
-            highsModelStatusToOptimizationStatus(highs, highs.getModelStatus());
+        status = highsModelStatusToOptimizationStatus(highs, highs.getModelStatus());
         if (status == OptimizationStatus::INFEASIBLE)
         {
             reporter_callback.end();
@@ -235,8 +211,7 @@ IlpHighs::optimize(reporter_callback_wrapper_type& reporter_callback,
     }
 
     const bool all_integral =
-        indicator_variable_mapping_.lp_solution_to_model_solution(
-            solution.col_value, best_solution_);
+        indicator_variable_mapping_.lp_solution_to_model_solution(solution.col_value, best_solution_);
 
     this->best_sol_value_ = this->model().evaluate(this->best_solution_);
     reporter_callback.end();
@@ -244,7 +219,10 @@ IlpHighs::optimize(reporter_callback_wrapper_type& reporter_callback,
     return status;
 }
 
-energy_type IlpHighs::lower_bound() const { return this->lower_bound_; }
+energy_type IlpHighs::lower_bound() const
+{
+    return this->lower_bound_;
+}
 
 SolutionValue IlpHighs::best_solution_value() const
 {
@@ -255,11 +233,11 @@ SolutionValue IlpHighs::current_solution_value() const
     return this->current_sol_value_;
 }
 
-const typename IlpHighs::solution_type& IlpHighs::best_solution() const
+const typename IlpHighs::solution_type &IlpHighs::best_solution() const
 {
     return this->best_solution_;
 }
-const typename IlpHighs::solution_type& IlpHighs::current_solution() const
+const typename IlpHighs::solution_type &IlpHighs::current_solution() const
 {
     return this->current_solution_;
 }

@@ -7,15 +7,14 @@ namespace nxtgm
 template <class T>
 class SparseArray
 {
-private:
+  private:
     using self_type = SparseArray<T>;
 
     // proxy class do distinguish between read and write access
     class Proxy
     {
-    public:
-        Proxy(SparseArray<T>& array, std::size_t index)
-            : array_(array), index_(index)
+      public:
+        Proxy(SparseArray<T> &array, std::size_t index) : array_(array), index_(index)
         {
         }
 
@@ -34,45 +33,57 @@ private:
         }
 
         // write access
-        Proxy& operator=(const T& value)
+        Proxy &operator=(const T &value)
         {
             array_.data_[index_] = value;
             return *this;
         }
 
-    private:
-        SparseArray<T>& array_;
+      private:
+        SparseArray<T> &array_;
         std::size_t index_;
     };
 
     friend class Proxy;
 
-public:
+  public:
     template <class ST>
     SparseArray(std::initializer_list<ST> list)
-        : size_(1), shape_(list.begin(), list.end()), strides_(shape_.size()),
-          data_()
+        : size_(1), shape_(list.begin(), list.end()), strides_(shape_.size()), data_()
     {
         this->init();
     }
 
     template <class SHAPE>
-    SparseArray(SHAPE&& shape)
-        : size_(1), shape_(shape.begin(), shape.end()), strides_(shape_.size()),
-          data_()
+    SparseArray(SHAPE &&shape) : size_(1), shape_(shape.begin(), shape.end()), strides_(shape_.size()), data_()
     {
         this->init();
     }
 
-    std::size_t size() const { return size_; }
+    std::size_t size() const
+    {
+        return size_;
+    }
 
-    std::size_t num_non_zero_entries() const { return data_.size(); }
+    std::size_t num_non_zero_entries() const
+    {
+        return data_.size();
+    }
 
-    const std::vector<std::size_t>& shape() const { return shape_; }
+    const std::vector<std::size_t> &shape() const
+    {
+        return shape_;
+    }
 
-    std::size_t shape(std::size_t i) const { return shape_[i]; }
+    std::size_t shape(std::size_t i) const
+    {
+        return shape_[i];
+    }
 
-    std::size_t dimension() const { return shape_.size(); }
+    std::size_t dimension() const
+    {
+        return shape_.size();
+    }
 
     // read access
     template <class... INDICES>
@@ -83,7 +94,7 @@ public:
 
     // read access
     template <class C>
-    T operator[](C&& c) const
+    T operator[](C &&c) const
     {
         return read_at(flat_index(c));
     }
@@ -96,16 +107,22 @@ public:
     }
     // write / read access
     template <class C>
-    Proxy operator[](C&& c)
+    Proxy operator[](C &&c)
     {
         return proxy_at(flat_index(c));
     }
 
-    const auto& non_zero_entries() const { return data_; }
-    auto& non_zero_entries() { return data_; }
+    const auto &non_zero_entries() const
+    {
+        return data_;
+    }
+    auto &non_zero_entries()
+    {
+        return data_;
+    }
 
     template <class C>
-    void multindex_from_flat_index(std::size_t index, C&& c) const
+    void multindex_from_flat_index(std::size_t index, C &&c) const
     {
         for (std::size_t i = 0; i < shape_.size(); ++i)
         {
@@ -114,7 +131,7 @@ public:
         }
     }
 
-private:
+  private:
     // read at flat index
     T read_at(std::size_t index) const
     {
@@ -129,7 +146,10 @@ private:
         }
     }
 
-    Proxy proxy_at(std::size_t index) { return Proxy(*this, index); }
+    Proxy proxy_at(std::size_t index)
+    {
+        return Proxy(*this, index);
+    }
 
     void init()
     {
@@ -175,7 +195,7 @@ private:
     }
 
     template <class C>
-    std::size_t flat_index(C&& c) const
+    std::size_t flat_index(C &&c) const
     {
         std::size_t index = 0;
         for (std::size_t i = 0; i < shape_.size(); ++i)

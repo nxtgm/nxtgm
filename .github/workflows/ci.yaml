@@ -32,17 +32,24 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
 
+
+      - name: cmake configure
+        shell: bash -l {0}
+        run: |
+          mkdir -p bld
+          cd bld
+          cmake \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DBUILD_TESTS=ON \
+              -DBUILD_PYTHON=ON \
+              -DBUILD_DOCS=ON \
+          .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+
       - name: Build
         shell: bash -l {0}
         run: |
-            mkdir bld
-            cd bld
-            cmake \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DBUILD_TESTS=ON \
-                -DBUILD_PYTHON=ON \
-            .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
-            make -j ${{ steps.cpu-cores.outputs.count }}
+          cd bld
+          make -j ${{ steps.cpu-cores.outputs.count }}
 
       - name: Run C++ tets
         shell: bash -l {0}
@@ -55,3 +62,9 @@ jobs:
         run: |
             cd bld
             make python_tests
+
+      - name: Build docs
+        shell: bash -l {0}
+        run: |
+            cd bld
+            make docs

@@ -28,49 +28,62 @@ struct IlpFactorBuilderBuffer
 
 class DiscreteEnergyFunctionBase
 {
-public:
+  public:
     virtual ~DiscreteEnergyFunctionBase() = default;
 
     // pure virtual functions:
     virtual std::size_t arity() const = 0;
     virtual discrete_label_type shape(std::size_t index) const = 0;
-    virtual energy_type
-    energy(const discrete_label_type* discrete_labels) const = 0;
+    virtual energy_type energy(const discrete_label_type *discrete_labels) const = 0;
 
     // function with default implementation:
     virtual std::size_t size() const;
-    virtual energy_type
-    energy(std::initializer_list<discrete_label_type> discrete_labels) const;
+    virtual energy_type energy(std::initializer_list<discrete_label_type> discrete_labels) const;
 
-    virtual void
-    copy_energies(energy_type* energies,
-                  discrete_label_type* discrete_labels_buffer) const;
-    virtual void copy_shape(discrete_label_type* shape) const;
+    virtual void copy_energies(energy_type *energies) const;
+    virtual void copy_shape(discrete_label_type *shape) const;
 
-    virtual void
-    add_energies(energy_type* energies,
-                 discrete_label_type* discrete_labels_buffer) const;
+    virtual void add_energies(energy_type *energies) const;
 
-    virtual void add_to_lp(IlpData& ilp_data,
-                           const std::size_t* indicator_variables_mapping,
-                           IlpFactorBuilderBuffer& buffer) const;
+    virtual void add_to_lp(IlpData &ilp_data, const std::size_t *indicator_variables_mapping) const;
+
+    virtual void compute_factor_to_variable_messages(const energy_type *const *in_messages,
+                                                     energy_type **out_messages) const;
 
     virtual std::unique_ptr<DiscreteEnergyFunctionBase> clone() const = 0;
 
-    virtual std::pair<std::unique_ptr<DiscreteEnergyFunctionBase>, energy_type>
-    bind(const span<std::size_t>& binded_vars,
-         const span<discrete_label_type>& binded_vars_labels) const;
+    virtual std::pair<std::unique_ptr<DiscreteEnergyFunctionBase>, energy_type> bind(
+        const span<std::size_t> &binded_vars, const span<discrete_label_type> &binded_vars_labels) const;
 
     virtual nlohmann::json serialize_json() const = 0;
 };
 
-using DiscretEnergyFunctionSerializationFactory = std::unordered_map<
-    std::string, std::function<std::unique_ptr<DiscreteEnergyFunctionBase>(
-                     const nlohmann::json&)>>;
+// helper class to have a shape object
+// with operator[] and size()
+class DiscreteEnergyFunctionShape
+{
+  public:
+    inline DiscreteEnergyFunctionShape(const DiscreteEnergyFunctionBase *function) : function_(function)
+    {
+    }
 
-std::unique_ptr<DiscreteEnergyFunctionBase>
-discrete_energy_function_deserialize_json(
-    const nlohmann::json& json,
-    const DiscretEnergyFunctionSerializationFactory& user_factory =
-        DiscretEnergyFunctionSerializationFactory());
+    inline std::size_t size() const
+    {
+        return function_->arity();
+    }
+    inline discrete_label_type operator[](std::size_t index) const
+    {
+        return function_->shape(index);
+    }
+
+  private:
+    const DiscreteEnergyFunctionBase *function_;
+};
+
+using DiscretEnergyFunctionSerializationFactory =
+    std::unordered_map<std::string, std::function<std::unique_ptr<DiscreteEnergyFunctionBase>(const nlohmann::json &)>>;
+
+std::unique_ptr<DiscreteEnergyFunctionBase> discrete_energy_function_deserialize_json(
+    const nlohmann::json &json,
+    const DiscretEnergyFunctionSerializationFactory &user_factory = DiscretEnergyFunctionSerializationFactory());
 } // namespace nxtgm

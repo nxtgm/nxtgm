@@ -14,33 +14,27 @@ nlohmann::json DiscreteSpace::serialize_json() const
 {
     if (this->is_simple())
     {
-        return {{"is_simple", true},
-                {"n_variables", n_variables_},
-                {"n_labels", n_labels_.front()}};
+        return {{"is_simple", true}, {"n_variables", n_variables_}, {"n_labels", n_labels_.front()}};
     }
     else
     {
-        return {{"is_simple", false},
-                {"n_variables", n_variables_},
-                {"n_labels", n_labels_}};
+        return {{"is_simple", false}, {"n_variables", n_variables_}, {"n_labels", n_labels_}};
     }
 }
 
-DiscreteSpace DiscreteSpace::deserialize_json(const nlohmann::json& json)
+DiscreteSpace DiscreteSpace::deserialize_json(const nlohmann::json &json)
 {
     if (json["is_simple"].get<bool>())
     {
-        return DiscreteSpace(json["n_variables"].get<std::size_t>(),
-                             json["n_labels"].get<std::size_t>());
+        return DiscreteSpace(json["n_variables"].get<std::size_t>(), json["n_labels"].get<std::size_t>());
     }
     else
     {
-        return DiscreteSpace(
-            json["n_labels"].get<std::vector<discrete_label_type>>());
+        return DiscreteSpace(json["n_labels"].get<std::vector<discrete_label_type>>());
     }
 }
 
-IndicatorVariableMapping::IndicatorVariableMapping(const DiscreteSpace& space)
+IndicatorVariableMapping::IndicatorVariableMapping(const DiscreteSpace &space)
     : space_(space), mapping_(space.is_simple() ? 1 : space.size())
 {
     if (space_.is_simple())

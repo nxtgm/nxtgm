@@ -15,62 +15,59 @@
 namespace nxtgm
 {
 
-const_discrete_label_span local_solution_from_model_solution(
-    const std::vector<std::size_t>& variables,
-    const std::vector<discrete_label_type>& solution,
-    std::vector<discrete_label_type>& local_labels_buffer);
+const_discrete_label_span local_solution_from_model_solution(const std::vector<std::size_t> &variables,
+                                                             const span<const discrete_label_type> &solution,
+                                                             std::vector<discrete_label_type> &local_labels_buffer);
 
 class DiscreteFactor
 {
-public:
+  public:
     template <class VARIABLES>
-    DiscreteFactor(const VARIABLES& variables,
-                   const DiscreteEnergyFunctionBase* function)
+    DiscreteFactor(const VARIABLES &variables, const DiscreteEnergyFunctionBase *function)
         : function_(function), variables_(variables.begin(), variables.end())
     {
     }
 
-    inline const DiscreteEnergyFunctionBase* function() const
+    inline const DiscreteEnergyFunctionBase *function() const
     {
         return function_;
     }
 
-    inline const std::vector<std::size_t>& variables() const
+    inline const std::vector<std::size_t> &variables() const
     {
         return variables_;
     }
-    const std::size_t arity() const { return variables_.size(); }
+    const std::size_t arity() const
+    {
+        return variables_.size();
+    }
 
     template <class MODEL_DATA, class FACTOR_DATA>
-    void map_from_model(const MODEL_DATA& model_data,
-                        FACTOR_DATA& factor_data) const
+    void map_from_model(const MODEL_DATA &model_data, FACTOR_DATA &factor_data) const
     {
-        const auto& variables = this->variables();
+        const auto &variables = this->variables();
         for (std::size_t ai = 0; ai < variables.size(); ++ai)
         {
             factor_data[ai] = model_data[variables[ai]];
         }
     }
 
-    inline energy_type operator()(const discrete_label_type* labels) const
+    inline energy_type operator()(const discrete_label_type *labels) const
     {
         return function_->energy(labels);
     }
-    inline energy_type
-    operator()(std::initializer_list<discrete_label_type> labels) const
+    inline energy_type operator()(std::initializer_list<discrete_label_type> labels) const
     {
         return function_->energy(labels.begin());
     }
-    inline void add_energies(energy_type* energy,
-                             discrete_label_type* labels) const
+    inline void add_energies(energy_type *energy) const
     {
-        function_->add_energies(energy, labels);
+        function_->add_energies(energy);
     }
 
     std::size_t variable_position(std::size_t variable) const
     {
-        const auto iter =
-            std::find(variables_.begin(), variables_.end(), variable);
+        const auto iter = std::find(variables_.begin(), variables_.end(), variable);
         if (iter == variables_.end())
         {
             return variables_.size();
@@ -78,48 +75,48 @@ public:
         return std::distance(variables_.begin(), iter);
     }
 
-private:
-    const DiscreteEnergyFunctionBase* function_;
+  private:
+    const DiscreteEnergyFunctionBase *function_;
     std::vector<std::size_t> variables_;
 };
 
 class DiscreteConstraint
 {
-public:
+  public:
     template <class VARIABLES>
-    DiscreteConstraint(const VARIABLES& variables,
-                       const DiscreteConstraintFunctionBase* function)
+    DiscreteConstraint(const VARIABLES &variables, const DiscreteConstraintFunctionBase *function)
         : function_(function), variables_(variables.begin(), variables.end())
     {
     }
 
-    inline const DiscreteConstraintFunctionBase* function() const
+    inline const DiscreteConstraintFunctionBase *function() const
     {
         return function_;
     }
 
-    inline const std::vector<std::size_t>& variables() const
+    inline const std::vector<std::size_t> &variables() const
     {
         return variables_;
     }
 
-    const std::size_t arity() const { return variables_.size(); }
+    const std::size_t arity() const
+    {
+        return variables_.size();
+    }
 
-    inline auto operator()(const discrete_label_type* labels) const
+    inline auto operator()(const discrete_label_type *labels) const
     {
         return function_->how_violated(labels);
     }
-    inline auto
-    operator()(std::initializer_list<discrete_label_type> labels) const
+    inline auto operator()(std::initializer_list<discrete_label_type> labels) const
     {
         return function_->how_violated(labels.begin());
     }
 
     template <class MODEL_DATA, class CONSTRAINT_DATA>
-    void map_from_model(const MODEL_DATA& model_data,
-                        CONSTRAINT_DATA& constraint_data) const
+    void map_from_model(const MODEL_DATA &model_data, CONSTRAINT_DATA &constraint_data) const
     {
-        const auto& variables = this->variables();
+        const auto &variables = this->variables();
         for (std::size_t ai = 0; ai < variables.size(); ++ai)
         {
             constraint_data[ai] = model_data[variables[ai]];
@@ -127,8 +124,7 @@ public:
     }
     std::size_t variable_position(std::size_t variable) const
     {
-        const auto iter =
-            std::find(variables_.begin(), variables_.end(), variable);
+        const auto iter = std::find(variables_.begin(), variables_.end(), variable);
         if (iter == variables_.end())
         {
             return variables_.size();
@@ -136,50 +132,67 @@ public:
         return std::distance(variables_.begin(), iter);
     }
 
-private:
-    const DiscreteConstraintFunctionBase* function_;
+  private:
+    const DiscreteConstraintFunctionBase *function_;
     std::vector<std::size_t> variables_;
 };
 
 class DiscreteGm
 {
 
-public:
+  public:
     using solution_type = std::vector<discrete_label_type>;
 
-    DiscreteGm(const DiscreteSpace& discrete_space);
+    DiscreteGm(const DiscreteSpace &discrete_space);
 
     template <class NUM_LABELS_ITER>
     DiscreteGm(NUM_LABELS_ITER num_labels_begin, NUM_LABELS_ITER num_labels_end)
-        : space_(num_labels_begin, num_labels_end), factors_(),
-          energy_functions_(), constraints_(), constraint_functions_(),
-          max_factor_arity_(0), max_constraint_arity_(0), max_factor_size_(0),
+        : space_(num_labels_begin, num_labels_end), factors_(), energy_functions_(), constraints_(),
+          constraint_functions_(), max_factor_arity_(0), max_constraint_arity_(0), max_factor_size_(0),
           max_constraint_size_(0)
     {
     }
 
     inline DiscreteGm(std::size_t num_var, discrete_label_type num_labels)
-        : space_(num_var, num_labels), factors_(), energy_functions_(),
-          constraints_(), constraint_functions_(), max_factor_arity_(0),
-          max_constraint_arity_(0), max_factor_size_(0), max_constraint_size_(0)
+        : space_(num_var, num_labels), factors_(), energy_functions_(), constraints_(), constraint_functions_(),
+          max_factor_arity_(0), max_constraint_arity_(0), max_factor_size_(0), max_constraint_size_(0)
     {
     }
 
-    inline const DiscreteSpace& space() const { return space_; }
+    inline const DiscreteSpace &space() const
+    {
+        return space_;
+    }
 
-    inline const std::vector<DiscreteFactor>& factors() const
+    inline const std::vector<DiscreteFactor> &factors() const
     {
         return factors_;
     }
 
-    inline const std::vector<DiscreteConstraint>& constraints() const
+    inline const std::vector<DiscreteConstraint> &constraints() const
     {
         return constraints_;
     }
 
-    inline std::size_t max_factor_arity() const { return max_factor_arity_; }
+    const DiscreteFactor &factor(std::size_t factor_index) const
+    {
+        return factors_[factor_index];
+    }
 
-    inline std::size_t max_factor_size() const { return max_factor_size_; }
+    const DiscreteConstraint &constraint(std::size_t constraint_index) const
+    {
+        return constraints_[constraint_index];
+    }
+
+    inline std::size_t max_factor_arity() const
+    {
+        return max_factor_arity_;
+    }
+
+    inline std::size_t max_factor_size() const
+    {
+        return max_factor_size_;
+    }
 
     inline std::size_t max_constraint_arity() const
     {
@@ -200,15 +213,24 @@ public:
     {
         return space_[variable_index];
     }
-    std::size_t num_variables() const { return space_.size(); }
-    std::size_t num_factors() const { return factors_.size(); }
-    std::size_t num_constraints() const { return constraints_.size(); }
+    std::size_t num_variables() const
+    {
+        return space_.size();
+    }
+    std::size_t num_factors() const
+    {
+        return factors_.size();
+    }
+    std::size_t num_constraints() const
+    {
+        return constraints_.size();
+    }
 
     template <class F>
-    void for_each_factor(F&& f) const
+    void for_each_factor(F &&f) const
     {
         std::size_t i = 0;
-        for (const auto& factor : factors_)
+        for (const auto &factor : factors_)
         {
             f(factor, i);
             ++i;
@@ -216,46 +238,68 @@ public:
     }
 
     template <class F>
-    void for_each_higher_order_factor(F&& f) const
+    void for_each_higher_order_factor(F &&f) const
     {
-        this->for_each_factor(
-            [&](const auto& factor, std::size_t i)
+        this->for_each_factor([&](const auto &factor, std::size_t i) {
+            if (factor.variables().size() > 1)
             {
-                if (factor.variables().size() > 1)
-                {
-                    f(factor, i);
-                }
-            });
+                f(factor, i);
+            }
+        });
     }
     template <class F>
-    void for_each_unary_factor(F&& f) const
+    void for_each_unary_factor(F &&f) const
     {
-        this->for_each_factor(
-            [&](const auto& factor, std::size_t i)
+        this->for_each_factor([&](const auto &factor, std::size_t i) {
+            if (factor.variables().size() == 1)
             {
-                if (factor.variables().size() == 1)
-                {
-                    f(factor, i);
-                }
-            });
+                f(factor, i);
+            }
+        });
     }
 
     template <class F>
-    void for_each_constraint(F&& f) const
+    void for_each_constraint(F &&f) const
     {
-        for (const auto& constraint : constraints_)
+        for (const auto &constraint : constraints_)
         {
             f(constraint);
         }
     }
 
-    std::size_t
-    add_energy_function(std::unique_ptr<DiscreteEnergyFunctionBase> function);
-    std::size_t add_constraint_function(
-        std::unique_ptr<DiscreteConstraintFunctionBase> function);
+    std::size_t add_energy_function(std::unique_ptr<DiscreteEnergyFunctionBase> function);
+    std::size_t add_constraint_function(std::unique_ptr<DiscreteConstraintFunctionBase> function);
 
     template <class DISCRETE_VARIABLES>
-    std::size_t add_factor(DISCRETE_VARIABLES&& discrete_variables,
+    std::size_t add_factor(DISCRETE_VARIABLES &&discrete_variables, std::size_t function_id)
+    {
+        const std::size_t arity = discrete_variables.size();
+        max_factor_arity_ = std::max(max_factor_arity_, arity);
+
+        const auto size = shape_product(discrete_variables);
+        max_factor_size_ = std::max(max_factor_size_, size);
+
+        factors_.emplace_back(std::forward<DISCRETE_VARIABLES>(discrete_variables),
+                              energy_functions_[function_id].get());
+        return factors_.size() - 1;
+    }
+
+    template <class DISCRETE_VARIABLES>
+    std::size_t add_constraint(DISCRETE_VARIABLES &&discrete_variables, std::size_t function_id)
+    {
+        const std::size_t arity = discrete_variables.size();
+        max_constraint_arity_ = std::max(max_constraint_arity_, arity);
+
+        const auto size = shape_product(discrete_variables);
+        max_constraint_size_ = std::max(max_constraint_size_, size);
+
+        constraints_.emplace_back(std::forward<DISCRETE_VARIABLES>(discrete_variables),
+                                  constraint_functions_[function_id].get());
+        return constraints_.size() - 1;
+    }
+
+    template <class DISCRETE_VARIABLES_INDICES>
+    std::size_t add_factor(std::initializer_list<DISCRETE_VARIABLES_INDICES> discrete_variables,
                            std::size_t function_id)
     {
         const std::size_t arity = discrete_variables.size();
@@ -264,70 +308,85 @@ public:
         const auto size = shape_product(discrete_variables);
         max_factor_size_ = std::max(max_factor_size_, size);
 
-        factors_.emplace_back(
-            std::forward<DISCRETE_VARIABLES>(discrete_variables),
-            energy_functions_[function_id].get());
+        factors_.emplace_back(discrete_variables, energy_functions_[function_id].get());
         return factors_.size() - 1;
     }
 
-    template <class DISCRETE_VARIABLES>
-    std::size_t add_constraint(DISCRETE_VARIABLES&& discrete_variables,
+    template <class DISCRETE_VARIABLES_INDICES>
+    std::size_t add_constraint(std::initializer_list<DISCRETE_VARIABLES_INDICES> discrete_variables,
                                std::size_t function_id)
     {
         const std::size_t arity = discrete_variables.size();
         max_constraint_arity_ = std::max(max_constraint_arity_, arity);
-
-        const auto size = shape_product(discrete_variables);
-        max_constraint_size_ = std::max(max_constraint_size_, size);
-
-        constraints_.emplace_back(
-            std::forward<DISCRETE_VARIABLES>(discrete_variables),
-            constraint_functions_[function_id].get());
-        return constraints_.size() - 1;
-    }
-
-    template <class DISCRETE_VARIABLES_INDICES>
-    std::size_t add_factor(
-        std::initializer_list<DISCRETE_VARIABLES_INDICES> discrete_variables,
-        std::size_t function_id)
-    {
-        const std::size_t arity = discrete_variables.size();
-        max_factor_arity_ = std::max(max_factor_arity_, arity);
-
-        const auto size = shape_product(discrete_variables);
-        max_factor_size_ = std::max(max_factor_size_, size);
-
-        factors_.emplace_back(discrete_variables,
-                              energy_functions_[function_id].get());
+        constraints_.emplace_back(discrete_variables, constraint_functions_[function_id].get());
         return factors_.size() - 1;
     }
 
-    template <class DISCRETE_VARIABLES_INDICES>
-    std::size_t add_constraint(
-        std::initializer_list<DISCRETE_VARIABLES_INDICES> discrete_variables,
-        std::size_t function_id)
-    {
-        const std::size_t arity = discrete_variables.size();
-        max_constraint_arity_ = std::max(max_constraint_arity_, arity);
-        constraints_.emplace_back(discrete_variables,
-                                  constraint_functions_[function_id].get());
-        return factors_.size() - 1;
-    }
+    SolutionValue evaluate(const span<const discrete_label_type> &solution, bool early_stop_infeasible = false) const;
+    SolutionValue evaluate(const solution_type &solution, bool early_stop_infeasible = false) const;
 
-    SolutionValue evaluate(const span<const discrete_label_type>& solution,
-                           bool early_stop_infeasible = false) const;
-    SolutionValue evaluate(const solution_type& solution,
-                           bool early_stop_infeasible = false) const;
+    template <class USE_FACTOR, class USE_CONSTRAINT>
+    SolutionValue evaluate_if(const span<const discrete_label_type> &solution, bool early_stop_infeasible,
+                              USE_FACTOR &&use_factor, USE_CONSTRAINT &&use_constraint) const
+    {
+        bool total_is_feasible = true;
+        energy_type total_how_violated = 0;
+
+        // buffer holding the labels for the factors/constraints
+        std::vector<discrete_label_type> local_labels_buffer(2);
+
+        std::size_t ci = 0;
+        for (const auto &constraint : constraints_)
+        {
+            if (use_constraint(ci))
+            {
+                const const_discrete_label_span labels =
+                    local_solution_from_model_solution(constraint.variables(), solution, local_labels_buffer);
+                const auto how_violated = constraint.function()->how_violated(labels.data());
+                if (how_violated >= constraint_feasiblility_limit)
+                {
+                    if (early_stop_infeasible)
+                    {
+                        return SolutionValue{std::numeric_limits<energy_type>::infinity(), how_violated};
+                    }
+                    else
+                    {
+                        total_how_violated += how_violated;
+                    }
+                }
+                else
+                {
+                    total_how_violated += how_violated;
+                }
+            }
+            ++ci;
+        }
+
+        energy_type total_energy = 0;
+        std::size_t fi = 0;
+        for (const auto &factor : factors_)
+        {
+            if (use_factor(fi))
+            {
+                const const_discrete_label_span labels =
+                    local_solution_from_model_solution(factor.variables(), solution, local_labels_buffer);
+                total_energy += factor.function()->energy(labels.data());
+                ++fi;
+            }
+        }
+        total_how_violated = total_how_violated < constraint_feasiblility_limit ? 0 : total_how_violated;
+        return SolutionValue{total_energy, total_how_violated};
+    }
 
     nlohmann::json serialize_json() const;
-    static DiscreteGm deserialize_json(const nlohmann::json& json);
+    static DiscreteGm deserialize_json(const nlohmann::json &json);
 
-private:
+  private:
     template <class VARIABLE_INDICIES>
-    std::size_t shape_product(VARIABLE_INDICIES&& variable_indicies) const
+    std::size_t shape_product(VARIABLE_INDICIES &&variable_indicies) const
     {
         std::size_t product = 1;
-        for (const auto& variable_index : variable_indicies)
+        for (const auto &variable_index : variable_indicies)
         {
             product *= space_[variable_index];
         }
@@ -338,47 +397,62 @@ private:
     std::vector<DiscreteFactor> factors_;
     std::vector<std::unique_ptr<DiscreteEnergyFunctionBase>> energy_functions_;
     std::vector<DiscreteConstraint> constraints_;
-    std::vector<std::unique_ptr<DiscreteConstraintFunctionBase>>
-        constraint_functions_;
+    std::vector<std::unique_ptr<DiscreteConstraintFunctionBase>> constraint_functions_;
     std::size_t max_factor_arity_;
     std::size_t max_constraint_arity_;
     std::size_t max_factor_size_;
     std::size_t max_constraint_size_;
 };
 
-class DiscreteGmFactorsOfVariables
-    : public std::vector<std::vector<std::size_t>>
+class DiscreteGmFactorsOfVariables : public std::vector<std::vector<std::size_t>>
 {
-public:
+  public:
     using base_type = std::vector<std::vector<std::size_t>>;
-    inline DiscreteGmFactorsOfVariables(const DiscreteGm& gm)
-        : base_type(gm.space().size())
+
+    template <class USE_FACTOR>
+    inline DiscreteGmFactorsOfVariables(const DiscreteGm &gm, USE_FACTOR &&use_factor) : base_type(gm.space().size())
     {
         for (std::size_t fi = 0; fi < gm.factors().size(); ++fi)
         {
-            for (const auto& vi : gm.factors()[fi].variables())
+            if (use_factor(fi))
             {
-                (*this)[vi].push_back(fi);
+                for (const auto &vi : gm.factors()[fi].variables())
+                {
+                    (*this)[vi].push_back(fi);
+                }
             }
         }
     }
+
+    inline DiscreteGmFactorsOfVariables(const DiscreteGm &gm)
+        : DiscreteGmFactorsOfVariables(gm, [](std::size_t) { return true; })
+    {
+    }
 };
 
-class DiscreteGmConstraintsOfVariables
-    : public std::vector<std::vector<std::size_t>>
+class DiscreteGmConstraintsOfVariables : public std::vector<std::vector<std::size_t>>
 {
-public:
+  public:
     using base_type = std::vector<std::vector<std::size_t>>;
-    inline DiscreteGmConstraintsOfVariables(const DiscreteGm& gm)
+
+    template <class USE_CONSTRAINT>
+    inline DiscreteGmConstraintsOfVariables(const DiscreteGm &gm, USE_CONSTRAINT &&use_constraint)
         : base_type(gm.space().size())
     {
         for (std::size_t fi = 0; fi < gm.constraints().size(); ++fi)
         {
-            for (const auto& vi : gm.constraints()[fi].variables())
+            if (use_constraint(fi))
             {
-                (*this)[vi].push_back(fi);
+                for (const auto &vi : gm.constraints()[fi].variables())
+                {
+                    (*this)[vi].push_back(fi);
+                }
             }
         }
+    }
+    DiscreteGmConstraintsOfVariables(const DiscreteGm &gm)
+        : DiscreteGmConstraintsOfVariables(gm, [](std::size_t) { return true; })
+    {
     }
 };
 

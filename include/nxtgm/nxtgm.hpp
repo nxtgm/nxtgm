@@ -13,6 +13,10 @@ using span = boost::span<T>;
 
 using discrete_label_type = std::uint16_t;
 using discrete_solution = std::vector<discrete_label_type>;
+
+using const_discrete_solution_span = span<const discrete_label_type>;
+using discrete_solution_span = span<discrete_label_type>;
+
 using continuous_label_type = double;
 using energy_type = double;
 
@@ -23,7 +27,7 @@ using const_discrete_label_span = span<const discrete_label_type>;
 using discrete_label_span = span<discrete_label_type>;
 
 template <typename T>
-using small_arity_vector = boost::container::small_vector<T, 4>;
+using small_arity_vector = boost::container::small_vector<T, 10>;
 
 constexpr energy_type constraint_feasiblility_limit = 1e-5;
 

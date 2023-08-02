@@ -13,6 +13,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 option(BUILD_TESTS          "Build tests" ON)
 option(BUILD_PYTHON         "Build python bindings" ON)
 option(BUILD_WITH_COVERAGE  "Build with coverage" OFF)
+option(BUILD_DOCS          "Build doxygen documentation" ON)
 
 
 ###############################################################
@@ -50,6 +51,8 @@ add_library(nxtgm SHARED
     src/nxtgm/optimizers/gm/discrete/ilp_highs.cpp
     src/nxtgm/optimizers/gm/discrete/dynamic_programming.cpp
     src/nxtgm/optimizers/gm/discrete/icm.cpp
+    src/nxtgm/optimizers/gm/discrete/matching_icm.cpp
+    src/nxtgm/optimizers/gm/discrete/belief_propagation.cpp
 )
 
 ###############################################################
@@ -100,3 +103,31 @@ endif()
 if(BUILD_PYTHON)
     add_subdirectory(python)
 endif()
+
+
+###############################################################
+# docs
+###############################################################
+if(BUILD_DOCS)
+    add_subdirectory(docs)
+endif()
+
+
+###############################################################
+# install
+###############################################################
+
+# gnu install dirs
+include(GNUInstallDirs)
+
+# install targets
+install(TARGETS nxtgm
+    EXPORT nxtgmTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+# install headers
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/nxtgm
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)

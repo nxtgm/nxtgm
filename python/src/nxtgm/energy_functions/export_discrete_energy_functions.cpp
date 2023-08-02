@@ -7,11 +7,10 @@ namespace py = pybind11;
 
 namespace nxtgm
 {
-void export_discrete_energy_functions(py::module_& pymodule)
+void export_discrete_energy_functions(py::module_ &pymodule)
 {
 
-    py::class_<DiscreteEnergyFunctionBase>(pymodule,
-                                           "DiscreteEnergyFunctionBase")
+    py::class_<DiscreteEnergyFunctionBase>(pymodule, "DiscreteEnergyFunctionBase")
 
         // read-only properties arity
         .def_property_readonly("arity", &DiscreteEnergyFunctionBase::arity)
@@ -20,8 +19,7 @@ void export_discrete_energy_functions(py::module_& pymodule)
 
         // return shape as tuple
         .def_property_readonly("shape",
-                               [](const DiscreteEnergyFunctionBase* self)
-                               {
+                               [](const DiscreteEnergyFunctionBase *self) {
                                    const auto arity = self->arity();
                                    auto my_tuple = py::tuple(arity);
 
@@ -33,21 +31,18 @@ void export_discrete_energy_functions(py::module_& pymodule)
                                })
 
         .def("__getitem__",
-             [](DiscreteEnergyFunctionBase* self, uint16_t label)
-             {
+             [](DiscreteEnergyFunctionBase *self, uint16_t label) {
                  const auto arity = self->arity();
                  if (arity > 1)
                  {
-                     throw std::runtime_error(
-                         "only unary energy functions can be "
-                         "accessed with a single index");
+                     throw std::runtime_error("only unary energy functions can be "
+                                              "accessed with a single index");
                  }
                  return self->energy(&label);
              })
 
         .def("__getitem__",
-             [](DiscreteEnergyFunctionBase* self, py::tuple indices)
-             {
+             [](DiscreteEnergyFunctionBase *self, py::tuple indices) {
                  const auto arity = self->arity();
                  // check that the tuple has the correct arity
                  if (indices.size() != arity)
@@ -70,15 +65,12 @@ void export_discrete_energy_functions(py::module_& pymodule)
         ;
 
     py::class_<Potts, DiscreteEnergyFunctionBase>(pymodule, "Potts")
-        .def(py::init<std::size_t, energy_type>(), py::arg("num_labels"),
-             py::arg("beta"));
+        .def(py::init<std::size_t, energy_type>(), py::arg("num_labels"), py::arg("beta"));
 
     py::class_<LabelCosts, DiscreteEnergyFunctionBase>(pymodule, "LabelCosts")
-        .def(py::init(
-                 [](std::size_t arity,
-                    const xt::pytensor<energy_type, 1>& values) {
-                     return new LabelCosts(arity, values.begin(), values.end());
-                 }),
+        .def(py::init([](std::size_t arity, const xt::pytensor<energy_type, 1> &values) {
+                 return new LabelCosts(arity, values.begin(), values.end());
+             }),
              py::arg("arity"), py::arg("label_costs"))
 
         ;

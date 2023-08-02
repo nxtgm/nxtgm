@@ -22,7 +22,7 @@ TEST_CASE("sparse-array")
 
         arr(1, 0) = 1;
         {
-            const auto& arr_const = arr;
+            const auto &arr_const = arr;
 
             CHECK_EQ(arr_const(0, 0), 0);
             CHECK_EQ(arr_const(0, 1), 0);
@@ -92,7 +92,7 @@ TEST_CASE("sparse-array")
         arr(1, 0, 1, 0, 2, 0, 3, 0, 0, 10) = 12;
 
         CHECK_EQ(arr.num_non_zero_entries(), 2);
-        const auto& arr_const = arr;
+        const auto &arr_const = arr;
         CHECK_EQ(arr_const(0, 0, 0, 3, 0, 0, 4, 0, 0, 4), 10);
         CHECK_EQ(arr_const(1, 0, 1, 0, 2, 0, 3, 0, 0, 10), 12);
     }

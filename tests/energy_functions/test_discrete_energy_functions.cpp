@@ -7,21 +7,25 @@
 
 class DefaultTesterFunction : public nxtgm::DiscreteEnergyFunctionBase
 {
-public:
+  public:
     template <class TENSOR>
-    DefaultTesterFunction(TENSOR&& values)
-        : values(std::forward<TENSOR>(values))
+    DefaultTesterFunction(TENSOR &&values) : values(std::forward<TENSOR>(values))
     {
     }
-    std::size_t arity() const override { return values.dimension(); }
-    std::size_t size() const override { return values.size(); }
+    std::size_t arity() const override
+    {
+        return values.dimension();
+    }
+    std::size_t size() const override
+    {
+        return values.size();
+    }
     nxtgm::discrete_label_type shape(std::size_t index) const override
     {
         return values.shape()[index];
     }
 
-    nxtgm::energy_type
-    energy(const nxtgm::discrete_label_type* discrete_labels) const override
+    nxtgm::energy_type energy(const nxtgm::discrete_label_type *discrete_labels) const override
     {
         nxtgm::const_discrete_label_span l(discrete_labels, values.dimension());
         return values[l];
@@ -31,8 +35,7 @@ public:
         return std::make_unique<DefaultTesterFunction>(values);
     }
 
-    static std::unique_ptr<DiscreteEnergyFunctionBase>
-    deserialize_json(const nlohmann::json& json)
+    static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize_json(const nlohmann::json &json)
     {
         std::vector<std::size_t> shape;
         for (auto s : json["shape"])
@@ -44,7 +47,10 @@ public:
         return std::make_unique<DefaultTesterFunction>(array);
     }
 
-    inline static std::string serialization_key() { return "array"; }
+    inline static std::string serialization_key()
+    {
+        return "array";
+    }
 
     nlohmann::json serialize_json() const override
     {
@@ -78,10 +84,8 @@ TEST_CASE("xtensor")
     }
     SUBCASE("3D")
     {
-        nxtgm::XTensor<3> function(
-            xt::arange<int>(0, 2 * 3 * 4).reshape({2, 3, 4}));
-        nxtgm::tests::test_discrete_energy_function<nxtgm::XTensor<3>>(
-            &function);
+        nxtgm::XTensor<3> function(xt::arange<int>(0, 2 * 3 * 4).reshape({2, 3, 4}));
+        nxtgm::tests::test_discrete_energy_function<nxtgm::XTensor<3>>(&function);
     }
 }
 
@@ -122,20 +126,17 @@ TEST_CASE("label-costs")
     SUBCASE("less-labels")
     {
         nxtgm::LabelCosts function(3, {1.0, 2});
-        nxtgm::tests::test_discrete_energy_function<nxtgm::LabelCosts>(
-            &function);
+        nxtgm::tests::test_discrete_energy_function<nxtgm::LabelCosts>(&function);
     }
     SUBCASE("same-labels")
     {
         nxtgm::LabelCosts function(3, {1.0, 2.0, 3.0});
-        nxtgm::tests::test_discrete_energy_function<nxtgm::LabelCosts>(
-            &function);
+        nxtgm::tests::test_discrete_energy_function<nxtgm::LabelCosts>(&function);
     }
     SUBCASE("more-labels")
     {
         nxtgm::LabelCosts function(3, {1.0, 2.0, 3.0, 4.0});
-        nxtgm::tests::test_discrete_energy_function<nxtgm::LabelCosts>(
-            &function);
+        nxtgm::tests::test_discrete_energy_function<nxtgm::LabelCosts>(&function);
     }
 
     SUBCASE("10d")
@@ -143,8 +144,7 @@ TEST_CASE("label-costs")
         SUBCASE("less-labels")
         {
             nxtgm::LabelCosts function(10, {1.0, 2.0});
-            nxtgm::tests::test_discrete_energy_function<nxtgm::LabelCosts>(
-                &function);
+            nxtgm::tests::test_discrete_energy_function<nxtgm::LabelCosts>(&function);
         }
     }
 }
@@ -173,15 +173,12 @@ TEST_CASE("sparse")
         CHECK(function.energy({1, 0, 1}) == doctest::Approx(1.0));
         CHECK(function.energy({3, 1, 2}) == doctest::Approx(5.0));
 
-        nxtgm::tests::test_discrete_energy_function<
-            nxtgm::SparseDiscreteEnergyFunction>(&function);
+        nxtgm::tests::test_discrete_energy_function<nxtgm::SparseDiscreteEnergyFunction>(&function);
     }
 }
 
 TEST_CASE("default-tester-function")
 {
-    DefaultTesterFunction function(
-        xt::arange<int>(0, 2 * 3 * 4).reshape({2, 3, 4}));
-    nxtgm::tests::test_discrete_energy_function<DefaultTesterFunction>(
-        &function);
+    DefaultTesterFunction function(xt::arange<int>(0, 2 * 3 * 4).reshape({2, 3, 4}));
+    nxtgm::tests::test_discrete_energy_function<DefaultTesterFunction>(&function);
 }

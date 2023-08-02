@@ -6,11 +6,10 @@ namespace nxtgm
 {
 class IlpData
 {
-public:
+  public:
     using value_tye = double;
 
-    inline int add_variable(value_tye lb, value_tye ub, value_tye obj,
-                            bool is_integer)
+    inline int add_variable(value_tye lb, value_tye ub, value_tye obj, bool is_integer)
     {
         col_lower_.push_back(lb);
         col_upper_.push_back(ub);
@@ -18,8 +17,7 @@ public:
         is_integer_.push_back(is_integer);
         return col_lower_.size() - 1;
     }
-    inline int add_variables(std::size_t n, value_tye lb, value_tye ub,
-                             value_tye obj, bool is_integer)
+    inline int add_variables(std::size_t n, value_tye lb, value_tye ub, value_tye obj, bool is_integer)
     {
         for (std::size_t i = 0; i < n; ++i)
         {
@@ -31,8 +29,7 @@ public:
         return col_lower_.size() - 1;
     }
     template <class ITER>
-    inline int add_variables(value_tye lb, value_tye ub, ITER obj_begin,
-                             ITER obj_end, bool is_integer)
+    inline int add_variables(value_tye lb, value_tye ub, ITER obj_begin, ITER obj_end, bool is_integer)
     {
         while (obj_begin != obj_end)
         {
@@ -46,8 +43,7 @@ public:
     }
 
     template <class COEFFICIENTS, class VARS>
-    inline int add_constraint(value_tye lb, value_tye ub,
-                              COEFFICIENTS&& coefficients, VARS&& variables)
+    inline int add_constraint(value_tye lb, value_tye ub, COEFFICIENTS &&coefficients, VARS &&variables)
     {
         row_lower_.push_back(lb);
         row_upper_.push_back(ub);
@@ -74,29 +70,64 @@ public:
         astart_.push_back(aindex_.size());
     }
 
-    inline void add_constraint_coefficient(const std::size_t var,
-                                           const value_tye coeff)
+    inline void add_constraint_coefficient(const std::size_t var, const value_tye coeff)
     {
         aindex_.push_back(var);
         avalue_.push_back(coeff);
     }
 
-    auto& col_cost() { return col_cost_; }
-    auto& col_lower() { return col_lower_; }
-    auto& col_upper() { return col_upper_; }
-    auto& row_lower() { return row_lower_; }
-    auto& row_upper() { return row_upper_; }
-    auto& astart() { return astart_; }
-    auto& aindex() { return aindex_; }
-    auto& avalue() { return avalue_; }
-    auto& is_integer() { return is_integer_; }
+    auto &col_cost()
+    {
+        return col_cost_;
+    }
+    auto &col_lower()
+    {
+        return col_lower_;
+    }
+    auto &col_upper()
+    {
+        return col_upper_;
+    }
+    auto &row_lower()
+    {
+        return row_lower_;
+    }
+    auto &row_upper()
+    {
+        return row_upper_;
+    }
+    auto &astart()
+    {
+        return astart_;
+    }
+    auto &aindex()
+    {
+        return aindex_;
+    }
+    auto &avalue()
+    {
+        return avalue_;
+    }
+    auto &is_integer()
+    {
+        return is_integer_;
+    }
 
-    value_tye& operator[](std::size_t i) { return col_cost_[i]; }
-    const value_tye& operator[](std::size_t i) const { return col_cost_[i]; }
+    value_tye &operator[](std::size_t i)
+    {
+        return col_cost_[i];
+    }
+    const value_tye &operator[](std::size_t i) const
+    {
+        return col_cost_[i];
+    }
 
-    std::size_t num_variables() const { return col_cost_.size(); }
+    std::size_t num_variables() const
+    {
+        return col_cost_.size();
+    }
 
-private:
+  private:
     std::vector<value_tye> col_cost_;
     std::vector<value_tye> col_lower_;
     std::vector<value_tye> col_upper_;

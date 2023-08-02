@@ -6,10 +6,8 @@
 namespace nxtgm
 {
 
-Icm::Icm(const DiscreteGm& gm, const parameters_type& parameters,
-         const solution_type& initial_solution)
-    : base_type(gm), parameters_(parameters), movemaker_(gm, initial_solution),
-      in_queue_(gm.num_variables(), 1)
+Icm::Icm(const DiscreteGm &gm, const parameters_type &parameters)
+    : base_type(gm), parameters_(parameters), movemaker_(gm), in_queue_(gm.num_variables(), 1)
 {
     // put all variables on queue
     for (std::size_t i = 0; i < gm.num_variables(); ++i)
@@ -18,11 +16,16 @@ Icm::Icm(const DiscreteGm& gm, const parameters_type& parameters,
     }
 }
 
-OptimizationStatus
-Icm::optimize(reporter_callback_wrapper_type& reporter_callback,
-              repair_callback_wrapper_type& /*repair_callback not used*/
-)
+OptimizationStatus Icm::optimize(reporter_callback_wrapper_type &reporter_callback,
+                                 repair_callback_wrapper_type & /*repair_callback not used*/,
+                                 const_discrete_solution_span starting_point)
 {
+    // set the starting point
+    if (starting_point.size() > 0)
+    {
+        movemaker_.set_current_solution(starting_point);
+    }
+
     // indicate the start of the optimization
     reporter_callback.begin();
 
@@ -30,7 +33,7 @@ Icm::optimize(reporter_callback_wrapper_type& reporter_callback,
     AutoStartedTimer timer;
 
     // shortcut to the model
-    const auto& gm = this->model();
+    const auto &gm = this->model();
 
     while (!queue_.empty())
     {
@@ -47,17 +50,15 @@ Icm::optimize(reporter_callback_wrapper_type& reporter_callback,
         if (did_improve)
         {
             // report the current solution to callack
-            if (reporter_callback &&
-                !timer.paused_call([&]()
-                                   { return reporter_callback.report(); }))
+            if (reporter_callback && !timer.paused_call([&]() { return reporter_callback.report(); }))
             {
                 return OptimizationStatus::CALLBACK_EXIT;
             }
 
             // add all neighbors to the queue
-            for (const auto& fi : movemaker_.factors_of_variables()[vi])
+            for (const auto &fi : movemaker_.factors_of_variables()[vi])
             {
-                for (const auto& neighbour_vi : gm.factors()[fi].variables())
+                for (const auto &neighbour_vi : gm.factors()[fi].variables())
                 {
                     if (neighbour_vi != vi && in_queue_[neighbour_vi] == 0)
                     {
@@ -66,10 +67,9 @@ Icm::optimize(reporter_callback_wrapper_type& reporter_callback,
                     }
                 }
             }
-            for (const auto& fi : movemaker_.constraints_of_variables()[vi])
+            for (const auto &fi : movemaker_.constraints_of_variables()[vi])
             {
-                for (const auto& neighbour_vi :
-                     gm.constraints()[fi].variables())
+                for (const auto &neighbour_vi : gm.constraints()[fi].variables())
                 {
                     if (neighbour_vi != vi && in_queue_[neighbour_vi] == 0)
                     {
@@ -102,11 +102,11 @@ SolutionValue Icm::current_solution_value() const
     return this->movemaker_.solution_value();
 }
 
-const typename Icm::solution_type& Icm::best_solution() const
+const typename Icm::solution_type &Icm::best_solution() const
 {
     return this->movemaker_.solution();
 }
-const typename Icm::solution_type& Icm::current_solution() const
+const typename Icm::solution_type &Icm::current_solution() const
 {
     return this->movemaker_.solution();
 }
