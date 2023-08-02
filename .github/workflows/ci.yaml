@@ -45,12 +45,6 @@ jobs:
               -DBUILD_DOCS=ON \
           .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
 
-      - name: Build docs
-        shell: bash -l {0}
-        run: |
-          cd ../bld
-          make docs
-
       - name: Build
         shell: bash -l {0}
         run: |
