@@ -9,8 +9,6 @@
 #include <nxtgm/optimizers/gm/discrete/brute_force_naive.hpp>
 #include <nxtgm/utils/tuple_for_each.hpp>
 
-#include <progressbar.hpp>
-
 namespace nxtgm::tests
 {
 
@@ -319,8 +317,6 @@ void test_discrete_gm_optimizer(const std::string &testname,
     const std::size_t workload = n_runs * solver_parameters.size() * std::tuple_size_v<MODEL_GEN_TUPLE>;
 
     std::cout << testname << ":\n";
-    progressbar progressBar(workload);
-
     nxtgm::tuple_for_each(model_gen_tuple, [&](auto &&model_gen) {
         for (auto i = 0; i < n_runs; ++i)
         {
@@ -355,7 +351,6 @@ void test_discrete_gm_optimizer(const std::string &testname,
                     checker.check(solver.get(), status);
                 });
                 ++pi;
-                progressBar.update();
             }
         }
     });
