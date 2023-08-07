@@ -59,9 +59,16 @@ OptimizationStatus highsModelStatusToOptimizationStatus(Highs &highs, HighsModel
 }
 
 IlpHighs::IlpHighs(const DiscreteGm &gm, const parameters_type &parameters, const solution_type &initial_solution)
-    : base_type(gm), parameters_(parameters), best_solution_(), current_solution_(), best_sol_value_(),
-      current_sol_value_(), lower_bound_(-std::numeric_limits<energy_type>::infinity()), ilp_data_(),
-      indicator_variable_mapping_(gm.space()), highs_model_()
+    : base_type(gm),
+      parameters_(parameters),
+      best_solution_(),
+      current_solution_(),
+      best_sol_value_(),
+      current_sol_value_(),
+      lower_bound_(-std::numeric_limits<energy_type>::infinity()),
+      ilp_data_(),
+      indicator_variable_mapping_(gm.space()),
+      highs_model_()
 {
     if (initial_solution.empty())
     {

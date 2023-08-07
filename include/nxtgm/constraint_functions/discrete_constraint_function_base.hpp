@@ -38,7 +38,8 @@ class DiscreteConstraintFunctionBase
 class DiscreteConstraintFunctionShape
 {
   public:
-    inline DiscreteConstraintFunctionShape(const DiscreteConstraintFunctionBase *function) : function_(function)
+    inline DiscreteConstraintFunctionShape(const DiscreteConstraintFunctionBase *function)
+        : function_(function)
     {
     }
 

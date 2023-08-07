@@ -35,7 +35,8 @@ DiscreteSpace DiscreteSpace::deserialize_json(const nlohmann::json &json)
 }
 
 IndicatorVariableMapping::IndicatorVariableMapping(const DiscreteSpace &space)
-    : space_(space), mapping_(space.is_simple() ? 1 : space.size())
+    : space_(space),
+      mapping_(space.is_simple() ? 1 : space.size())
 {
     if (space_.is_simple())
     {

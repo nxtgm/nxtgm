@@ -13,9 +13,14 @@ namespace nxtgm
 {
 
 DynamicProgramming::DynamicProgramming(const DiscreteGm &gm, const parameters_type &parameters)
-    : base_type(gm), parameters_(parameters), best_solution_(gm.num_variables()),
-      best_sol_value_(gm.evaluate(best_solution_)), factors_of_variables_(gm), value_buffers_(gm.space().size()),
-      state_buffers_(gm.space().size()), node_order_(gm.space().size(), std::numeric_limits<std::size_t>::max()),
+    : base_type(gm),
+      parameters_(parameters),
+      best_solution_(gm.num_variables()),
+      best_sol_value_(gm.evaluate(best_solution_)),
+      factors_of_variables_(gm),
+      value_buffers_(gm.space().size()),
+      state_buffers_(gm.space().size()),
+      node_order_(gm.space().size(), std::numeric_limits<std::size_t>::max()),
       ordered_nodes_(gm.space().size(), std::numeric_limits<std::size_t>::max())
 {
     if (gm.max_factor_arity() > 2)

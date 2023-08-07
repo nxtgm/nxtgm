@@ -22,10 +22,16 @@ class FilteredMovemaker
 {
   public:
     inline FilteredMovemaker(const DiscreteGm &gm, const USE_FACTOR &use_factor, const USE_CONSTRAINT &use_constraint)
-        : use_factor_(use_factor), use_constraint_(use_constraint), gm_(gm), current_solution_(gm.num_variables(), 0),
-          current_solution_copy_(gm.num_variables(), 0), current_solution_value_(),
-          factors_of_variables_(gm, use_factor), constraints_of_variables_(gm, use_constraint),
-          max_num_labels_solution_value_buffer_(gm.space().max_num_labels()), max_arity_labels_buffer_(gm.max_arity())
+        : use_factor_(use_factor),
+          use_constraint_(use_constraint),
+          gm_(gm),
+          current_solution_(gm.num_variables(), 0),
+          current_solution_copy_(gm.num_variables(), 0),
+          current_solution_value_(),
+          factors_of_variables_(gm, use_factor),
+          constraints_of_variables_(gm, use_constraint),
+          max_num_labels_solution_value_buffer_(gm.space().max_num_labels()),
+          max_arity_labels_buffer_(gm.max_arity())
     {
         current_solution_value_ = gm.evaluate_if(current_solution_, false, use_factor_, use_constraint_);
     }
@@ -170,7 +176,8 @@ class FilteredMovemaker
 class Movemaker : public FilteredMovemaker<UseAll, UseAll>
 {
   public:
-    inline Movemaker(const DiscreteGm &gm) : FilteredMovemaker<UseAll, UseAll>(gm, UseAll(), UseAll())
+    inline Movemaker(const DiscreteGm &gm)
+        : FilteredMovemaker<UseAll, UseAll>(gm, UseAll(), UseAll())
     {
     }
 };
@@ -201,7 +208,8 @@ class UseNoGlobalUniqueConstraints
         throw std::runtime_error("graphical model has no global unique label constraints");
     }
     // copy constructor
-    UseNoGlobalUniqueConstraints(const UseNoGlobalUniqueConstraints &other) : constraint_index_(other.constraint_index_)
+    UseNoGlobalUniqueConstraints(const UseNoGlobalUniqueConstraints &other)
+        : constraint_index_(other.constraint_index_)
     {
     }
 

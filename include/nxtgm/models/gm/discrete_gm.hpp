@@ -24,7 +24,8 @@ class DiscreteFactor
   public:
     template <class VARIABLES>
     DiscreteFactor(const VARIABLES &variables, const DiscreteEnergyFunctionBase *function)
-        : function_(function), variables_(variables.begin(), variables.end())
+        : function_(function),
+          variables_(variables.begin(), variables.end())
     {
     }
 
@@ -64,6 +65,10 @@ class DiscreteFactor
     {
         function_->add_energies(energy);
     }
+    inline void copy_energies(energy_type *energy) const
+    {
+        function_->copy_energies(energy);
+    }
 
     std::size_t variable_position(std::size_t variable) const
     {
@@ -85,7 +90,8 @@ class DiscreteConstraint
   public:
     template <class VARIABLES>
     DiscreteConstraint(const VARIABLES &variables, const DiscreteConstraintFunctionBase *function)
-        : function_(function), variables_(variables.begin(), variables.end())
+        : function_(function),
+          variables_(variables.begin(), variables.end())
     {
     }
 
@@ -147,15 +153,28 @@ class DiscreteGm
 
     template <class NUM_LABELS_ITER>
     DiscreteGm(NUM_LABELS_ITER num_labels_begin, NUM_LABELS_ITER num_labels_end)
-        : space_(num_labels_begin, num_labels_end), factors_(), energy_functions_(), constraints_(),
-          constraint_functions_(), max_factor_arity_(0), max_constraint_arity_(0), max_factor_size_(0),
+        : space_(num_labels_begin, num_labels_end),
+          factors_(),
+          energy_functions_(),
+          constraints_(),
+          constraint_functions_(),
+          max_factor_arity_(0),
+          max_constraint_arity_(0),
+          max_factor_size_(0),
           max_constraint_size_(0)
     {
     }
 
     inline DiscreteGm(std::size_t num_var, discrete_label_type num_labels)
-        : space_(num_var, num_labels), factors_(), energy_functions_(), constraints_(), constraint_functions_(),
-          max_factor_arity_(0), max_constraint_arity_(0), max_factor_size_(0), max_constraint_size_(0)
+        : space_(num_var, num_labels),
+          factors_(),
+          energy_functions_(),
+          constraints_(),
+          constraint_functions_(),
+          max_factor_arity_(0),
+          max_constraint_arity_(0),
+          max_factor_size_(0),
+          max_constraint_size_(0)
     {
     }
 
@@ -410,7 +429,8 @@ class DiscreteGmFactorsOfVariables : public std::vector<std::vector<std::size_t>
     using base_type = std::vector<std::vector<std::size_t>>;
 
     template <class USE_FACTOR>
-    inline DiscreteGmFactorsOfVariables(const DiscreteGm &gm, USE_FACTOR &&use_factor) : base_type(gm.space().size())
+    inline DiscreteGmFactorsOfVariables(const DiscreteGm &gm, USE_FACTOR &&use_factor)
+        : base_type(gm.space().size())
     {
         for (std::size_t fi = 0; fi < gm.factors().size(); ++fi)
         {

@@ -10,7 +10,8 @@ class SolutionValue
 {
   public:
     inline SolutionValue(const energy_type energy = 0, const energy_type how_violated = 0)
-        : energy_(energy), how_violated_(how_violated)
+        : energy_(energy),
+          how_violated_(how_violated)
     {
     }
 

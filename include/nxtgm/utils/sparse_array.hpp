@@ -14,7 +14,9 @@ class SparseArray
     class Proxy
     {
       public:
-        Proxy(SparseArray<T> &array, std::size_t index) : array_(array), index_(index)
+        Proxy(SparseArray<T> &array, std::size_t index)
+            : array_(array),
+              index_(index)
         {
         }
 
@@ -49,13 +51,20 @@ class SparseArray
   public:
     template <class ST>
     SparseArray(std::initializer_list<ST> list)
-        : size_(1), shape_(list.begin(), list.end()), strides_(shape_.size()), data_()
+        : size_(1),
+          shape_(list.begin(), list.end()),
+          strides_(shape_.size()),
+          data_()
     {
         this->init();
     }
 
     template <class SHAPE>
-    SparseArray(SHAPE &&shape) : size_(1), shape_(shape.begin(), shape.end()), strides_(shape_.size()), data_()
+    SparseArray(SHAPE &&shape)
+        : size_(1),
+          shape_(shape.begin(), shape.end()),
+          strides_(shape_.size()),
+          data_()
     {
         this->init();
     }

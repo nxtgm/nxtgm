@@ -25,6 +25,7 @@ find_package(Boost REQUIRED)
 find_package(xtensor REQUIRED)
 find_package(HIGHS REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(xplugin REQUIRED)
 
 ###############################################################
 # converage
@@ -53,7 +54,30 @@ add_library(nxtgm SHARED
     src/nxtgm/optimizers/gm/discrete/icm.cpp
     src/nxtgm/optimizers/gm/discrete/matching_icm.cpp
     src/nxtgm/optimizers/gm/discrete/belief_propagation.cpp
+    src/nxtgm/optimizers/gm/discrete/qpbo.cpp
 )
+
+###############################################################
+# include directories
+###############################################################
+SET(NXTGM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(nxtgm PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+
+###############################################################
+# plugins
+###############################################################
+# set output directory for plugins here at top level
+# so that it is available for all subdirectories
+SET(PLUGIN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/plugins)
+SET(QPBO_PLUGIN_OUTPUT_DIRECTORY ${PLUGIN_OUTPUT_DIRECTORY}/qpbo)
+SET(MIN_ST_CUT_PLUGIN_OUTPUT_DIRECTORY ${PLUGIN_OUTPUT_DIRECTORY}/min_st_cut)
+
+add_subdirectory(src/nxtgm/plugins)
+
 
 ###############################################################
 # compiler settings / features
@@ -76,13 +100,6 @@ target_link_libraries(nxtgm PUBLIC
 )
 
 
-###############################################################
-# include directories
-###############################################################
-target_include_directories(nxtgm PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
 
 
 ###############################################################

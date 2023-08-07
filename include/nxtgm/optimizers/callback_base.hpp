@@ -13,7 +13,8 @@ class CallbackBase
   public:
     using optimizer_base_type = OPTIMIZER_BASE_TYPE;
 
-    CallbackBase(const optimizer_base_type *optimizer) : optimizer_(optimizer)
+    CallbackBase(const optimizer_base_type *optimizer)
+        : optimizer_(optimizer)
     {
     }
 
@@ -36,7 +37,8 @@ class ReporterCallbackBase : public CallbackBase<OPTIMIZER_BASE_TYPE>
   public:
     using optimizer_base_type = OPTIMIZER_BASE_TYPE;
 
-    ReporterCallbackBase(const optimizer_base_type *optimizer) : CallbackBase<OPTIMIZER_BASE_TYPE>(optimizer)
+    ReporterCallbackBase(const optimizer_base_type *optimizer)
+        : CallbackBase<OPTIMIZER_BASE_TYPE>(optimizer)
     {
     }
 
@@ -56,7 +58,8 @@ class ReporterCallbackWrapper
 {
   public:
     using reporter_callback_base_type = REPORTER_CALLBACK_BASE_TYPE;
-    ReporterCallbackWrapper(reporter_callback_base_type *reporter_callback) : reporter_callback_(reporter_callback)
+    ReporterCallbackWrapper(reporter_callback_base_type *reporter_callback)
+        : reporter_callback_(reporter_callback)
     {
     }
     inline bool report()
@@ -100,7 +103,8 @@ class RepairCallbackBase : public CallbackBase<OPTIMIZER_BASE_TYPE>
     using optimizer_base_type = OPTIMIZER_BASE_TYPE;
     using model_type = typename optimizer_base_type::model_type;
     using solution_type = typename optimizer_base_type::solution_type;
-    RepairCallbackBase(const optimizer_base_type *optimizer) : CallbackBase<OPTIMIZER_BASE_TYPE>(optimizer)
+    RepairCallbackBase(const optimizer_base_type *optimizer)
+        : CallbackBase<OPTIMIZER_BASE_TYPE>(optimizer)
     {
     }
 
@@ -125,7 +129,8 @@ class RepairCallbackWrapper
 
     using solution_type = typename optimizer_base_type::solution_type;
 
-    RepairCallbackWrapper(repair_callback_base_type *repair_callback) : repair_callback_(repair_callback)
+    RepairCallbackWrapper(repair_callback_base_type *repair_callback)
+        : repair_callback_(repair_callback)
     {
     }
     inline bool repair(solution_type &solution, SolutionValue &solution_eval)

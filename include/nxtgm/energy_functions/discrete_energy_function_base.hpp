@@ -63,7 +63,8 @@ class DiscreteEnergyFunctionBase
 class DiscreteEnergyFunctionShape
 {
   public:
-    inline DiscreteEnergyFunctionShape(const DiscreteEnergyFunctionBase *function) : function_(function)
+    inline DiscreteEnergyFunctionShape(const DiscreteEnergyFunctionBase *function)
+        : function_(function)
     {
     }
 

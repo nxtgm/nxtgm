@@ -55,7 +55,8 @@ class ArrayDiscreteConstraintFunction : public DiscreteConstraintFunctionBase
     }
 
     template <class ARRAY>
-    ArrayDiscreteConstraintFunction(ARRAY &&hw) : how_violated_(hw)
+    ArrayDiscreteConstraintFunction(ARRAY &&hw)
+        : how_violated_(hw)
     {
     }
 

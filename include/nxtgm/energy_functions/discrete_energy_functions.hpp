@@ -61,11 +61,13 @@ class XTensor : public DiscreteEnergyFunctionBase
     {
         return "array";
     }
-    XTensor(const xtensor_type &values) : values_(values)
+    XTensor(const xtensor_type &values)
+        : values_(values)
     {
     }
     template <class TENSOR>
-    XTensor(TENSOR &&values) : values_(std::forward<TENSOR>(values))
+    XTensor(TENSOR &&values)
+        : values_(std::forward<TENSOR>(values))
     {
     }
 
@@ -147,7 +149,8 @@ class XArray : public DiscreteEnergyFunctionBase
         return "array";
     }
     template <class TENSOR>
-    XArray(TENSOR &&values) : values_(std::forward<TENSOR>(values))
+    XArray(TENSOR &&values)
+        : values_(std::forward<TENSOR>(values))
     {
     }
 
@@ -185,12 +188,17 @@ class LabelCosts : public DiscreteEnergyFunctionBase
     using base_type::energy;
 
     inline LabelCosts(std::size_t arity, std::initializer_list<energy_type> costs)
-        : arity_(arity), costs_(costs), is_used_(costs_.size(), 0)
+        : arity_(arity),
+          costs_(costs),
+          is_used_(costs_.size(), 0)
     {
     }
 
     template <typename ITER>
-    LabelCosts(std::size_t arity, ITER begin, ITER end) : arity_(arity), costs_(begin, end), is_used_(costs_.size(), 0)
+    LabelCosts(std::size_t arity, ITER begin, ITER end)
+        : arity_(arity),
+          costs_(begin, end),
+          is_used_(costs_.size(), 0)
     {
     }
 
@@ -230,7 +238,8 @@ class SparseDiscreteEnergyFunction : public DiscreteEnergyFunctionBase
     }
 
     template <class SHAPE>
-    SparseDiscreteEnergyFunction(SHAPE &&shape) : data_(std::forward<SHAPE>(shape))
+    SparseDiscreteEnergyFunction(SHAPE &&shape)
+        : data_(std::forward<SHAPE>(shape))
     {
     }
 

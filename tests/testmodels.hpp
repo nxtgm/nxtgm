@@ -22,6 +22,10 @@
 namespace nxtgm::tests
 {
 
+struct DisjointModel
+{
+}
+
 struct Star
 {
     std::pair<DiscreteGm, std::string> operator()()

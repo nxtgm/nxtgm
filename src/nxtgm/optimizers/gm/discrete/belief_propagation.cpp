@@ -8,11 +8,20 @@ namespace nxtgm
 {
 
 BeliefPropagation::BeliefPropagation(const DiscreteGm &gm, const parameters_type &parameters)
-    : base_type(gm), parameters_(parameters), iteration_(0), message_storage_(), belief_storage_(),
-      factor_to_variable_message_offsets_(gm.num_factors()), variable_to_factor_message_offsets_(gm.num_factors()),
-      belief_offsets_(gm.num_variables()), local_factor_to_variable_messages_(gm.max_arity()),
-      local_variable_to_factor_messages_(gm.max_arity()), max_arity_label_buffer(gm.max_arity()),
-      best_solution_value_(), current_solution_value_(), best_solution_(gm.num_variables(), 0),
+    : base_type(gm),
+      parameters_(parameters),
+      iteration_(0),
+      message_storage_(),
+      belief_storage_(),
+      factor_to_variable_message_offsets_(gm.num_factors()),
+      variable_to_factor_message_offsets_(gm.num_factors()),
+      belief_offsets_(gm.num_variables()),
+      local_factor_to_variable_messages_(gm.max_arity()),
+      local_variable_to_factor_messages_(gm.max_arity()),
+      max_arity_label_buffer(gm.max_arity()),
+      best_solution_value_(),
+      current_solution_value_(),
+      best_solution_(gm.num_variables(), 0),
       current_solution_(gm.num_variables(), 0)
 {
     current_solution_value_ = gm.evaluate(current_solution_, false /* early exit when infeasible*/);
