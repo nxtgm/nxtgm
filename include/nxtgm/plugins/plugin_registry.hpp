@@ -78,8 +78,9 @@ inline std::filesystem::path plugin_registry<FACTORY_BASE>::get_plugin_dir()
     }
     else
     {
-        throw std::runtime_error("neither Environment variable " + factory_base_type::plugin_dir_env_var() +
-                                 " or NXTGM_PLUGIN_PATH or CONDA_PREFIX is set");
+        throw std::runtime_error(std::string("neither Environment variable ") +
+                                 factory_base_type::plugin_dir_env_var() +
+                                 std::string(" or NXTGM_PLUGIN_PATH or CONDA_PREFIX is set"));
     }
 
     if (std::filesystem::exists(plugin_dir) && std::filesystem::is_directory(plugin_dir))
