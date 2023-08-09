@@ -32,7 +32,7 @@ plugin_registry<FACTORY_BASE>::plugin_registry()
 {
     if (!this->empty())
     {
-        int highest_priority = std::numeric_limits<int>::min();
+        int highest_priority = (std::numeric_limits<int>::min)();
         for (auto &[plugin_name, factory] : *this)
         {
             if (factory->priority() > highest_priority)
