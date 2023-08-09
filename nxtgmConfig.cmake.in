@@ -5,5 +5,13 @@ include("${CMAKE_CURRENT_LIST_DIR}/nxtgmTargets.cmake")
 
 SET(NXTGM_SHARED_LIBRARY nxtgm::nxtgm_shared)
 
+find_package(Threads REQUIRED)
+find_package(fmt REQUIRED)
+find_package(Boost REQUIRED)
+find_package(xtensor REQUIRED)
+find_package(HIGHS REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(xplugin REQUIRED)
+
 
 check_required_components(nxtgm)
