@@ -89,9 +89,8 @@ inline std::filesystem::path plugin_registry<FACTORY_BASE>::get_plugin_dir()
     }
     else
     {
-        const std::string msg = std::string("Path \"") + std::string(plugin_dir) +
-                                std::string("\" for plugin type \"") + factory_base_type::plugin_type() +
-                                std::string("\" is not a directory");
+        const std::string msg = std::string("Path \"") + plugin_dir.string() + std::string("\" for plugin type \"") +
+                                factory_base_type::plugin_type() + std::string("\" is not a directory");
         throw std::runtime_error(msg);
     }
 }
