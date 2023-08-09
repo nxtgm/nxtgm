@@ -10,10 +10,11 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 ###############################################################
 # options
 ###############################################################
-option(BUILD_TESTS          "Build tests" ON)
-option(BUILD_PYTHON         "Build python bindings" ON)
-option(BUILD_WITH_COVERAGE  "Build with coverage" OFF)
-option(BUILD_DOCS          "Build doxygen documentation" ON)
+option(BUILD_TESTS                      "Build tests" ON)
+option(BUILD_SINGLE_BINARY_TESTS        "Build tests as single binary" OFF)
+option(BUILD_PYTHON                     "Build python bindings" ON)
+option(BUILD_WITH_COVERAGE              "Build with coverage" OFF)
+option(BUILD_DOCS                       "Build doxygen documentation" ON)
 
 
 ###############################################################

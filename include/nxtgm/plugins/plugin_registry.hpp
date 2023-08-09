@@ -22,7 +22,7 @@ class plugin_registry : public xp::xthread_save_plugin_registry<FACTORY_BASE>
     factory_base_type *get_factory(const std::string &plugin_name);
 
   private:
-    static std::string get_plugin_dir();
+    static std::filesystem::path get_plugin_dir();
     factory_base_type *m_highest_priority_factory = nullptr;
 };
 
@@ -59,24 +59,32 @@ inline plugin_registry<FACTORY_BASE> &get_plugin_registry()
 }
 
 template <class FACTORY_BASE>
-inline std::string plugin_registry<FACTORY_BASE>::get_plugin_dir()
+inline std::filesystem::path plugin_registry<FACTORY_BASE>::get_plugin_dir()
 {
-    if (const char *path = std::getenv(factory_base_type::plugin_dir_env_var().c_str()); path != nullptr)
+    std::filesystem::path plugin_dir;
+    if (char *plugin_dir_env_value = std::getenv(factory_base_type::plugin_dir_env_var().c_str());
+        plugin_dir_env_value != nullptr)
     {
-        if (std::filesystem::exists(path) && std::filesystem::is_directory(path))
-        {
-            std::cout << "\nUSING PLUGIN DIR: " << path << std::endl;
-            return std::string(path);
-        }
-        else
-        {
-            throw std::runtime_error(std::string("Path \"") + std::string(path) + "\" from environment variable " +
-                                     factory_base_type::plugin_dir_env_var() + " is not a directory");
-        }
+        plugin_dir = std::filesystem::path(plugin_dir_env_value);
+    }
+    else if (char *plugin_base_dir_env_value = std::getenv("NXTGM_PLUGIN_PATH"); plugin_base_dir_env_value != nullptr)
+    {
+        plugin_dir = std::filesystem::path(plugin_base_dir_env_value) / factory_base_type::plugin_type();
     }
     else
     {
-        throw std::runtime_error("Environment variable " + factory_base_type::plugin_dir_env_var() + " not set");
+        throw std::runtime_error("neither Environment variable " + factory_base_type::plugin_dir_env_var() +
+                                 " or NXTGM_PLUGIN_PATH is set");
+    }
+
+    if (std::filesystem::exists(plugin_dir) && std::filesystem::is_directory(plugin_dir))
+    {
+        return plugin_dir;
+    }
+    else
+    {
+        throw std::runtime_error(std::string("Path \"") + std::string(plugin_dir) + "\" for plugin type \"" +
+                                 factory_base_type::plugin_type() + "\" is not a directory");
     }
 }
 template <class FACTORY_BASE>

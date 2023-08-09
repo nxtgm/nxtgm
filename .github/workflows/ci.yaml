@@ -41,6 +41,7 @@ jobs:
           cmake \
               -DCMAKE_BUILD_TYPE=Release \
               -DBUILD_TESTS=ON \
+              -BUILD_SINGLE_BINARY_TESTS=ON \
               -DBUILD_PYTHON=ON \
               -DBUILD_DOCS=ON \
           .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
@@ -68,6 +69,13 @@ jobs:
         run: |
             cd bld
             make install
+
+      - name: run tests from installed binaries / libraries
+        shell: bash -l {0}
+        run: |
+          nxtgm_test_all
+        env:
+          NXTGM_PLUGIN_PATH: $CONDA_PREFIX/lib/nxtgm/plugins
 
       - name: Build docs
         shell: bash -l {0}
@@ -106,6 +114,7 @@ jobs:
             -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DBUILD_TESTS=ON ^
+            -DBUILD_SINGLE_BINARY_TESTS=ON ^
             -DBUILD_PYTHON=ON ^
             -DBUILD_DOCS=OFF ^
             -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library" ^
@@ -117,5 +126,11 @@ jobs:
         shell: cmd /C CALL {0}
         run: |
           cd bld
-          tree /f /a
           ctest --output-on-failure --config Release
+
+      - name: run tests from installed binaries / libraries
+        shell: cmd /C CALL {0}
+        run: |
+          nxtgm_test_all
+        env:
+          NXTGM_PLUGIN_PATH: "%CONDA_PREFIX%\\lib\\nxtgm\\plugins"

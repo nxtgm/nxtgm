@@ -9,7 +9,7 @@ endif()
 set(PLUGIN_TYPE         qpbo)
 set(PLUGIN_TARGET_NAME  ${PLUGIN_TYPE}_kolmogorov)
 
-add_xplugin(${PLUGIN_TARGET_NAME} qpbo_kolmogorov.cpp
+add_xplugin(${PLUGIN_TARGET_NAME} ${PLUGIN_TARGET_NAME}.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/QPBO/QPBO.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/QPBO/QPBO_maxflow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/QPBO/QPBO_postprocessing.cpp
