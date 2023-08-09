@@ -10,12 +10,17 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 ###############################################################
 # options
 ###############################################################
+# test related
 option(BUILD_TESTS                      "Build tests" ON)
 option(BUILD_SINGLE_BINARY_TESTS        "Build tests as single binary" OFF)
+# python related
 option(BUILD_PYTHON                     "Build python bindings" ON)
+# coverage related
 option(BUILD_WITH_COVERAGE              "Build with coverage" OFF)
+# documentation related
 option(BUILD_DOCS                       "Build doxygen documentation" ON)
-
+# plugin related
+option(BUILD_PLUGIN_QPBO_KOLMOGOROV     "Build qpbo kolmogorov plugin" ON)
 
 ###############################################################
 # dependencies
