@@ -43,7 +43,7 @@ jobs:
               -DBUILD_SINGLE_BINARY_TESTS=ON \
               -DBUILD_PYTHON=ON \
               -DBUILD_DOCS=ON \
-              -BUILD_PLUGIN_QPBO_KOLMOGOROV=OFF \
+              -DBUILD_PLUGIN_QPBO_KOLMOGOROV=OFF \
               -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
 
       - name: Build
