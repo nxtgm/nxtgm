@@ -11,8 +11,6 @@ namespace nxtgm
 class Qpbo : public DiscreteGmOptimizerBase
 {
   public:
-    using qpbo_plugin_registry = plugin_registry<QpboFactoryBase>;
-
     class parameters_type
     {
       public:
@@ -54,7 +52,6 @@ class Qpbo : public DiscreteGmOptimizerBase
     solution_type best_solution_;
     std::vector<int> qpbo_labels_;
 
-    qpbo_plugin_registry &qpbo_registry_;
     std::unique_ptr<QpboBase> qpbo_;
 };
 } // namespace nxtgm

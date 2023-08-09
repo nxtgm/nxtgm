@@ -5,20 +5,27 @@ enable_testing()
 find_package(doctest REQUIRED)
 
 
+message(STATUS "NXTGM_QPBO_PLUGIN_OUTPUT_DIRECTORY: ${NXTGM_QPBO_PLUGIN_OUTPUT_DIRECTORY}")
 
 # PLUGIN_PATH_ENV_VARS as one string seperated by ;
 set(PLUGIN_ENV_VARS "")
 
-# add env vars for all plugins
-SET(PLUGIN_ENV_VARS "${PLUGIN_ENV_VARS};NXTGM_QPBO_PLUGIN_PATH=${QPBO_PLUGIN_OUTPUT_DIRECTORY}")
-SET(PLUGIN_ENV_VARS "${PLUGIN_ENV_VARS};NXTGM_MIN_ST_CUT_PLUGIN_PATH=${MIN_ST_CUT_PLUGIN_OUTPUT_DIRECTORY}")
+# iterate over all plugins
+foreach(PLUGIN ${NXTGM_PLUGIN_TYPES})
+    # upper name of type
+    string(TOUPPER ${PLUGIN} PLUGIN_UPPER)
+
+    message(STATUS "PLUGIN: ${PLUGIN}")
+    SET(PLUGIN_ENV_VARS "${PLUGIN_ENV_VARS};NXTGM_${PLUGIN_UPPER}_PLUGIN_PATH=${NXTGM_PLUGIN_OUTPUT_DIRECTORY}/${PLUGIN}")
+endforeach()
 
 
+message(STATUS "PLUGIN_ENV_VARS: ${PLUGIN_ENV_VARS}")
 function(add_nxtgm_test target_name)
     message(STATUS "Adding test ${target_name}")
     add_executable(${target_name} main.cpp ${ARGN})
     target_compile_features(${target_name} PRIVATE cxx_std_17)
-    target_link_libraries(${target_name} PRIVATE nxtgm doctest::doctest )
+    target_link_libraries(${target_name} PRIVATE nxtgm_shared doctest::doctest )
     target_include_directories(${target_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     add_test(NAME ${target_name} COMMAND ${target_name})
     set_property(TEST ${target_name} PROPERTY ENVIRONMENT "${PLUGIN_ENV_VARS}")

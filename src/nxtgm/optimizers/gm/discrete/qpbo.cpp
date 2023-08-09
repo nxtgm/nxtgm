@@ -13,7 +13,6 @@ Qpbo::Qpbo(const DiscreteGm &gm, const parameters_type &parameters)
       parameters_(parameters),
       best_solution_value_(),
       best_solution_(gm.num_variables(), 0),
-      qpbo_factory_(get_plugin_registry<QpboFactoryBase>().get_factory(parameters_.qpbo_plugin_name)),
       qpbo_(nullptr),
       qpbo_labels_(gm.num_variables(), -1)
 {
@@ -43,24 +42,24 @@ Qpbo::Qpbo(const DiscreteGm &gm, const parameters_type &parameters)
         if (const auto arity = factor.arity(); arity == 2)
             num_edges += 1;
     }
-}
-qpbo_ = qpbo_factory_->create(gm.num_variables(), num_edges);
+    auto factory = get_plugin_registry<QpboFactoryBase>().get_factory(parameters_.qpbo_plugin_name);
+    qpbo_ = factory->create(gm.num_variables(), num_edges);
 
-double energies[4] = {0, 0, 0, 0};
-for (size_t i = 0; i < gm.num_factors(); ++i)
-{
-    const auto &factor = gm.factor(i);
-    if (const auto arity = factor.arity(); arity == 1)
+    double energies[4] = {0, 0, 0, 0};
+    for (size_t i = 0; i < gm.num_factors(); ++i)
     {
-        factor.copy_energies(energies);
-        qpbo_->add_unary_term(factor.variables()[0], energies);
+        const auto &factor = gm.factor(i);
+        if (const auto arity = factor.arity(); arity == 1)
+        {
+            factor.copy_energies(energies);
+            qpbo_->add_unary_term(factor.variables()[0], energies);
+        }
+        else if (arity == 2)
+        {
+            factor.copy_energies(energies);
+            qpbo_->add_pairwise_term(factor.variables()[0], factor.variables()[1], energies);
+        }
     }
-    else if (arity == 2)
-    {
-        factor.copy_energies(energies);
-        qpbo_->add_pairwise_term(factor.variables()[0], factor.variables()[1], energies);
-    }
-}
 }
 
 OptimizationStatus Qpbo::optimize(reporter_callback_wrapper_type &reporter_callback,

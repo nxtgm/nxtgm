@@ -22,9 +22,30 @@
 namespace nxtgm::tests
 {
 
-struct DisjointModel
-{
-}
+// DiscreteGm merge_disjoint(const DiscreteGm & gm_a, const DiscreteGm & gm_b)
+// {
+//     // create new space
+//     std::vector<discrete_label_type> n_labels_a(gm_a.space().size() + gm_b.space().size());
+
+//     // fill in labels
+//     for(std::size_t vi = 0; vi < gm_a.space().size(); ++vi)
+//     {
+//         n_labels_a[vi] = gm_a.space()[vi];
+//     }
+//     for(std::size_t vi = 0; vi < gm_b.space().size(); ++vi)
+//     {
+//         n_labels_a[vi + gm_a.space().size()] = gm_b.space()[vi];
+//     }
+
+//     // create new gm
+//     DiscreteGm gm(DiscreteSpace(n_labels_a.begin(), n_labels_a.end()));
+
+//     // copy over factors
+// }
+
+// struct DisjointModel
+// {
+// }
 
 struct Star
 {

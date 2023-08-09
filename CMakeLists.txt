@@ -39,7 +39,7 @@ endif()
 # library
 ###############################################################
 
-add_library(nxtgm SHARED
+add_library(nxtgm_shared SHARED
     src/nxtgm/energy_functions/discrete_energy_function_base.cpp
     src/nxtgm/energy_functions/discrete_energy_functions.cpp
     src/nxtgm/spaces/discrete_space.cpp
@@ -56,12 +56,13 @@ add_library(nxtgm SHARED
     src/nxtgm/optimizers/gm/discrete/belief_propagation.cpp
     src/nxtgm/optimizers/gm/discrete/qpbo.cpp
 )
+SET(NXTGM_SHARED_LIBRARY nxtgm_shared)
 
 ###############################################################
 # include directories
 ###############################################################
 SET(NXTGM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_include_directories(nxtgm PUBLIC
+target_include_directories(nxtgm_shared PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
@@ -70,28 +71,47 @@ target_include_directories(nxtgm PUBLIC
 ###############################################################
 # plugins
 ###############################################################
-# set output directory for plugins here at top level
-# so that it is available for all subdirectories
-SET(PLUGIN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/plugins)
-SET(QPBO_PLUGIN_OUTPUT_DIRECTORY ${PLUGIN_OUTPUT_DIRECTORY}/qpbo)
-SET(MIN_ST_CUT_PLUGIN_OUTPUT_DIRECTORY ${PLUGIN_OUTPUT_DIRECTORY}/min_st_cut)
+SET(NXTGM_PLUGIN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/nxtgm/plugins)
+set(NXTGM_PLUGIN_TYPES "qpbo")
 
+function(declare_plugin_type name)
+    # capitalize name
+    string(TOUPPER ${name} NAME_UPPER)
+
+    # interface library for plugin st. individual plugins can link against it
+    add_library(nxtgm_plugin_${name} INTERFACE)
+
+    # include directories
+    target_include_directories(nxtgm_plugin_${name} INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+
+endfunction()
+
+
+foreach(plugin_type ${NXTGM_PLUGIN_TYPES})
+    declare_plugin_type(${plugin_type})
+endforeach()
+
+
+# add plugin subdirectories
 add_subdirectory(src/nxtgm/plugins)
 
 
 ###############################################################
 # compiler settings / features
 ###############################################################
-target_compile_features(nxtgm PUBLIC cxx_std_17)
+target_compile_features(nxtgm_shared PUBLIC cxx_std_17)
 if (WIN32)
-    set_property(TARGET nxtgm PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS true)
+    set_property(TARGET nxtgm_shared PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS true)
 endif()
 
 ###############################################################
 # link libraries
 ###############################################################
 
-target_link_libraries(nxtgm PUBLIC
+target_link_libraries(nxtgm_shared PUBLIC
     fmt::fmt
     Boost::boost
     highs::highs
@@ -145,7 +165,7 @@ set(NXTGM_CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 
 
 # install targets
-install(TARGETS nxtgm
+install(TARGETS nxtgm_shared
     EXPORT nxtgmTargets
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib

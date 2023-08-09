@@ -7,23 +7,27 @@ dependencies:
   - cmake
   - doctest
   - cxx-compiler
+  - ninja
+  # dependencies
   - boost-cpp
   - fmt
   - nlohmann_json
   - highs
   - xtensor
+  - xplugin >= 0.2.0
+  # dependencies pythonbindings
   - python
   - pybind11
   - xtensor-python
   - numpy
   - pytest
-  - ninja
+  # for examples
+  - sphinx-gallery
+  - matplotlib
+  - scikit-image
+  # documentation
   - doxygen
   - sphinx
   - sphinx_rtd_theme
   - breathe
   - sphinx-sitemap
-  # for examples
-  - sphinx-gallery
-  - matplotlib
-  - scikit-image
