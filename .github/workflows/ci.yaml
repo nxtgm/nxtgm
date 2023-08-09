@@ -131,6 +131,9 @@ jobs:
       - name: run tests from installed binaries / libraries
         shell: cmd /C CALL {0}
         run: |
+          set NXTGM_PLUGIN_PATH=%CONDA_PREFIX%\lib\nxtgm\plugins
+
           nxtgm_test_all
+
         env:
           NXTGM_PLUGIN_PATH: "%CONDA_PREFIX%\\lib\\nxtgm\\plugins"
