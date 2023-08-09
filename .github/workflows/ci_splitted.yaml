@@ -37,14 +37,14 @@ jobs:
         run: |
           mkdir -p bld
           cd bld
-          cmake \
+          cmake .. \
               -DCMAKE_BUILD_TYPE=Release \
               -DBUILD_TESTS=ON \
               -DBUILD_SINGLE_BINARY_TESTS=ON \
               -DBUILD_PYTHON=ON \
               -DBUILD_DOCS=ON \
               -BUILD_PLUGIN_QPBO_KOLMOGOROV=OFF \
-          .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+              -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
 
       - name: Build
         shell: bash -l {0}
