@@ -73,9 +73,7 @@ jobs:
       - name: run tests from installed binaries / libraries
         shell: bash -l {0}
         run: |
-          nxtgm_test_all
-        env:
-          NXTGM_PLUGIN_PATH: $CONDA_PREFIX/lib/nxtgm/plugins
+          NXTGM_PLUGIN_PATH=$CONDA_PREFIX/lib/nxtgm/plugins nxtgm_test_all
 
       - name: Build docs
         shell: bash -l {0}
