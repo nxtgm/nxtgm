@@ -41,7 +41,7 @@ jobs:
           cmake \
               -DCMAKE_BUILD_TYPE=Release \
               -DBUILD_TESTS=ON \
-              -BUILD_SINGLE_BINARY_TESTS=ON \
+              -DBUILD_SINGLE_BINARY_TESTS=ON \
               -DBUILD_PYTHON=ON \
               -DBUILD_DOCS=ON \
           .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
@@ -132,8 +132,4 @@ jobs:
         shell: cmd /C CALL {0}
         run: |
           set NXTGM_PLUGIN_PATH=%CONDA_PREFIX%\lib\nxtgm\plugins
-
           nxtgm_test_all
-
-        env:
-          NXTGM_PLUGIN_PATH: "%CONDA_PREFIX%\\lib\\nxtgm\\plugins"
