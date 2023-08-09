@@ -79,29 +79,6 @@ target_include_directories(nxtgm_shared PUBLIC
 ###############################################################
 SET(NXTGM_PLUGIN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/nxtgm/plugins)
 set(NXTGM_PLUGIN_TYPES "qpbo")
-
-function(declare_plugin_type name)
-    # capitalize name
-    string(TOUPPER ${name} NAME_UPPER)
-
-    # interface library for plugin st. individual plugins can link against it
-    add_library(nxtgm_plugin_${name} INTERFACE)
-
-    # include directories
-    target_include_directories(nxtgm_plugin_${name} INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-    )
-
-endfunction()
-
-
-foreach(plugin_type ${NXTGM_PLUGIN_TYPES})
-    declare_plugin_type(${plugin_type})
-endforeach()
-
-
-# add plugin subdirectories
 add_subdirectory(src/nxtgm/plugins)
 
 
