@@ -71,10 +71,10 @@ inline std::filesystem::path plugin_registry<FACTORY_BASE>::get_plugin_dir()
     {
         plugin_dir = std::filesystem::path(plugin_base_dir_env_value) / factory_base_type::plugin_type();
     }
-    else if (char *conda_prefix = std::getenv("CONDA_PREFIX"); conda_prefix != nullptr)
+    else if (char *conda_prefix_env_value = std::getenv("CONDA_PREFIX"); conda_prefix_env_value != nullptr)
     {
-        plugin_dir =
-            std::filesystem::path(CONDA_PREFIX) / "lib" / "nxtgm" / "plugins" / factory_base_type::plugin_type();
+        plugin_dir = std::filesystem::path(conda_prefix_env_value) / "lib" / "nxtgm" / "plugins" /
+                     factory_base_type::plugin_type();
     }
     else
     {
