@@ -117,4 +117,5 @@ jobs:
         shell: cmd /C CALL {0}
         run: |
           cd bld
+          tree /f /a
           ctest --output-on-failure --config Release
