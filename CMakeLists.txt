@@ -193,6 +193,12 @@ configure_package_config_file(
     INSTALL_DESTINATION ${NXTGM_CMAKECONFIG_INSTALL_DIR}
 )
 
+# the config
+install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/nxtgmConfig.cmake"
+    DESTINATION "${NXTGM_CMAKECONFIG_INSTALL_DIR}"
+)
+
 # install headers
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/nxtgm
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
