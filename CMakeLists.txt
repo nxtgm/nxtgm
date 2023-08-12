@@ -61,6 +61,7 @@ add_library(nxtgm_shared SHARED
     src/nxtgm/optimizers/gm/discrete/matching_icm.cpp
     src/nxtgm/optimizers/gm/discrete/belief_propagation.cpp
     src/nxtgm/optimizers/gm/discrete/qpbo.cpp
+    src/nxtgm/optimizers/gm/discrete/graph_cut.cpp
 )
 SET(NXTGM_SHARED_LIBRARY nxtgm_shared)
 
@@ -78,7 +79,10 @@ target_include_directories(nxtgm_shared PUBLIC
 # plugins
 ###############################################################
 SET(NXTGM_PLUGIN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/nxtgm/plugins)
-set(NXTGM_PLUGIN_TYPES "qpbo")
+set(NXTGM_PLUGIN_TYPES
+    qpbo
+    min_st_cut
+)
 add_subdirectory(src/nxtgm/plugins)
 
 
@@ -139,6 +143,24 @@ endif()
 ###############################################################
 # install
 ###############################################################
+
+
+if (APPLE)
+    set_target_properties(nxtgm_shared PROPERTIES
+        MACOSX_RPATH ON
+    )
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib; ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+elseif(NOT EMSCRIPTEN)
+    set_target_properties(nxtgm_shared PROPERTIES
+        BUILD_WITH_INSTALL_RPATH 1
+    )
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib; ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+    set(CMAKE_SKIP_BUILD_RPATH FALSE)
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
+
+
+
 
 # gnu install dirs
 include(GNUInstallDirs)

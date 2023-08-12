@@ -19,6 +19,13 @@ function(add_nxtgm_test name)
     add_executable(${target_name} main.cpp ${ARGN})
     target_compile_features(${target_name} PRIVATE cxx_std_17)
     target_link_libraries(${target_name} PRIVATE nxtgm_shared doctest::doctest )
+
+
+    # make sure to link the just build nxtgm_shared library and **not** the installed one
+    # this is important for the single binary test
+
+
+
     target_include_directories(${target_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     add_test(NAME ${target_name} COMMAND ${target_name})
     set_property(TEST ${target_name} PROPERTY ENVIRONMENT "NXTGM_PLUGIN_PATH=${NXTGM_PLUGIN_OUTPUT_DIRECTORY}")
@@ -49,7 +56,7 @@ nxtgm_regiter_test(belief_propagation            optimizers/gm/discrete/test_bel
 nxtgm_regiter_test(icm                           optimizers/gm/discrete/test_icm.cpp)
 nxtgm_regiter_test(matching_icm                  optimizers/gm/discrete/test_matching_icm.cpp)
 nxtgm_regiter_test(qpbo                          optimizers/gm/discrete/test_qpbo.cpp)
-
+nxtgm_regiter_test(graph_cut                     optimizers/gm/discrete/test_graph_cut.cpp)
 
 if(BUILD_SINGLE_BINARY_TESTS)
     message(STATUS "Adding single binary test")

@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include <nxtgm/nxtgm.hpp>
 #include <nxtgm/plugins/plugin.hpp>
 
 namespace nxtgm
@@ -16,7 +17,7 @@ class MinStCutBase
 
     virtual void add_terminal_weights(std::size_t node, double cap_source, double cap_sink) = 0;
     virtual void add_edge(std::size_t node1, std::size_t node2, double cap, double rev_cap) = 0;
-    virtual double solve(int *uint8_t) = 0;
+    virtual double solve(discrete_label_type *solution) = 0;
 };
 
 class MinStCutFactoryBase

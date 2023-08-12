@@ -16,6 +16,7 @@ class plugin_registry : public xp::xthread_save_plugin_registry<FACTORY_BASE>
   public:
     using factory_base_type = FACTORY_BASE;
 
+    ~plugin_registry();
     plugin_registry();
     factory_base_type *highest_priority_factory() const;
 
@@ -42,6 +43,10 @@ plugin_registry<FACTORY_BASE>::plugin_registry()
             }
         }
     }
+}
+template <class FACTORY_BASE>
+plugin_registry<FACTORY_BASE>::~plugin_registry()
+{
 }
 
 template <class FACTORY_BASE>

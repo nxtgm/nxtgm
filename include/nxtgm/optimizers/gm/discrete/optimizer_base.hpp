@@ -13,6 +13,8 @@ class DiscreteGmOptimizerBase : public OptimizerBase<DiscreteGm, DiscreteGmOptim
     using base_type::base_type;
     using base_type::optimize;
 
+    virtual ~DiscreteGmOptimizerBase() = default;
+
     virtual bool is_partial_optimal(std::size_t variable_index) const
     {
         return false;

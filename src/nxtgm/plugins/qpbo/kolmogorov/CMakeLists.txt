@@ -3,7 +3,6 @@ if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
     cmake_minimum_required(VERSION 3.12)
     project(nxtgm_plugin_qpbo_kolmogorov)
     find_package(nxtgm REQUIRED)
-    find_package(xplugin REQUIRED)
 endif()
 
 set(PLUGIN_TYPE         qpbo)

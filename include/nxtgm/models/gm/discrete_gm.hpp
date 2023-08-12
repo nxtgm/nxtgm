@@ -38,6 +38,10 @@ class DiscreteFactor
     {
         return variables_;
     }
+    inline std::size_t variable(std::size_t variable_index) const
+    {
+        return variables_[variable_index];
+    }
     const std::size_t arity() const
     {
         return variables_.size();
