@@ -39,7 +39,8 @@ class OptimizerBase
     using repair_callback_base_type = RepairCallbackBase<self_type>;
     using repair_callback_wrapper_type = RepairCallbackWrapper<repair_callback_base_type>;
 
-    inline OptimizerBase(const model_type &model) : model_(model)
+    inline OptimizerBase(const model_type &model)
+        : model_(model)
     {
     }
 

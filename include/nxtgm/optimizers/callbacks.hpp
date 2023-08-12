@@ -26,7 +26,8 @@ class ReporterCallback : public ReporterCallbackBase<OPTIMIZER_BASE_TYPE>
     using optimizer_base_type = typename base_type::optimizer_base_type;
     using time_point_type = std::chrono::high_resolution_clock::time_point;
 
-    ReporterCallback(const optimizer_base_type *optimizer) : base_type(optimizer)
+    ReporterCallback(const optimizer_base_type *optimizer)
+        : base_type(optimizer)
     {
     }
 

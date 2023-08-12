@@ -21,18 +21,25 @@ class DiscreteSpace
 
     // simple space
     inline DiscreteSpace(std::size_t n_variables, std::size_t n_labels)
-        : n_labels_(1, n_labels), n_variables_(n_variables), is_simple_(true)
+        : n_labels_(1, n_labels),
+          n_variables_(n_variables),
+          is_simple_(true)
     {
     }
 
     template <class ITER>
-    inline DiscreteSpace(ITER begin, ITER end) : n_labels_(begin, end), n_variables_(), is_simple_(false)
+    inline DiscreteSpace(ITER begin, ITER end)
+        : n_labels_(begin, end),
+          n_variables_(),
+          is_simple_(false)
     {
         n_variables_ = n_labels_.size();
     }
 
     inline DiscreteSpace(const std::vector<discrete_label_type> &n_labels)
-        : n_labels_(n_labels), n_variables_(n_labels.size()), is_simple_(false)
+        : n_labels_(n_labels),
+          n_variables_(n_labels.size()),
+          is_simple_(false)
     {
     }
 

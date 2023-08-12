@@ -8,7 +8,10 @@ namespace nxtgm
 {
 
 MatchingIcm::MatchingIcm(const DiscreteGm &gm, const parameters_type &parameters)
-    : base_type(gm), parameters_(parameters), movemaker_(gm), in_queue_(gm.num_variables(), 1)
+    : base_type(gm),
+      parameters_(parameters),
+      movemaker_(gm),
+      in_queue_(gm.num_variables(), 1)
 {
     // std::cout<<"CONSTRUCTING ICM"<<std::endl;
     //  put all variables on queue

@@ -4,10 +4,10 @@
 
 TEST_CASE("test_solution_value")
 {
-    using sv = nxtgm::models::SolutionValue<double>;
+    using sv = nxtgm::SolutionValue;
 
-    const auto feasible = sv(0, 1, 0);
-    const auto infeasible = sv(0, 0, 0);
+    const auto feasible = sv(0, 0);
+    const auto infeasible = sv(0, 1);
 
     CHECK(feasible.is_feasible() == true);
     CHECK(infeasible.is_feasible() == false);

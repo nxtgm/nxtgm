@@ -10,11 +10,17 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 ###############################################################
 # options
 ###############################################################
-option(BUILD_TESTS          "Build tests" ON)
-option(BUILD_PYTHON         "Build python bindings" ON)
-option(BUILD_WITH_COVERAGE  "Build with coverage" OFF)
-option(BUILD_DOCS          "Build doxygen documentation" ON)
-
+# test related
+option(BUILD_TESTS                      "Build tests" ON)
+option(BUILD_SINGLE_BINARY_TESTS        "Build tests as single binary" OFF)
+# python related
+option(BUILD_PYTHON                     "Build python bindings" ON)
+# coverage related
+option(BUILD_WITH_COVERAGE              "Build with coverage" OFF)
+# documentation related
+option(BUILD_DOCS                       "Build doxygen documentation" ON)
+# plugin related
+option(BUILD_PLUGIN_QPBO_KOLMOGOROV     "Build qpbo kolmogorov plugin" ON)
 
 ###############################################################
 # dependencies
@@ -25,6 +31,7 @@ find_package(Boost REQUIRED)
 find_package(xtensor REQUIRED)
 find_package(HIGHS REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(xplugin REQUIRED)
 
 ###############################################################
 # converage
@@ -38,7 +45,7 @@ endif()
 # library
 ###############################################################
 
-add_library(nxtgm SHARED
+add_library(nxtgm_shared SHARED
     src/nxtgm/energy_functions/discrete_energy_function_base.cpp
     src/nxtgm/energy_functions/discrete_energy_functions.cpp
     src/nxtgm/spaces/discrete_space.cpp
@@ -53,21 +60,45 @@ add_library(nxtgm SHARED
     src/nxtgm/optimizers/gm/discrete/icm.cpp
     src/nxtgm/optimizers/gm/discrete/matching_icm.cpp
     src/nxtgm/optimizers/gm/discrete/belief_propagation.cpp
+    src/nxtgm/optimizers/gm/discrete/qpbo.cpp
+    src/nxtgm/optimizers/gm/discrete/graph_cut.cpp
 )
+SET(NXTGM_SHARED_LIBRARY nxtgm_shared)
+
+###############################################################
+# include directories
+###############################################################
+SET(NXTGM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(nxtgm_shared PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+
+###############################################################
+# plugins
+###############################################################
+SET(NXTGM_PLUGIN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/nxtgm/plugins)
+set(NXTGM_PLUGIN_TYPES
+    qpbo
+    min_st_cut
+)
+add_subdirectory(src/nxtgm/plugins)
+
 
 ###############################################################
 # compiler settings / features
 ###############################################################
-target_compile_features(nxtgm PUBLIC cxx_std_17)
+target_compile_features(nxtgm_shared PUBLIC cxx_std_17)
 if (WIN32)
-    set_property(TARGET nxtgm PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS true)
+    set_property(TARGET nxtgm_shared PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS true)
 endif()
 
 ###############################################################
 # link libraries
 ###############################################################
 
-target_link_libraries(nxtgm PUBLIC
+target_link_libraries(nxtgm_shared PUBLIC
     fmt::fmt
     Boost::boost
     highs::highs
@@ -76,13 +107,6 @@ target_link_libraries(nxtgm PUBLIC
 )
 
 
-###############################################################
-# include directories
-###############################################################
-target_include_directories(nxtgm PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
 
 
 ###############################################################
@@ -120,6 +144,24 @@ endif()
 # install
 ###############################################################
 
+
+if (APPLE)
+    set_target_properties(nxtgm_shared PROPERTIES
+        MACOSX_RPATH ON
+    )
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib; ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+elseif(NOT EMSCRIPTEN)
+    set_target_properties(nxtgm_shared PROPERTIES
+        BUILD_WITH_INSTALL_RPATH 1
+    )
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib; ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+    set(CMAKE_SKIP_BUILD_RPATH FALSE)
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
+
+
+
+
 # gnu install dirs
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -128,7 +170,7 @@ set(NXTGM_CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 
 
 # install targets
-install(TARGETS nxtgm
+install(TARGETS nxtgm_shared
     EXPORT nxtgmTargets
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
@@ -148,6 +190,12 @@ configure_package_config_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/nxtgmConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/nxtgmConfig.cmake
     INSTALL_DESTINATION ${NXTGM_CMAKECONFIG_INSTALL_DIR}
+)
+
+# the config
+install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/nxtgmConfig.cmake"
+    DESTINATION "${NXTGM_CMAKECONFIG_INSTALL_DIR}"
 )
 
 # install headers

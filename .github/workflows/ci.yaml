@@ -3,6 +3,10 @@ on:
     push:
     pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   unix:
     strategy:
@@ -41,6 +45,7 @@ jobs:
           cmake \
               -DCMAKE_BUILD_TYPE=Release \
               -DBUILD_TESTS=ON \
+              -DBUILD_SINGLE_BINARY_TESTS=ON \
               -DBUILD_PYTHON=ON \
               -DBUILD_DOCS=ON \
           .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
@@ -55,7 +60,7 @@ jobs:
         shell: bash -l {0}
         run: |
             cd bld
-            ./tests/cpp_tests
+            ctest --output-on-failure -R nxtgm_test
 
       - name: Run Python tests
         shell: bash -l {0}
@@ -69,12 +74,16 @@ jobs:
             cd bld
             make install
 
+      - name: run tests from installed binaries / libraries
+        shell: bash -l {0}
+        run: |
+          nxtgm_test_all
+
       - name: Build docs
         shell: bash -l {0}
         run: |
             cd bld
             make docs
-
 
   windows:
     strategy:
@@ -106,6 +115,7 @@ jobs:
             -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DBUILD_TESTS=ON ^
+            -DBUILD_SINGLE_BINARY_TESTS=ON ^
             -DBUILD_PYTHON=ON ^
             -DBUILD_DOCS=OFF ^
             -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library" ^
@@ -113,8 +123,19 @@ jobs:
           cmake --build . --config Release
           cmake --install . --config Release
 
-      - name: run tests
+      - name: run C++ tests
         shell: cmd /C CALL {0}
         run: |
-          cd bld\tests
-          cpp_tests.exe
+          cd bld
+          ctest --output-on-failure --config Release -R nxtgm_testx
+
+      - name: run Python tests
+        shell: cmd /C CALL {0}
+        run: |
+          cd bld
+          ctest --output-on-failure --config Release -R python
+
+      - name: run tests from installed binaries / libraries
+        shell: cmd /C CALL {0}
+        run: |
+          nxtgm_test_all

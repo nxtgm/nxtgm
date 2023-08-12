@@ -31,7 +31,10 @@ class TestReporterCallback : public DiscreteGmOptimizerBase::reporter_callback_b
   public:
     using base_type = DiscreteGmOptimizerBase::reporter_callback_base_type;
     TestReporterCallback(const DiscreteGmOptimizerBase *optimizer)
-        : base_type(optimizer), called_begin_(false), called_end_(false), called_report_(false)
+        : base_type(optimizer),
+          called_begin_(false),
+          called_end_(false),
+          called_report_(false)
     {
     }
 

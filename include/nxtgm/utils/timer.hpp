@@ -12,7 +12,8 @@ class AutoStartedTimer
   private:
     struct RAIIPauseResume
     {
-        inline RAIIPauseResume(AutoStartedTimer &timer) : timer_(timer)
+        inline RAIIPauseResume(AutoStartedTimer &timer)
+            : timer_(timer)
         {
             timer_.pause();
         }

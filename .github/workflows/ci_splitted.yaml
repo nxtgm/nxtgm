@@ -1,0 +1,158 @@
+name: Build with conda splitted
+on:
+    push:
+    pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  unix:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: macos-latest
+
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+
+    steps:
+
+
+      - uses: actions/checkout@v3
+
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v1
+        id: cpu-cores
+
+      - name: Install Conda environment from environment.yml
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: environment.yml
+          init-shell: >-
+            bash
+          cache-environment: true
+          post-cleanup: 'all'
+
+      - name: cmake configure
+        shell: bash -l {0}
+        run: |
+          mkdir -p bld
+          cd bld
+          cmake .. \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DBUILD_TESTS=ON \
+              -DBUILD_SINGLE_BINARY_TESTS=ON \
+              -DBUILD_PYTHON=ON \
+              -DBUILD_DOCS=ON \
+              -DBUILD_PLUGIN_QPBO_KOLMOGOROV=OFF \
+              -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+
+      - name: Build
+        shell: bash -l {0}
+        run: |
+          cd bld
+          make -j ${{ steps.cpu-cores.outputs.count }}
+
+      - name: install
+        shell: bash -l {0}
+        run: |
+            cd bld
+            make install
+
+      - name: Build&install qpbo kolmogorov
+        shell: bash -l {0}
+        run: |
+            cd src/nxtgm/plugins/qpbo/kolmogorov
+            mkdir -p bld
+            cd bld
+            cmake .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+            make -j ${{ steps.cpu-cores.outputs.count }}
+            make install
+
+      - name: Build&install min_st_cut kolmogorov
+        shell: bash -l {0}
+        run: |
+            cd src/nxtgm/plugins/min_st_cut/kolmogorov
+            mkdir -p bld
+            cd bld
+            cmake .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+            make -j ${{ steps.cpu-cores.outputs.count }}
+            make install
+
+      - name: run installed tests
+        shell: bash -l {0}
+        run: |
+            nxtgm_test_all
+
+  windows:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+
+    steps:
+
+      - uses: actions/checkout@v3
+
+      - name: Install Conda environment from environment.yml
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: environment.yml
+          init-shell: >-
+            cmd.exe
+          cache-environment: true
+          post-cleanup: 'all'
+
+      - name: build and test
+        shell: cmd /C CALL {0}
+        run: |
+          mkdir bld
+          cd bld
+          cmake .. ^
+            -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DBUILD_TESTS=ON ^
+            -DBUILD_SINGLE_BINARY_TESTS=ON ^
+            -DBUILD_PYTHON=ON ^
+            -DBUILD_DOCS=OFF ^
+            -DBUILD_PLUGIN_QPBO_KOLMOGOROV=OFF ^
+            -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library" ^
+            -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%
+          cmake --build . --config Release
+          cmake --install . --config Release
+
+      - name: Build&install qpbo kolmogorov
+        shell: cmd /C CALL {0}
+        run: |
+            cd src\nxtgm\plugins\qpbo\kolmogorov
+            mkdir bld
+            cd bld
+            cmake .. ^
+              -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library" ^
+              -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%
+
+            cmake --build . --config Release
+            cmake --install . --config Release
+
+      - name: Build&install min_st_cut kolmogorov
+        shell: cmd /C CALL {0}
+        run: |
+            cd src\nxtgm\plugins\min_st_cut\kolmogorov
+            mkdir bld
+            cd bld
+            cmake .. ^
+              -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library" ^
+              -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%
+
+            cmake --build . --config Release
+            cmake --install . --config Release
+
+      - name: run installed tests
+        shell: cmd /C CALL {0}
+        run: |
+            nxtgm_test_all

@@ -7,7 +7,10 @@ namespace nxtgm
 {
 
 Icm::Icm(const DiscreteGm &gm, const parameters_type &parameters)
-    : base_type(gm), parameters_(parameters), movemaker_(gm), in_queue_(gm.num_variables(), 1)
+    : base_type(gm),
+      parameters_(parameters),
+      movemaker_(gm),
+      in_queue_(gm.num_variables(), 1)
 {
     // put all variables on queue
     for (std::size_t i = 0; i < gm.num_variables(); ++i)

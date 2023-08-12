@@ -9,7 +9,8 @@ class DefaultTesterFunction : public nxtgm::DiscreteEnergyFunctionBase
 {
   public:
     template <class TENSOR>
-    DefaultTesterFunction(TENSOR &&values) : values(std::forward<TENSOR>(values))
+    DefaultTesterFunction(TENSOR &&values)
+        : values(std::forward<TENSOR>(values))
     {
     }
     std::size_t arity() const override

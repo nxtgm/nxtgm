@@ -25,8 +25,15 @@ const_discrete_label_span local_solution_from_model_solution(const std::vector<s
 }
 
 DiscreteGm::DiscreteGm(const DiscreteSpace &discrete_space)
-    : space_(discrete_space), factors_(), energy_functions_(), constraints_(), constraint_functions_(),
-      max_factor_arity_(0), max_constraint_arity_(0), max_factor_size_(0), max_constraint_size_(0)
+    : space_(discrete_space),
+      factors_(),
+      energy_functions_(),
+      constraints_(),
+      constraint_functions_(),
+      max_factor_arity_(0),
+      max_constraint_arity_(0),
+      max_factor_size_(0),
+      max_constraint_size_(0)
 {
 }
 

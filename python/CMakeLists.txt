@@ -26,7 +26,7 @@ pybind11_add_module(_nxtgm
 
 # link dependencies
 target_link_libraries(_nxtgm PRIVATE
-    nxtgm
+    ${NXTGM_SHARED_LIBRARY}
     xtensor-python
 )
 

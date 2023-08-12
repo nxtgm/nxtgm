@@ -6,7 +6,9 @@
 namespace nxtgm
 {
 
-Potts::Potts(std::size_t num_labels, energy_type beta) : num_labels_(num_labels), beta_(beta)
+Potts::Potts(std::size_t num_labels, energy_type beta)
+    : num_labels_(num_labels),
+      beta_(beta)
 {
 }
 
@@ -68,7 +70,8 @@ std::unique_ptr<DiscreteEnergyFunctionBase> Potts::deserialize_json(const nlohma
     return std::make_unique<Potts>(json["num_labels"], json["beta"]);
 }
 
-XArray::XArray(const xarray_type &values) : values_(values)
+XArray::XArray(const xarray_type &values)
+    : values_(values)
 {
 }
 

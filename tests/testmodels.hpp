@@ -57,6 +57,137 @@ struct Star
     std::uint32_t seed = 0;
 };
 
+struct SubmodularGrid
+{
+
+    std::pair<DiscreteGm, std::string> operator()()
+    {
+        xt::random::seed(seed);
+
+        auto n_variables = n_x * n_y;
+
+        auto space = DiscreteSpace(n_variables, 2);
+        DiscreteGm gm(space);
+
+        // unary factors
+        for (std::size_t vi = 0; vi < n_variables; vi++)
+        {
+            auto tensor = xt::random::rand<energy_type>({2}, energy_type(-1), energy_type(1));
+            auto f = std::make_unique<nxtgm::Unary>(tensor);
+            auto fid = gm.add_energy_function(std::move(f));
+            gm.add_factor({vi}, fid);
+        }
+
+        auto getvi = [&](std::size_t x, std::size_t y) -> std::size_t { return x + y * n_x; };
+
+        auto is_submodular = [](auto &&array) { return array(0, 0) + array(1, 1) <= array(1, 0) + array(0, 1); };
+
+        auto make_submodular = [&]() {
+            auto arr = xt::eval(xt::random::rand<energy_type>({2, 2}, energy_type(-1), energy_type(1)));
+            while (!is_submodular(arr))
+            {
+                arr = xt::eval(xt::random::rand<energy_type>({2, 2}, energy_type(-1), energy_type(1)));
+            }
+            return arr;
+        };
+
+        // pairwise  factors
+        for (std::size_t x = 0; x < n_x; x++)
+        {
+            for (std::size_t y = 0; y < n_y; y++)
+            {
+                auto vi0 = getvi(x, y);
+                if (x + 1 < n_x)
+                {
+                    auto vi1 = getvi(x + 1, y);
+                    auto f = std::make_unique<nxtgm::XArray>(make_submodular());
+                    auto fid = gm.add_energy_function(std::move(f));
+                    gm.add_factor({vi0, vi1}, fid);
+                }
+                if (y + 1 < n_y)
+                {
+                    auto vi1 = getvi(x, y + 1);
+                    auto f = std::make_unique<nxtgm::XArray>(make_submodular());
+                    auto fid = gm.add_energy_function(std::move(f));
+                    gm.add_factor({vi0, vi1}, fid);
+                }
+            }
+        }
+
+        const std::string name = fmt::format("SubmodularGrid(n_x={},n_y={}, seed={})", n_x, n_y, seed);
+        ++seed;
+        return std::pair<DiscreteGm, std::string>(std::move(gm), name);
+    }
+
+    std::size_t n_x;
+    std::size_t n_y;
+    discrete_label_type n_labels;
+    std::uint32_t seed = 0;
+};
+
+struct PottsGrid
+{
+
+    std::pair<DiscreteGm, std::string> operator()()
+    {
+        xt::random::seed(seed);
+
+        auto n_variables = n_x * n_y;
+
+        auto space = DiscreteSpace(n_variables, n_labels);
+        DiscreteGm gm(space);
+
+        // unary factors
+        for (std::size_t vi = 0; vi < n_variables; vi++)
+        {
+            auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
+            auto f = std::make_unique<nxtgm::Unary>(tensor);
+            auto fid = gm.add_energy_function(std::move(f));
+            gm.add_factor({vi}, fid);
+        }
+
+        auto getvi = [&](std::size_t x, std::size_t y) -> std::size_t { return x + y * n_x; };
+
+        // pairwise potts factors
+        for (std::size_t x = 0; x < n_x; x++)
+        {
+            for (std::size_t y = 0; y < n_y; y++)
+            {
+                auto vi0 = getvi(x, y);
+                if (x + 1 < n_x)
+                {
+                    auto vi1 = getvi(x + 1, y);
+                    auto beta =
+                        xt::random::rand<energy_type>({1}, submodular ? 0.0 : energy_type(-1), energy_type(1))[0];
+                    auto f = std::make_unique<Potts>(n_labels, beta);
+                    auto fid = gm.add_energy_function(std::move(f));
+                    gm.add_factor({vi0, vi1}, fid);
+                }
+                if (y + 1 < n_y)
+                {
+                    auto vi1 = getvi(x, y + 1);
+                    auto beta =
+                        xt::random::rand<energy_type>({1}, submodular ? 0.0 : energy_type(-1), energy_type(1))[0];
+                    auto f = std::make_unique<Potts>(n_labels, beta);
+                    auto fid = gm.add_energy_function(std::move(f));
+                    gm.add_factor({vi0, vi1}, fid);
+                }
+            }
+        }
+
+        const std::string name = fmt::format("PottsGrid(n_x={},n_y={}, n_labels={}, submodular={} seed={})", n_x, n_y,
+                                             n_labels, submodular, seed);
+        ++seed;
+        return std::pair<DiscreteGm, std::string>(std::move(gm), name);
+    }
+
+    std::size_t n_x;
+    std::size_t n_y;
+    discrete_label_type n_labels;
+    bool submodular = false;
+    std::uint32_t seed = 0;
+};
+
 struct PottsChain
 {
 
@@ -79,21 +210,8 @@ struct PottsChain
         // pairwise potts factors
         for (std::size_t i = 0; i < n_variables - 1; i++)
         {
-            auto beta = xt::random::rand<energy_type>({1}, submodular ? 0.0 : energy_type(-1), energy_type(1))(0);
-
+            auto beta = xt::random::rand<energy_type>({1}, submodular ? 0.0 : energy_type(-1), energy_type(1))[0];
             auto f = std::make_unique<Potts>(n_labels, beta);
-        }
-
-        // pairwise potts factors
-        for (std::size_t i = 0; i < n_variables - 1; i++)
-        {
-            auto beta = xt::random::rand<energy_type>({1}, energy_type(-1), energy_type(1))(0);
-            std::vector<std::size_t> shape = {n_labels, n_labels};
-            auto f = std::make_unique<SparseDiscreteEnergyFunction>(shape);
-            for (auto l = 0; l < n_labels; ++l)
-            {
-                f->data()(l, l) = beta;
-            }
             auto fid = gm.add_energy_function(std::move(f));
             gm.add_factor({i, i + 1}, fid);
         }

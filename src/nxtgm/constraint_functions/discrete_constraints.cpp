@@ -5,7 +5,9 @@ namespace nxtgm
 {
 
 UniqueLables::UniqueLables(std::size_t arity, discrete_label_type n_labels, energy_type scale)
-    : arity_(arity), n_labels_(n_labels), scale_(scale)
+    : arity_(arity),
+      n_labels_(n_labels),
+      scale_(scale)
 {
     // std::cout<<"wup"<<std::endl;
 }
