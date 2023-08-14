@@ -9,14 +9,6 @@ from ._nxtgm import __version__  # noqa: F401
 
 def _extend():
 
-    # make parameter factory  class
-    # which only takes keyword arguments
-    def parameter_factory(self, **kwargs):
-        parmeters = self.Parameters()
-        for k, v in kwargs.items():
-            setattr(parmeters, k, v)
-        return parmeters
-
     all_solvers = [
         IlpHighs,  # noqa: F405
         DynamicProgramming,  # noqa: F405
@@ -28,8 +20,6 @@ def _extend():
         # report callback
         solver.ReporterCallback = \
             DiscreteGmOptimizerReporterCallback  # noqa: F405
-
-        solver.parameters = classmethod(parameter_factory)
 
     pass
 
