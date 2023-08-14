@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import datetime
 import os
 
 import numpy as np
@@ -137,10 +136,9 @@ class TestOptimizers:
 
         # setup optimizer
         solver_cls = nxtgm.IlpHighs
+        print('constructing optimizer')
         optimizer = solver_cls(
-            gm, solver_cls.parameters(
-                integer=True, time_limit=datetime.timedelta(seconds=10.0),
-            ),
+            gm,
         )
 
         # setup reporter callback
@@ -150,6 +148,31 @@ class TestOptimizers:
         print('optimizing:')
         status = optimizer.optimize(reporter_callback)
         assert status == nxtgm.OptimizationStatus.OPTIMAL
+
+        # get solution
+        solution = optimizer.best_solution()
+        assert solution is not None
+        print('solution: ', solution)
+        assert solution.shape[0] == len(gm.space)
+        energy, how_violated = gm.evaluate(solution)
+        print(f'energy: {energy}, how_violated: {how_violated}')
+
+    def test_icm(self):
+        gm = potts_chain(num_variables=10, num_labels=2)  # noqa 405
+
+        # setup optimizer
+        solver_cls = nxtgm.Icm
+        optimizer = solver_cls(
+            gm,
+        )
+
+        # setup reporter callback
+        reporter_callback = solver_cls.ReporterCallback(optimizer)
+
+        # let the optimizer do its work
+        print('optimizing:')
+        status = optimizer.optimize(reporter_callback)
+        assert status == nxtgm.OptimizationStatus.LOCAL_OPTIMAL
 
         # get solution
         solution = optimizer.best_solution()

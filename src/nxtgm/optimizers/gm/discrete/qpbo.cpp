@@ -8,9 +8,9 @@
 namespace nxtgm
 {
 
-Qpbo::Qpbo(const DiscreteGm &gm, const parameters_type &parameters)
+Qpbo::Qpbo(const DiscreteGm &gm, const nlohmann::json &json_parameters)
     : base_type(gm),
-      parameters_(parameters),
+      parameters_(json_parameters),
       best_solution_value_(),
       best_solution_(gm.num_variables(), 0),
       qpbo_(nullptr),

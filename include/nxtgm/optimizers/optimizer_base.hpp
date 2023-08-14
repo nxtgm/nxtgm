@@ -1,9 +1,7 @@
 #pragma once
 
-// for inf
+#include <chrono>
 #include <limits>
-
-// tuple
 #include <tuple>
 
 #include <nxtgm/optimizers/callback_base.hpp>
@@ -21,6 +19,20 @@ enum class OptimizationStatus
     ITERATION_LIMIT_REACHED,
     CONVERGED,
     CALLBACK_EXIT
+};
+
+class OptimizerParametersBase
+{
+  public:
+    inline OptimizerParametersBase(const nlohmann::json &json_parameters)
+    {
+        if (json_parameters.contains("time_limit"))
+        {
+            time_limit = std::chrono::seconds(json_parameters["time_limit"].get<int>());
+        }
+    }
+
+    std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
 };
 
 template <class MODEL_TYPE, class DERIVED_OPTIMIZER_BASE>

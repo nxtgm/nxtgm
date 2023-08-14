@@ -5,7 +5,7 @@ TEST_CASE("icm")
 {
 
     nxtgm::tests::test_discrete_gm_optimizer<nxtgm::Icm>(
-        std::string("test-icm"), {nxtgm::Icm::parameters_type{}},
+        std::string("test-icm"), {},
         std::make_tuple(nxtgm::tests::PottsChain{10, 2}, nxtgm::tests::PottsChain{8, 3}, nxtgm::tests::Star{10, 3},
                         nxtgm::tests::RandomModel{/*nvar*/ 6, /*nfac*/ 6, /*max arity*/ 3,
                                                   /*max label*/ 2},

@@ -58,10 +58,10 @@ OptimizationStatus highsModelStatusToOptimizationStatus(Highs &highs, HighsModel
     }
 }
 
-IlpHighs::IlpHighs(const DiscreteGm &gm, const parameters_type &parameters, const solution_type &initial_solution)
+IlpHighs::IlpHighs(const DiscreteGm &gm, const nlohmann::json &json_parameters)
     : base_type(gm),
-      parameters_(parameters),
-      best_solution_(),
+      parameters_(json_parameters),
+      best_solution_(gm.num_variables(), 0),
       current_solution_(),
       best_sol_value_(),
       current_sol_value_(),
@@ -70,14 +70,6 @@ IlpHighs::IlpHighs(const DiscreteGm &gm, const parameters_type &parameters, cons
       indicator_variable_mapping_(gm.space()),
       highs_model_()
 {
-    if (initial_solution.empty())
-    {
-        best_solution_ = solution_type(gm.space().size());
-    }
-    else
-    {
-        best_solution_ = initial_solution;
-    }
     best_sol_value_ = this->model().evaluate(best_solution_, false);
     current_solution_ = best_solution_;
     current_sol_value_ = best_sol_value_;
@@ -87,7 +79,6 @@ IlpHighs::IlpHighs(const DiscreteGm &gm, const parameters_type &parameters, cons
 
 void IlpHighs::setup_lp()
 {
-
     // shortcuts
     const auto &model = this->model();
     const auto &space = model.space();

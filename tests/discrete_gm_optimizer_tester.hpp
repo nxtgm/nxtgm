@@ -19,7 +19,7 @@ inline std::pair<typename DiscreteGm::solution_type, SolutionValue> solve_brute_
     using solution_type = typename gm_type::solution_type;
     using optimizer_type = nxtgm::BruteForceNaive;
 
-    auto optimizer_parameters = typename optimizer_type::parameters_type();
+    auto optimizer_parameters = nlohmann::json();
     auto optimizer = std::make_unique<optimizer_type>(model, optimizer_parameters);
 
     optimizer->optimize();
@@ -311,8 +311,7 @@ struct CheckLocalNOptimality
 };
 
 template <class SOLVER_TYPE, class MODEL_GEN_TUPLE, class CHECKER_TUPLE>
-void test_discrete_gm_optimizer(const std::string &testname,
-                                std::initializer_list<typename SOLVER_TYPE::parameters_type> solver_parameters,
+void test_discrete_gm_optimizer(const std::string &testname, std::initializer_list<nlohmann::json> solver_parameters,
                                 MODEL_GEN_TUPLE &&model_gen_tuple, std::size_t n_runs, CHECKER_TUPLE &&checker_tuple,
                                 bool with_testing_callback = true)
 {
@@ -358,46 +357,6 @@ void test_discrete_gm_optimizer(const std::string &testname,
         }
     });
     std::cout << "\n";
-}
-
-template <class SOLVER_TYPE, class MODEL_GEN>
-void mostly_optimal(const std::string &testname, const typename SOLVER_TYPE::parameters_type &parameters,
-                    MODEL_GEN &&model_gen, std::size_t n_runs, double required_optimality_ratio)
-{
-    auto n_optimal = 0;
-    for (auto i = 0; i < n_runs; ++i)
-    {
-        auto gen_result = model_gen();
-        const DiscreteGm model = std::move(gen_result.first);
-        const auto name = std::move(gen_result.second);
-        INFO("Model Instance ", name);
-
-        auto solver = std::make_unique<SOLVER_TYPE>(model, parameters);
-        OptimizationStatus status = solver->optimize();
-
-        // solve with bruteforce
-        SolutionValue optimal_solution_value;
-        discrete_solution optimal_solution;
-        std::tie(optimal_solution, optimal_solution_value) = solve_brute_force(model);
-
-        if (!optimal_solution_value.is_feasible())
-        {
-            throw std::runtime_error("optimal solution is infeasible, this "
-                                     "test asume feasible solutions");
-        }
-
-        auto solution_value = model.evaluate(solver->best_solution(), false);
-
-        if (solution_value.is_feasible())
-        {
-            if (solution_value.energy() == doctest::Approx(optimal_solution_value.energy()))
-            {
-                ++n_optimal;
-            }
-        }
-    }
-
-    CHECK(n_optimal >= required_optimality_ratio * n_runs);
 }
 
 } // namespace nxtgm::tests

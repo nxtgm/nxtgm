@@ -12,14 +12,21 @@ namespace nxtgm
 
 class MatchingIcm : public DiscreteGmOptimizerBase
 {
-  public:
-    class parameters_type
+    class parameters_type : public OptimizerParametersBase
     {
       public:
-        std::size_t subgraph_size = 2;
-        std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
+        inline parameters_type(const nlohmann::json &json_parameters)
+            : OptimizerParametersBase(json_parameters)
+        {
+            if (json_parameters.contains("subgraph_size"))
+            {
+                subgraph_size = json_parameters["subgraph_size"];
+            }
+        }
+        int subgraph_size = 3;
     };
 
+  public:
     using base_type = DiscreteGmOptimizerBase;
     using solution_type = typename DiscreteGm::solution_type;
 
@@ -34,7 +41,7 @@ class MatchingIcm : public DiscreteGmOptimizerBase
     }
     virtual ~MatchingIcm() = default;
 
-    MatchingIcm(const DiscreteGm &gm, const parameters_type &parameters);
+    MatchingIcm(const DiscreteGm &gm, const nlohmann::json &parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span starting_point) override;

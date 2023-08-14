@@ -5,8 +5,10 @@ TEST_CASE("belief-propagation")
 {
     SUBCASE("trees")
     {
-        auto parameters = nxtgm::BeliefPropagation::parameters_type{};
-        parameters.max_iterations = 20000;
+
+        njson parameters;
+        parameters["max_iterations"] = 20000;
+
         nxtgm::tests::test_discrete_gm_optimizer<nxtgm::BeliefPropagation>(
             std::string("test-belief-propagation-on-trees"), {parameters},
             std::make_tuple(nxtgm::tests::PottsChain{2, 2}, nxtgm::tests::PottsChain{12, 2},
@@ -18,9 +20,11 @@ TEST_CASE("belief-propagation")
     }
     SUBCASE("trees-with-damping")
     {
-        auto parameters = nxtgm::BeliefPropagation::parameters_type{};
-        parameters.max_iterations = 20000;
-        parameters.damping = 0.9;
+
+        njson parameters;
+        parameters["max_iterations"] = 20000;
+        parameters["damping"] = 0.9;
+
         nxtgm::tests::test_discrete_gm_optimizer<nxtgm::BeliefPropagation>(
             std::string("test-belief-propagation-on-trees=with-damping"), {parameters},
             std::make_tuple(nxtgm::tests::PottsChain{2, 2}, nxtgm::tests::PottsChain{12, 2},
@@ -33,8 +37,10 @@ TEST_CASE("belief-propagation")
     // check for convergence on models to large to check for optimality
     SUBCASE("large-trees")
     {
-        auto parameters = nxtgm::BeliefPropagation::parameters_type{};
-        parameters.max_iterations = 20000;
+
+        njson parameters;
+        parameters["max_iterations"] = 20000;
+
         nxtgm::tests::test_discrete_gm_optimizer<nxtgm::BeliefPropagation>(
             std::string("test-belief-propagation-on-large-trees"), {parameters},
             std::make_tuple(nxtgm::tests::PottsChain{200, 2}, nxtgm::tests::PottsChain{200, 4},

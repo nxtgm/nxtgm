@@ -86,19 +86,10 @@ constrain_function_id = gm.add_constraint_function(constraint_function)
 variables = list(range(gm.num_variables))
 gm.add_constraint(variables, constrain_function_id)
 
-# # %%
-# # optimize the model with ICM
-# Optimizer = nxtgm.Icm
-# optimizer = Optimizer(gm)
-# callack = Optimizer.ReporterCallback(optimizer)
-# optimizer.optimize(callack)
-# best_solution = optimizer.best_solution()
-# print(best_solution)
-
 
 # optimize the model with Matching-ICM
 Optimizer = nxtgm.MatchingIcm
-parameters = Optimizer.parameters(subgraph_size=2)
+parameters = dict(subgraph_size=2)
 optimizer = Optimizer(gm, parameters)
 callack = Optimizer.ReporterCallback(optimizer)
 optimizer.optimize(callack)
@@ -108,7 +99,7 @@ print(best_solution)
 
 # optimize the model with Matching-ICM
 Optimizer = nxtgm.MatchingIcm
-parameters = Optimizer.parameters(subgraph_size=3)
+parameters = dict(subgraph_size=3)
 optimizer = Optimizer(gm, parameters)
 callack = Optimizer.ReporterCallback(optimizer)
 optimizer.optimize(callack)

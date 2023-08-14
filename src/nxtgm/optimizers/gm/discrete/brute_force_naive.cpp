@@ -4,9 +4,9 @@
 namespace nxtgm
 {
 
-BruteForceNaive::BruteForceNaive(const DiscreteGm &gm, const parameters_type &parameters)
+BruteForceNaive::BruteForceNaive(const DiscreteGm &gm, const nlohmann::json &json_parameters)
     : base_type(gm),
-      parameters_(parameters),
+      parameters_(json_parameters),
       best_solution_(gm.space().size(), 0),
       current_solution_(gm.space().size(), 0),
       best_sol_value_(),

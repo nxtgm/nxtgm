@@ -3,21 +3,29 @@
 #include <chrono>
 #include <nxtgm/optimizers/gm/discrete/optimizer_base.hpp>
 
-#include <nxtgm/plugins/qpbo_base.hpp>
+#include <nxtgm/plugins/qpbo/qpbo_base.hpp>
 
 namespace nxtgm
 {
 
 class Qpbo : public DiscreteGmOptimizerBase
 {
-  public:
-    class parameters_type
+    class parameters_type : public OptimizerParametersBase
     {
       public:
-        std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
+        inline parameters_type(const nlohmann::json &json_parameters)
+            : OptimizerParametersBase(json_parameters)
+        {
+            if (json_parameters.contains("qpbo_plugin_name"))
+            {
+                qpbo_plugin_name = json_parameters["qpbo_plugin_name"].get<std::string>();
+            }
+        }
+
         std::string qpbo_plugin_name;
     };
 
+  public:
     using base_type = DiscreteGmOptimizerBase;
     using solution_type = typename DiscreteGm::solution_type;
 
@@ -32,7 +40,7 @@ class Qpbo : public DiscreteGmOptimizerBase
     }
     virtual ~Qpbo() = default;
 
-    Qpbo(const DiscreteGm &gm, const parameters_type &parameters);
+    Qpbo(const DiscreteGm &gm, const nlohmann::json &parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span starting_point) override;

@@ -7,7 +7,7 @@ TEST_CASE("ilp-highs" * SKIP_WIN)
     SUBCASE("ilp")
     {
         nxtgm::tests::test_discrete_gm_optimizer<nxtgm::IlpHighs>(
-            std::string("test-ilp-highs"), {nxtgm::IlpHighs::parameters_type{}},
+            std::string("test-ilp-highs"), {},
             std::make_tuple(nxtgm::tests::PottsChain{4, 2}, nxtgm::tests::PottsChain{7, 3}, nxtgm::tests::Star{5, 2},
                             nxtgm::tests::RandomModel{/*nvar*/ 6, /*nfac*/ 6,
                                                       /*max arity*/ 3,
@@ -35,8 +35,7 @@ TEST_CASE("ilp-highs" * SKIP_WIN)
     SUBCASE("infeasible")
     {
         nxtgm::tests::test_discrete_gm_optimizer<nxtgm::IlpHighs>(
-            std::string("test-ilp-highs"), {nxtgm::IlpHighs::parameters_type{}},
-            std::make_tuple(nxtgm::tests::InfeasibleModel{4, 2}), 100,
+            std::string("test-ilp-highs"), {}, std::make_tuple(nxtgm::tests::InfeasibleModel{4, 2}), 100,
             std::make_tuple(nxtgm::tests::CheckOptimizationStatus{nxtgm::OptimizationStatus::INFEASIBLE},
                             nxtgm::tests::CheckInfesibility{}));
     }

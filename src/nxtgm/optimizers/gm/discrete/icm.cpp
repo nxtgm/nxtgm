@@ -6,9 +6,9 @@
 namespace nxtgm
 {
 
-Icm::Icm(const DiscreteGm &gm, const parameters_type &parameters)
+Icm::Icm(const DiscreteGm &gm, const nlohmann::json &json_parameters)
     : base_type(gm),
-      parameters_(parameters),
+      parameters_(json_parameters),
       movemaker_(gm),
       in_queue_(gm.num_variables(), 1)
 {

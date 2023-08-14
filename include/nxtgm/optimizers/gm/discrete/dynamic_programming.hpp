@@ -8,14 +8,21 @@ namespace nxtgm
 
 class DynamicProgramming : public DiscreteGmOptimizerBase
 {
-  public:
-    class parameters_type
+    class parameters_type : public OptimizerParametersBase
     {
       public:
+        inline parameters_type(const nlohmann::json &json_parameters)
+            : OptimizerParametersBase(json_parameters)
+        {
+            if (json_parameters.contains("roots"))
+            {
+                roots = json_parameters["roots"].get<std::vector<std::size_t>>();
+            }
+        }
         std::vector<std::size_t> roots;
-        std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
     };
 
+  public:
     using base_type = DiscreteGmOptimizerBase;
     using solution_type = typename DiscreteGm::solution_type;
 
@@ -30,7 +37,7 @@ class DynamicProgramming : public DiscreteGmOptimizerBase
     }
     virtual ~DynamicProgramming() = default;
 
-    DynamicProgramming(const DiscreteGm &gm, const parameters_type &parameters);
+    DynamicProgramming(const DiscreteGm &gm, const nlohmann::json &parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span) override;

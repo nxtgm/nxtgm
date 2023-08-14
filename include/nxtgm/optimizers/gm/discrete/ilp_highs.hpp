@@ -9,15 +9,27 @@ namespace nxtgm
 
 class IlpHighs : public DiscreteGmOptimizerBase
 {
-  public:
-    class parameters_type
+    class parameters_type : public OptimizerParametersBase
     {
       public:
+        inline parameters_type(const nlohmann::json &json_parameters)
+            : OptimizerParametersBase(json_parameters)
+        {
+            if (json_parameters.contains("integer"))
+            {
+                integer = json_parameters["integer"].get<bool>();
+            }
+            if (json_parameters.contains("highs_log_to_console"))
+            {
+                highs_log_to_console = json_parameters["highs_log_to_console"].get<bool>();
+            }
+        }
+
         bool integer = true;
-        std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
-        bool highs_log_to_console = false;
+        bool highs_log_to_console = true;
     };
 
+  public:
     using base_type = DiscreteGmOptimizerBase;
     using solution_type = typename DiscreteGm::solution_type;
 
@@ -31,8 +43,7 @@ class IlpHighs : public DiscreteGmOptimizerBase
         return "IlpHighs";
     }
 
-    IlpHighs(const DiscreteGm &gm, const parameters_type &parameters,
-             const solution_type &initial_solution = solution_type());
+    IlpHighs(const DiscreteGm &gm, const nlohmann::json &parameters);
 
     virtual ~IlpHighs() = default;
 
