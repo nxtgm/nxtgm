@@ -10,7 +10,6 @@ namespace nxtgm
 
 class Icm : public DiscreteGmOptimizerBase
 {
-  public:
     class parameters_type : public OptimizerParametersBase
     {
       public:
@@ -19,6 +18,8 @@ class Icm : public DiscreteGmOptimizerBase
         {
         }
     };
+
+  public:
     using base_type = DiscreteGmOptimizerBase;
     using solution_type = typename DiscreteGm::solution_type;
 
@@ -33,7 +34,7 @@ class Icm : public DiscreteGmOptimizerBase
     }
     virtual ~Icm() = default;
 
-    Icm(const DiscreteGm &gm, const parameters_type &parameters);
+    Icm(const DiscreteGm &gm, const nlohmann::json &parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span starting_point) override;

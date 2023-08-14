@@ -41,7 +41,7 @@ class MatchingIcm : public DiscreteGmOptimizerBase
     }
     virtual ~MatchingIcm() = default;
 
-    MatchingIcm(const DiscreteGm &gm, const parameters_type &parameters);
+    MatchingIcm(const DiscreteGm &gm, const nlohmann::json &parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span starting_point) override;

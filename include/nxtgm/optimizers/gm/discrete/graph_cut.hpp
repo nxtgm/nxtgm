@@ -45,7 +45,7 @@ class GraphCut : public DiscreteGmOptimizerBase
     }
     virtual ~GraphCut() = default;
 
-    GraphCut(const DiscreteGm &gm, const parameters_type &parameters);
+    GraphCut(const DiscreteGm &gm, const nlohmann::json &parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span starting_point) override;

@@ -8,7 +8,6 @@ TEST_CASE("qpbo")
     nxtgm::tests::test_discrete_gm_optimizer<nxtgm::Qpbo>(
         std::string("test-qpbo"),
         {
-            nxtgm::Qpbo::parameters_type{}
         },
         std::make_tuple(
             nxtgm::tests::PottsGrid{4, 4, 2, submodular},

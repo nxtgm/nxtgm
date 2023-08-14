@@ -17,16 +17,16 @@ class IlpHighs : public DiscreteGmOptimizerBase
         {
             if (json_parameters.contains("integer"))
             {
-                integer = json_parameters["integer"];
+                integer = json_parameters["integer"].get<bool>();
             }
             if (json_parameters.contains("highs_log_to_console"))
             {
-                highs_log_to_console = json_parameters["highs_log_to_console"];
+                highs_log_to_console = json_parameters["highs_log_to_console"].get<bool>();
             }
         }
 
         bool integer = true;
-        bool highs_log_to_console = false;
+        bool highs_log_to_console = true;
     };
 
   public:
@@ -43,8 +43,7 @@ class IlpHighs : public DiscreteGmOptimizerBase
         return "IlpHighs";
     }
 
-    IlpHighs(const DiscreteGm &gm, const parameters_type &parameters,
-             const solution_type &initial_solution = solution_type());
+    IlpHighs(const DiscreteGm &gm, const nlohmann::json &parameters);
 
     virtual ~IlpHighs() = default;
 

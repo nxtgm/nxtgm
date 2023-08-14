@@ -19,7 +19,7 @@ inline std::pair<typename DiscreteGm::solution_type, SolutionValue> solve_brute_
     using solution_type = typename gm_type::solution_type;
     using optimizer_type = nxtgm::BruteForceNaive;
 
-    auto optimizer_parameters = typename optimizer_type::parameters_type();
+    auto optimizer_parameters = nlohmann::json();
     auto optimizer = std::make_unique<optimizer_type>(model, optimizer_parameters);
 
     optimizer->optimize();

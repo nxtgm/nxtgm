@@ -83,7 +83,6 @@ void export_discrete_gm_optimizers(py::module_ &pymodule)
     export_optimizer<BeliefPropagation>(pymodule);
     export_optimizer<DynamicProgramming>(pymodule);
     export_optimizer<Icm>(pymodule);
-    export_optimizer<MatchingIcm>(pymodule).def_readwrite("subgraph_size",
-                                                          &MatchingIcm::parameters_type::subgraph_size);
+    export_optimizer<MatchingIcm>(pymodule);
 }
 } // namespace nxtgm

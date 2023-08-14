@@ -25,12 +25,6 @@ def _extend():
         MatchingIcm,  # noqa: F405
     ]
     for solver in all_solvers:
-        cls_name = solver.__name__
-
-        # add the parameters class to the solver
-        solver.Parameters = \
-            getattr(_nxtgm, cls_name + 'Parameters')  # noqa: F405
-
         # report callback
         solver.ReporterCallback = \
             DiscreteGmOptimizerReporterCallback  # noqa: F405

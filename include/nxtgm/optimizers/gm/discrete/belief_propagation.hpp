@@ -53,10 +53,10 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
     }
     virtual ~BeliefPropagation() = default;
 
-    BeliefPropagation(const DiscreteGm &gm, const nlohmann::json &json_parameters)
+    BeliefPropagation(const DiscreteGm &gm, const nlohmann::json &json_parameters);
 
-        OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
-                                    const_discrete_solution_span starting_point) override;
+    OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                const_discrete_solution_span starting_point) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;

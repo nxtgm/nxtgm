@@ -9,7 +9,7 @@ namespace nxtgm
 
 MatchingIcm::MatchingIcm(const DiscreteGm &gm, const nlohmann::json &json_parameters)
     : base_type(gm),
-      parameters_json_parameters),
+      parameters_(json_parameters),
       movemaker_(gm),
       in_queue_(gm.num_variables(), 1)
 {
