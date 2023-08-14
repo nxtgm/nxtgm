@@ -7,10 +7,7 @@ TEST_CASE("matching-icm")
     {
         nxtgm::MatchingIcm::parameters_type n3;
         nxtgm::tests::test_discrete_gm_optimizer<nxtgm::MatchingIcm>(
-            std::string("test-matching-icm-n2"),
-            {
-                nxtgm::MatchingIcm::parameters_type{},
-            },
+            std::string("test-matching-icm-n2"), {},
             std::make_tuple(nxtgm::tests::UniqueLabelChain{2, 2}, nxtgm::tests::UniqueLabelChain{4, 4},
                             nxtgm::tests::UniqueLabelChain{8, 8}, nxtgm::tests::UniqueLabelChain{12, 12},
                             nxtgm::tests::UniqueLabelChain{2, 4}, nxtgm::tests::UniqueLabelChain{4, 8}),
@@ -18,12 +15,11 @@ TEST_CASE("matching-icm")
     }
     SUBCASE("n3")
     {
-
-        nxtgm::MatchingIcm::parameters_type n3;
-        n3.subgraph_size = 3;
+        njson paramsn3;
+        params["subgraph_size"] = 3;
 
         nxtgm::tests::test_discrete_gm_optimizer<nxtgm::MatchingIcm>(
-            std::string("test-matching-icm-n3"), {n3},
+            std::string("test-matching-icm-n3"), {paramsn3},
             std::make_tuple(
 
                 nxtgm::tests::UniqueLabelChain{4, 4}, nxtgm::tests::UniqueLabelChain{6, 6},

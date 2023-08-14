@@ -9,7 +9,7 @@ TEST_CASE("graph-cut")
     nxtgm::tests::test_discrete_gm_optimizer<nxtgm::GraphCut>(
         std::string("test-graph-cut-small"),
         {
-            nxtgm::GraphCut::parameters_type{}
+
         },
         std::make_tuple(
             nxtgm::tests::PottsGrid{3,  4, num_labels, submodular},
@@ -26,7 +26,7 @@ TEST_CASE("graph-cut")
     nxtgm::tests::test_discrete_gm_optimizer<nxtgm::GraphCut>(
         std::string("test-graph-cut-large"),
         {
-            nxtgm::GraphCut::parameters_type{}
+
         },
         std::make_tuple(
             nxtgm::tests::PottsGrid{4,  4, num_labels, submodular},
