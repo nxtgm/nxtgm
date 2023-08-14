@@ -29,6 +29,7 @@ pybind11_add_module(_nxtgm
 target_link_libraries(_nxtgm PRIVATE
     ${NXTGM_SHARED_LIBRARY}
     xtensor-python
+    pybind11_json
 )
 
 # include directories
