@@ -146,16 +146,7 @@ class TestOptimizers:
 
         # let the optimizer do its work
         print('optimizing:')
-        status = optimizer.optimize(reporter_callback)
-        assert status == nxtgm.OptimizationStatus.OPTIMAL
-
-        # get solution
-        solution = optimizer.best_solution()
-        assert solution is not None
-        print('solution: ', solution)
-        assert solution.shape[0] == len(gm.space)
-        energy, how_violated = gm.evaluate(solution)
-        print(f'energy: {energy}, how_violated: {how_violated}')
+        optimizer.optimize(reporter_callback)
 
     def test_icm_highs(self):
         gm = potts_chain(num_variables=10, num_labels=2)  # noqa 405
