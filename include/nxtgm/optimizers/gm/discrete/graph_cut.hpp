@@ -10,7 +10,6 @@ namespace nxtgm
 
 class GraphCut : public DiscreteGmOptimizerBase
 {
-  public:
     class parameters_type : public OptimizerParametersBase
     {
       public:
@@ -31,6 +30,7 @@ class GraphCut : public DiscreteGmOptimizerBase
         double submodular_epsilon = 1e-6;
     };
 
+  public:
     using base_type = DiscreteGmOptimizerBase;
     using solution_type = typename DiscreteGm::solution_type;
 

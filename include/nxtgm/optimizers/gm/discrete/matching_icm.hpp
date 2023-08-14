@@ -12,7 +12,6 @@ namespace nxtgm
 
 class MatchingIcm : public DiscreteGmOptimizerBase
 {
-  public:
     class parameters_type : public OptimizerParametersBase
     {
       public:
@@ -27,6 +26,7 @@ class MatchingIcm : public DiscreteGmOptimizerBase
         int subgraph_size = 3;
     };
 
+  public:
     using base_type = DiscreteGmOptimizerBase;
     using solution_type = typename DiscreteGm::solution_type;
 

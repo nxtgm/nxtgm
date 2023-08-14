@@ -10,7 +10,6 @@ namespace nxtgm
 
 class Qpbo : public DiscreteGmOptimizerBase
 {
-  public:
     class parameters_type : public OptimizerParametersBase
     {
       public:
@@ -25,6 +24,8 @@ class Qpbo : public DiscreteGmOptimizerBase
 
         std::string qpbo_plugin_name;
     };
+
+  public:
     using base_type = DiscreteGmOptimizerBase;
     using solution_type = typename DiscreteGm::solution_type;
 

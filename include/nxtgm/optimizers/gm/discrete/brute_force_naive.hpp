@@ -8,7 +8,6 @@ namespace nxtgm
 
 class BruteForceNaive : public DiscreteGmOptimizerBase
 {
-  public:
     class parameters_type : public OptimizerParametersBase
     {
       public:
@@ -18,6 +17,7 @@ class BruteForceNaive : public DiscreteGmOptimizerBase
         }
     };
 
+  public:
     using base_type = DiscreteGmOptimizerBase;
     using solution_type = typename DiscreteGm::solution_type;
 

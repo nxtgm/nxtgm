@@ -9,7 +9,6 @@ namespace nxtgm
 
 class IlpHighs : public DiscreteGmOptimizerBase
 {
-  public:
     class parameters_type : public OptimizerParametersBase
     {
       public:
@@ -30,6 +29,7 @@ class IlpHighs : public DiscreteGmOptimizerBase
         bool highs_log_to_console = false;
     };
 
+  public:
     using base_type = DiscreteGmOptimizerBase;
     using solution_type = typename DiscreteGm::solution_type;
 

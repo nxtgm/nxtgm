@@ -8,7 +8,6 @@ namespace nxtgm
 
 class DynamicProgramming : public DiscreteGmOptimizerBase
 {
-  public:
     class parameters_type : public OptimizerParametersBase
     {
       public:
@@ -23,6 +22,7 @@ class DynamicProgramming : public DiscreteGmOptimizerBase
         std::vector<std::size_t> roots;
     };
 
+  public:
     using base_type = DiscreteGmOptimizerBase;
     using solution_type = typename DiscreteGm::solution_type;
 
