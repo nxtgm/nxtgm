@@ -147,7 +147,7 @@ class TestOptimizers:
         # let the optimizer do its work
         print('optimizing:')
         status = optimizer.optimize(reporter_callback)
-        assert status == nxtgm.OptimizationStatus.CO
+        assert status == nxtgm.OptimizationStatus.OPTIMAL
 
         # get solution
         solution = optimizer.best_solution()
