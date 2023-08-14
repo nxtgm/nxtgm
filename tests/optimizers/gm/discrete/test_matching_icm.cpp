@@ -8,8 +8,8 @@ TEST_CASE("matching-icm")
         njson params;
         params["subgraph_size"] = 2;
 
-        nxtgm::tests::test_discrete_gm_optimizer<nxtgm::MatchingIcm>(
-            std::string("test-matching-icm-n2"), {params},
+        nxtgm::tests::test_discrete_gm_optimizer(
+            "matching_icm", {params},
             std::make_tuple(nxtgm::tests::UniqueLabelChain{2, 2}, nxtgm::tests::UniqueLabelChain{4, 4},
                             nxtgm::tests::UniqueLabelChain{8, 8}, nxtgm::tests::UniqueLabelChain{12, 12},
                             nxtgm::tests::UniqueLabelChain{2, 4}, nxtgm::tests::UniqueLabelChain{4, 8}),
@@ -21,8 +21,8 @@ TEST_CASE("matching-icm")
         njson params;
         params["subgraph_size"] = 3;
 
-        nxtgm::tests::test_discrete_gm_optimizer<nxtgm::MatchingIcm>(
-            std::string("test-matching-icm-n3"), {params},
+        nxtgm::tests::test_discrete_gm_optimizer(
+            "matching_icm", {params},
             std::make_tuple(nxtgm::tests::UniqueLabelChain{4, 4}, nxtgm::tests::UniqueLabelChain{6, 6},
                             nxtgm::tests::UniqueLabelChain{4, 7}, nxtgm::tests::UniqueLabelChain{6, 12}),
             20,
