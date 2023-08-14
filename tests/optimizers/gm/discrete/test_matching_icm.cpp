@@ -23,10 +23,8 @@ TEST_CASE("matching-icm")
 
         nxtgm::tests::test_discrete_gm_optimizer<nxtgm::MatchingIcm>(
             std::string("test-matching-icm-n3"), {params},
-            std::make_tuple(
-
-                nxtgm::tests::UniqueLabelChain{4, 4}, nxtgm::tests::UniqueLabelChain{6, 6},
-                nxtgm::tests::UniqueLabelChain{4, 7}, nxtgm::tests::UniqueLabelChain{6, 12}),
+            std::make_tuple(nxtgm::tests::UniqueLabelChain{4, 4}, nxtgm::tests::UniqueLabelChain{6, 6},
+                            nxtgm::tests::UniqueLabelChain{4, 7}, nxtgm::tests::UniqueLabelChain{6, 12}),
             20,
             std::make_tuple(
                 // 3 variables at a time
