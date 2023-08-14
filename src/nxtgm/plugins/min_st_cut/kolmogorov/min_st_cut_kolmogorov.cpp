@@ -1,4 +1,4 @@
-#include <nxtgm/plugins/min_st_cut_base.hpp>
+#include <nxtgm/plugins/min_st_cut/min_st_cut_base.hpp>
 
 #include <memory>
 #include <string>

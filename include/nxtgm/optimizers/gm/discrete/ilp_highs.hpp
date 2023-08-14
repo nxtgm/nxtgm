@@ -10,11 +10,23 @@ namespace nxtgm
 class IlpHighs : public DiscreteGmOptimizerBase
 {
   public:
-    class parameters_type
+    class parameters_type : public OptimizerParametersBase
     {
       public:
+        inline parameters_type(const nlohmann::json &json_parameters)
+            : OptimizerParametersBase(json_parameters)
+        {
+            if (json_parameters.contains("integer"))
+            {
+                integer = json_parameters["integer"];
+            }
+            if (json_parameters.contains("highs_log_to_console"))
+            {
+                highs_log_to_console = json_parameters["highs_log_to_console"];
+            }
+        }
+
         bool integer = true;
-        std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
         bool highs_log_to_console = false;
     };
 

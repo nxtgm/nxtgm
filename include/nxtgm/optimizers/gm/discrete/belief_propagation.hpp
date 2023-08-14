@@ -8,17 +8,37 @@ namespace nxtgm
 
 class BeliefPropagation : public DiscreteGmOptimizerBase
 {
-  public:
-    class parameters_type
+    class parameters_type : public OptimizerParametersBase
     {
       public:
-        std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
+        inline parameters_type(const nlohmann::json &json_parameters)
+            : OptimizerParametersBase(json_parameters)
+        {
+            if (json_parameters.contains("max_iterations"))
+            {
+                max_iterations = json_parameters["max_iterations"];
+            }
+            if (json_parameters.contains("convergence_tolerance"))
+            {
+                convergence_tolerance = json_parameters["convergence_tolerance"];
+            }
+            if (json_parameters.contains("damping"))
+            {
+                damping = json_parameters["damping"];
+            }
+            if (json_parameters.contains("normalize_messages"))
+            {
+                normalize_messages = json_parameters["normalize_messages"];
+            }
+        }
+
         std::size_t max_iterations = 1000;
         energy_type convergence_tolerance = 1e-5;
         energy_type damping = 0.0;
         bool normalize_messages = true;
     };
 
+  public:
     using base_type = DiscreteGmOptimizerBase;
     using solution_type = typename DiscreteGm::solution_type;
 
@@ -33,10 +53,10 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
     }
     virtual ~BeliefPropagation() = default;
 
-    BeliefPropagation(const DiscreteGm &gm, const parameters_type &parameters);
+    BeliefPropagation(const DiscreteGm &gm, const nlohmann::json &json_parameters)
 
-    OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
-                                const_discrete_solution_span starting_point) override;
+        OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                    const_discrete_solution_span starting_point) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;

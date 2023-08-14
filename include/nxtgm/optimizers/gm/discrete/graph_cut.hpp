@@ -3,7 +3,7 @@
 #include <chrono>
 #include <nxtgm/optimizers/gm/discrete/optimizer_base.hpp>
 
-#include <nxtgm/plugins/min_st_cut_base.hpp>
+#include <nxtgm/plugins/min_st_cut/min_st_cut_base.hpp>
 
 namespace nxtgm
 {
@@ -11,10 +11,22 @@ namespace nxtgm
 class GraphCut : public DiscreteGmOptimizerBase
 {
   public:
-    class parameters_type
+    class parameters_type : public OptimizerParametersBase
     {
       public:
-        std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
+        inline parameters_type(const nlohmann::json &json_parameters)
+            : OptimizerParametersBase(json_parameters)
+        {
+            if (json_parameters.contains("min_st_cut_plugin_name"))
+            {
+                min_st_cut_plugin_name = json_parameters["min_st_cut_plugin_name"].get<std::string>();
+            }
+            if (json_parameters.contains("submodular_epsilon"))
+            {
+                submodular_epsilon = json_parameters["submodular_epsilon"].get<double>();
+            }
+        }
+
         std::string min_st_cut_plugin_name;
         double submodular_epsilon = 1e-6;
     };

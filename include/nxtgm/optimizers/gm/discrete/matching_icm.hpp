@@ -13,11 +13,18 @@ namespace nxtgm
 class MatchingIcm : public DiscreteGmOptimizerBase
 {
   public:
-    class parameters_type
+    class parameters_type : public OptimizerParametersBase
     {
       public:
-        std::size_t subgraph_size = 2;
-        std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
+        inline parameters_type(const nlohmann::json &json_parameters)
+            : OptimizerParametersBase(json_parameters)
+        {
+            if (json_parameters.contains("subgraph_size"))
+            {
+                subgraph_size = json_parameters["subgraph_size"];
+            }
+        }
+        int subgraph_size = 3;
     };
 
     using base_type = DiscreteGmOptimizerBase;

@@ -11,13 +11,14 @@ namespace nxtgm
 class Icm : public DiscreteGmOptimizerBase
 {
   public:
-    class parameters_type
+    class parameters_type : public OptimizerParametersBase
     {
       public:
-        std::vector<std::size_t> roots;
-        std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
+        inline parameters_type(const nlohmann::json &json_parameters)
+            : OptimizerParametersBase(json_parameters)
+        {
+        }
     };
-
     using base_type = DiscreteGmOptimizerBase;
     using solution_type = typename DiscreteGm::solution_type;
 

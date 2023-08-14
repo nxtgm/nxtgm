@@ -1,4 +1,4 @@
-#include <nxtgm/plugins/qpbo_base.hpp>
+#include <nxtgm/plugins/qpbo/qpbo_base.hpp>
 
 #include <memory>
 #include <string>
