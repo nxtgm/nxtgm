@@ -3,6 +3,7 @@
 #include <pybind11/chrono.h>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
+#include <pybind11_json/pybind11_json.hpp>
 
 #include <xtensor-python/pytensor.hpp>
 
@@ -20,15 +21,10 @@ namespace nxtgm
 template <class optimzier_type>
 auto export_optimizer(py::module_ &pymodule)
 {
-    using parameters_type = typename optimzier_type::parameters_type;
-    auto parameters_cls = py::class_<parameters_type>(pymodule, (optimzier_type::name() + "Parameters").c_str())
-                              .def(py::init<>())
-                              .def_readwrite("time_limit", &parameters_type::time_limit);
     auto optimizer_cls = py::class_<optimzier_type, DiscreteGmOptimizerBase>(pymodule, optimzier_type::name().c_str(),
                                                                              py::dynamic_attr())
-                             .def(py::init<const DiscreteGm &, const parameters_type &>(), py::arg("gm"),
-                                  py::arg("parameters") = parameters_type(), py::keep_alive<0, 1>());
-    return parameters_cls;
+                             .def(py::init<const DiscreteGm &, const nlohmann::json &>(), py::arg("gm"),
+                                  py::arg("parameters") = nlohmann::json(), py::keep_alive<0, 1>());
 }
 
 void export_discrete_gm_optimizers(py::module_ &pymodule)
@@ -83,17 +79,8 @@ void export_discrete_gm_optimizers(py::module_ &pymodule)
     // concrete optimizers
 
     export_optimizer<BruteForceNaive>(pymodule);
-
-    export_optimizer<IlpHighs>(pymodule)
-        .def_readwrite("integer", &IlpHighs::parameters_type::integer)
-        .def_readwrite("highs_log_to_console", &IlpHighs::parameters_type::highs_log_to_console);
-
-    export_optimizer<BeliefPropagation>(pymodule)
-        .def_readwrite("max_iterations", &BeliefPropagation::parameters_type::max_iterations)
-        .def_readwrite("convergence_tolerance", &BeliefPropagation::parameters_type::convergence_tolerance)
-        .def_readwrite("damping", &BeliefPropagation::parameters_type::damping)
-        .def_readwrite("normalize_messages", &BeliefPropagation::parameters_type::normalize_messages);
-
+    export_optimizer<IlpHighs>(pymodule);
+    export_optimizer<BeliefPropagation>(pymodule);
     export_optimizer<DynamicProgramming>(pymodule);
     export_optimizer<Icm>(pymodule);
     export_optimizer<MatchingIcm>(pymodule).def_readwrite("subgraph_size",

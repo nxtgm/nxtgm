@@ -5,6 +5,7 @@ SET(PY_MODULE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/module)
 find_package(pybind11 REQUIRED)
 find_package(xtensor-python REQUIRED)
 find_package(NumPy REQUIRED)
+find_package(pybind11_json REQUIRED)
 
 # find numpy
 execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import numpy; print(numpy.get_include())"
