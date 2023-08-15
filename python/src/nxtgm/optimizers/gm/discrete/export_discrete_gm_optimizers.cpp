@@ -7,12 +7,7 @@
 
 #include <xtensor-python/pytensor.hpp>
 
-#include <nxtgm/optimizers/gm/discrete/belief_propagation.hpp>
-#include <nxtgm/optimizers/gm/discrete/brute_force_naive.hpp>
-#include <nxtgm/optimizers/gm/discrete/dynamic_programming.hpp>
-#include <nxtgm/optimizers/gm/discrete/icm.hpp>
-#include <nxtgm/optimizers/gm/discrete/ilp_highs.hpp>
-#include <nxtgm/optimizers/gm/discrete/matching_icm.hpp>
+#include <nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.hpp>
 
 namespace py = pybind11;
 
@@ -76,13 +71,15 @@ void export_discrete_gm_optimizers(py::module_ &pymodule)
         .def("current_solution_value", &DiscreteGmOptimizerBase::current_solution_value)
         .def("lower_bound", &DiscreteGmOptimizerBase::lower_bound);
 
-    // concrete optimizers
+    pymodule.def("discrete_gm_optimizer_factory", &discrete_gm_optimizer_factory, py::arg("optimizer_name"),
+                 py::arg("gm"), py::arg("parameters") = nlohmann::json(), py::keep_alive<1, 2>());
 
-    export_optimizer<BruteForceNaive>(pymodule);
-    export_optimizer<IlpHighs>(pymodule);
-    export_optimizer<BeliefPropagation>(pymodule);
-    export_optimizer<DynamicProgramming>(pymodule);
-    export_optimizer<Icm>(pymodule);
-    export_optimizer<MatchingIcm>(pymodule);
+    // concrete optimizers
+    // export_optimizer<BruteForceNaive>(pymodule);
+    // export_optimizer<IlpHighs>(pymodule);
+    // export_optimizer<BeliefPropagation>(pymodule);
+    // export_optimizer<DynamicProgramming>(pymodule);
+    // export_optimizer<Icm>(pymodule);
+    // export_optimizer<MatchingIcm>(pymodule);
 }
 } // namespace nxtgm

@@ -135,14 +135,12 @@ class TestOptimizers:
         gm = potts_chain(num_variables=10, num_labels=2)  # noqa 405
 
         # setup optimizer
-        solver_cls = nxtgm.IlpHighs
         print('constructing optimizer')
-        optimizer = solver_cls(
-            gm,
-        )
-
+        optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'ilp_highs', {})
         # setup reporter callback
-        reporter_callback = solver_cls.ReporterCallback(optimizer)
+        reporter_callback = nxtgm.DiscreteGmOptimizerReporterCallback(
+            optimizer,
+        )
 
         # let the optimizer do its work
         print('optimizing:')
@@ -152,6 +150,7 @@ class TestOptimizers:
         # get solution
         solution = optimizer.best_solution()
         assert solution is not None
+
         print('solution: ', solution)
         assert solution.shape[0] == len(gm.space)
         energy, how_violated = gm.evaluate(solution)
@@ -161,13 +160,12 @@ class TestOptimizers:
         gm = potts_chain(num_variables=10, num_labels=2)  # noqa 405
 
         # setup optimizer
-        solver_cls = nxtgm.Icm
-        optimizer = solver_cls(
-            gm,
-        )
+        optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'icm', {})
 
         # setup reporter callback
-        reporter_callback = solver_cls.ReporterCallback(optimizer)
+        reporter_callback = nxtgm.DiscreteGmOptimizerReporterCallback(
+            optimizer,
+        )
 
         # let the optimizer do its work
         print('optimizing:')
