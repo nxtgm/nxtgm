@@ -88,20 +88,18 @@ gm.add_constraint(variables, constrain_function_id)
 
 
 # optimize the model with Matching-ICM
-Optimizer = nxtgm.MatchingIcm
 parameters = dict(subgraph_size=2)
-optimizer = Optimizer(gm, parameters)
-callack = Optimizer.ReporterCallback(optimizer)
+optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'matching_icm', parameters)
+callack = nxtgm.DiscreteGmOptimizerReporterCallback(optimizer)
 optimizer.optimize(callack)
 best_solution = optimizer.best_solution()
 print(best_solution)
 
 
 # optimize the model with Matching-ICM
-Optimizer = nxtgm.MatchingIcm
 parameters = dict(subgraph_size=3)
-optimizer = Optimizer(gm, parameters)
-callack = Optimizer.ReporterCallback(optimizer)
+optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'matching_icm', parameters)
+callack = nxtgm.DiscreteGmOptimizerReporterCallback(optimizer)
 optimizer.optimize(callack)
 best_solution = optimizer.best_solution()
 print(best_solution)
@@ -109,9 +107,9 @@ print(best_solution)
 
 # %%
 # optimize with an ILP solver
-Optimizer = nxtgm.IlpHighs
-optimizer = Optimizer(gm)
-callack = Optimizer.ReporterCallback(optimizer)
+parameters = dict()
+optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'ilp_highs', parameters)
+callack = nxtgm.DiscreteGmOptimizerReporterCallback(optimizer)
 optimizer.optimize(callack)
 best_solution = optimizer.best_solution()
 print(best_solution)
