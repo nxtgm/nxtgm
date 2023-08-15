@@ -41,9 +41,7 @@ gm.add_factor(variables, function_id)
 # Since this model is very simple (and the result is obvious) we
 # use a brute force optimizer.
 
-optimizer = nxtgm.BruteForceNaive
-
-optimizer = nxtgm.BruteForceNaive(gm)
+optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'brute_force_naive', {})
 optimizer.optimize()
 
 

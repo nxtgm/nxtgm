@@ -1,6 +1,4 @@
-#ifndef NXTGM_PLUGINS_QPBO_BASE_HPP
-#define NXTGM_PLUGINS_QPBO_BASE_HPP
-
+#pragma once
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -48,5 +46,3 @@ class QpboFactoryBase
 };
 
 } // namespace nxtgm
-
-#endif // NXTGM_PLUGINS_QPBO_BASE_HPP

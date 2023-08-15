@@ -9,8 +9,8 @@ TEST_CASE("belief-propagation")
         njson parameters;
         parameters["max_iterations"] = 20000;
 
-        nxtgm::tests::test_discrete_gm_optimizer<nxtgm::BeliefPropagation>(
-            std::string("test-belief-propagation-on-trees"), {parameters},
+        nxtgm::tests::test_discrete_gm_optimizer(
+            "belief_propagation", {parameters},
             std::make_tuple(nxtgm::tests::PottsChain{2, 2}, nxtgm::tests::PottsChain{12, 2},
                             nxtgm::tests::PottsChain{7, 4}, nxtgm::tests::Star{3, 3}, nxtgm::tests::Star{5, 3},
                             nxtgm::tests::SparsePottsChain{4, 4}),
@@ -25,8 +25,8 @@ TEST_CASE("belief-propagation")
         parameters["max_iterations"] = 20000;
         parameters["damping"] = 0.9;
 
-        nxtgm::tests::test_discrete_gm_optimizer<nxtgm::BeliefPropagation>(
-            std::string("test-belief-propagation-on-trees=with-damping"), {parameters},
+        nxtgm::tests::test_discrete_gm_optimizer(
+            "belief_propagation", {parameters},
             std::make_tuple(nxtgm::tests::PottsChain{2, 2}, nxtgm::tests::PottsChain{12, 2},
                             nxtgm::tests::PottsChain{7, 4}, nxtgm::tests::Star{3, 3}, nxtgm::tests::Star{5, 3},
                             nxtgm::tests::SparsePottsChain{4, 4}),
@@ -41,8 +41,8 @@ TEST_CASE("belief-propagation")
         njson parameters;
         parameters["max_iterations"] = 20000;
 
-        nxtgm::tests::test_discrete_gm_optimizer<nxtgm::BeliefPropagation>(
-            std::string("test-belief-propagation-on-large-trees"), {parameters},
+        nxtgm::tests::test_discrete_gm_optimizer(
+            "belief_propagation", {parameters},
             std::make_tuple(nxtgm::tests::PottsChain{200, 2}, nxtgm::tests::PottsChain{200, 4},
                             nxtgm::tests::Star{50, 3}, nxtgm::tests::SparsePottsChain{400, 4}),
             1000, std::make_tuple(nxtgm::tests::CheckOptimizationStatus{nxtgm::OptimizationStatus::CONVERGED}));

@@ -9,6 +9,8 @@
 #include <nxtgm/optimizers/gm/discrete/brute_force_naive.hpp>
 #include <nxtgm/utils/tuple_for_each.hpp>
 
+#include <nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.hpp>
+
 namespace nxtgm::tests
 {
 
@@ -310,15 +312,13 @@ struct CheckLocalNOptimality
     std::size_t n = 2;
 };
 
-template <class SOLVER_TYPE, class MODEL_GEN_TUPLE, class CHECKER_TUPLE>
-void test_discrete_gm_optimizer(const std::string &testname, std::initializer_list<nlohmann::json> solver_parameters,
+template <class MODEL_GEN_TUPLE, class CHECKER_TUPLE>
+void test_discrete_gm_optimizer(const std::string &solver_name, std::initializer_list<nlohmann::json> solver_parameters,
                                 MODEL_GEN_TUPLE &&model_gen_tuple, std::size_t n_runs, CHECKER_TUPLE &&checker_tuple,
                                 bool with_testing_callback = true)
 {
 
     const std::size_t workload = n_runs * solver_parameters.size() * std::tuple_size_v<MODEL_GEN_TUPLE>;
-
-    std::cout << testname << ":\n";
     nxtgm::tuple_for_each(model_gen_tuple, [&](auto &&model_gen) {
         for (auto i = 0; i < n_runs; ++i)
         {
@@ -331,7 +331,7 @@ void test_discrete_gm_optimizer(const std::string &testname, std::initializer_li
             auto pi = 0;
             for (auto &&solver_parameter : solver_parameters)
             {
-                auto solver = std::make_unique<SOLVER_TYPE>(model, solver_parameter);
+                auto solver = discrete_gm_optimizer_factory(model, solver_name, solver_parameter);
                 OptimizationStatus status;
                 if (with_testing_callback)
                 {

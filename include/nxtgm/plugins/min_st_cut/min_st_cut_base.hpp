@@ -1,5 +1,4 @@
-#ifndef NXTGM_PLUGINS_QPBO_BASE_HPP
-#define NXTGM_PLUGINS_QPBO_BASE_HPP
+#pragma once
 
 #include <cstddef>
 #include <memory>
@@ -49,5 +48,3 @@ class MinStCutFactoryBase
 };
 
 } // namespace nxtgm
-
-#endif // NXTGM_PLUGINS_QPBO_BASE_HPP

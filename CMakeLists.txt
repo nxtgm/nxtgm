@@ -53,6 +53,7 @@ add_library(nxtgm_shared SHARED
     src/nxtgm/constraint_functions/discrete_constraints.cpp
     src/nxtgm/models/solution_value.cpp
     src/nxtgm/models/gm/discrete_gm.cpp
+    src/nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.cpp
     src/nxtgm/optimizers/gm/discrete/movemaker.cpp
     src/nxtgm/optimizers/gm/discrete/brute_force_naive.cpp
     src/nxtgm/optimizers/gm/discrete/ilp_highs.cpp

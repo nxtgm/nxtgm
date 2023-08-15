@@ -6,8 +6,8 @@ TEST_CASE("graph-cut")
     const auto submodular = true;
     const auto num_labels = 2;
     // clang-format off
-    nxtgm::tests::test_discrete_gm_optimizer<nxtgm::GraphCut>(
-        std::string("test-graph-cut-small"),
+    nxtgm::tests::test_discrete_gm_optimizer(
+        "graph_cut",
         {
 
         },
@@ -23,8 +23,8 @@ TEST_CASE("graph-cut")
             nxtgm::tests::CheckOptimality{}
         )
     );
-    nxtgm::tests::test_discrete_gm_optimizer<nxtgm::GraphCut>(
-        std::string("test-graph-cut-large"),
+    nxtgm::tests::test_discrete_gm_optimizer(
+        "graph_cut",
         {
 
         },

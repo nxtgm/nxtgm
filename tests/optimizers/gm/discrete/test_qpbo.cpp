@@ -5,8 +5,8 @@ TEST_CASE("qpbo")
 {
     const auto submodular = true;
     // clang-format off
-    nxtgm::tests::test_discrete_gm_optimizer<nxtgm::Qpbo>(
-        std::string("test-qpbo"),
+    nxtgm::tests::test_discrete_gm_optimizer(
+        "qpbo",
         {
         },
         std::make_tuple(
