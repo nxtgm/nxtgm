@@ -20,6 +20,10 @@ function(add_solver PLUGIN_TARGET_NAME)
         )
     endif()
     add_dependencies(all_plugins ${PLUGIN_TARGET_NAME})
+
+    # this is only needed when the plugin is build as part of the whole project
+    nxtgm_set_plugin_properties(${PLUGIN_TYPE} ${PLUGIN_TARGET_NAME})
+
 endfunction()
 
 

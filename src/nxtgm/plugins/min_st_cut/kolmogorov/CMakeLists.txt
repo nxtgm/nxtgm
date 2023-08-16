@@ -22,18 +22,7 @@ target_include_directories(${PLUGIN_TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_
 # install plugin
 install(TARGETS ${PLUGIN_TARGET_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/nxtgm/plugins/${PLUGIN_TYPE})
 
-# this is needed when the plugin is build as part of the whole project
 if(NOT ${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
-    if(WIN32)
-        set_target_properties(${PLUGIN_TARGET_NAME} PROPERTIES
-            LIBRARY_OUTPUT_DIRECTORY ${NXTGM_PLUGIN_OUTPUT_DIRECTORY}/${PLUGIN_TYPE}
-            RUNTIME_OUTPUT_DIRECTORY ${NXTGM_PLUGIN_OUTPUT_DIRECTORY}/${PLUGIN_TYPE}
-        )
-    else()
-        set_target_properties(${PLUGIN_TARGET_NAME} PROPERTIES
-            LIBRARY_OUTPUT_DIRECTORY ${NXTGM_PLUGIN_OUTPUT_DIRECTORY}/${PLUGIN_TYPE}
-        )
-    endif()
-    set_target_properties(${PLUGIN_TARGET_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${NXTGM_PLUGIN_OUTPUT_DIRECTORY}/${PLUGIN_TYPE})
-    add_dependencies(all_plugins ${PLUGIN_TARGET_NAME})
+    # this is only needed when the plugin is build as part of the whole project
+    nxtgm_set_plugin_properties(${PLUGIN_TYPE} ${PLUGIN_TARGET_NAME})
 endif()

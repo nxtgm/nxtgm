@@ -57,15 +57,7 @@ add_library(nxtgm_shared SHARED
     src/nxtgm/optimizers/gm/discrete/movemaker.cpp
 
     src/nxtgm/optimizers/gm/discrete/optimizer_base.cpp
-    # make this all plugins
-    # src/nxtgm/optimizers/gm/discrete/icm.cpp
-    # src/nxtgm/optimizers/gm/discrete/brute_force_naive.cpp
-    # src/nxtgm/optimizers/gm/discrete/ilp_highs.cpp
-    # src/nxtgm/optimizers/gm/discrete/dynamic_programming.cpp
-    # src/nxtgm/optimizers/gm/discrete/matching_icm.cpp
-    # src/nxtgm/optimizers/gm/discrete/belief_propagation.cpp
-    # src/nxtgm/optimizers/gm/discrete/qpbo.cpp
-    # src/nxtgm/optimizers/gm/discrete/graph_cut.cpp
+
 )
 SET(NXTGM_SHARED_LIBRARY nxtgm_shared)
 
