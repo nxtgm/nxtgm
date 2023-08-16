@@ -83,11 +83,6 @@ target_include_directories(nxtgm_shared PUBLIC
 # plugins
 ###############################################################
 SET(NXTGM_PLUGIN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/nxtgm/plugins)
-set(NXTGM_PLUGIN_TYPES
-    qpbo
-    min_st_cut
-    discrete_gm_optimizer
-)
 add_subdirectory(src/nxtgm/plugins)
 
 

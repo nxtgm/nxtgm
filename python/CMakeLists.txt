@@ -57,6 +57,7 @@ add_custom_target(python_tests
 
 add_test(NAME python_tests COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target python_tests)
 
+set_property(TEST python_tests PROPERTY ENVIRONMENT "NXTGM_PLUGIN_PATH=${NXTGM_PLUGIN_OUTPUT_DIRECTORY}")
 
 # python get side-packakge dir
 execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
