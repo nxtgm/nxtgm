@@ -1,5 +1,4 @@
 #include <discrete_gm_optimizer_tester.hpp>
-#include <nxtgm/optimizers/gm/discrete/ilp_highs.hpp>
 
 TEST_CASE("ilp-highs" * SKIP_WIN)
 {

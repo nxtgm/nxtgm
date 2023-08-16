@@ -6,7 +6,6 @@
 #include <nxtgm/models/gm/discrete_gm.hpp>
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/optimizers/callbacks.hpp>
-#include <nxtgm/optimizers/gm/discrete/brute_force_naive.hpp>
 #include <nxtgm/utils/tuple_for_each.hpp>
 
 #include <nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.hpp>
@@ -19,10 +18,9 @@ inline std::pair<typename DiscreteGm::solution_type, SolutionValue> solve_brute_
 
     using gm_type = std::decay_t<decltype(model)>;
     using solution_type = typename gm_type::solution_type;
-    using optimizer_type = nxtgm::BruteForceNaive;
 
     auto optimizer_parameters = nlohmann::json();
-    auto optimizer = std::make_unique<optimizer_type>(model, optimizer_parameters);
+    auto optimizer = nxtgm::discrete_gm_optimizer_factory(model, "brute_force_naive", optimizer_parameters);
 
     optimizer->optimize();
     return std::pair<solution_type, SolutionValue>(optimizer->best_solution(), optimizer->best_solution_value());

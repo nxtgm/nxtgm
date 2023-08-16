@@ -1,5 +1,4 @@
 #include <discrete_gm_optimizer_tester.hpp>
-#include <nxtgm/optimizers/gm/discrete/graph_cut.hpp>
 
 TEST_CASE("graph-cut")
 {

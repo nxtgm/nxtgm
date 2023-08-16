@@ -1,5 +1,4 @@
 #include <discrete_gm_optimizer_tester.hpp>
-#include <nxtgm/optimizers/gm/discrete/belief_propagation.hpp>
 
 TEST_CASE("belief-propagation")
 {

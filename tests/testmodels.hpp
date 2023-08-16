@@ -119,9 +119,9 @@ struct SubmodularGrid
         return std::pair<DiscreteGm, std::string>(std::move(gm), name);
     }
 
-    std::size_t n_x;
-    std::size_t n_y;
-    discrete_label_type n_labels;
+    std::size_t n_x = 2;
+    std::size_t n_y = 2;
+    discrete_label_type n_labels = 2;
     std::uint32_t seed = 0;
 };
 
@@ -181,9 +181,9 @@ struct PottsGrid
         return std::pair<DiscreteGm, std::string>(std::move(gm), name);
     }
 
-    std::size_t n_x;
-    std::size_t n_y;
-    discrete_label_type n_labels;
+    std::size_t n_x = 2;
+    std::size_t n_y = 2;
+    discrete_label_type n_labels = 2;
     bool submodular = false;
     std::uint32_t seed = 0;
 };

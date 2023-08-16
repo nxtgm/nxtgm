@@ -1,5 +1,4 @@
 #include <discrete_gm_optimizer_tester.hpp>
-#include <nxtgm/optimizers/gm/discrete/brute_force_naive.hpp>
 
 TEST_CASE("brute-force-naive")
 {

@@ -58,6 +58,7 @@ nxtgm_regiter_test(matching_icm                  optimizers/gm/discrete/test_mat
 nxtgm_regiter_test(qpbo                          optimizers/gm/discrete/test_qpbo.cpp)
 nxtgm_regiter_test(graph_cut                     optimizers/gm/discrete/test_graph_cut.cpp)
 
+
 if(BUILD_SINGLE_BINARY_TESTS)
     message(STATUS "Adding single binary test")
     message(STATUS "ALL_TEST_SOURCES: ${ALL_TEST_SOURCES}")

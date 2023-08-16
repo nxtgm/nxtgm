@@ -6,6 +6,31 @@
 
 #include <nxtgm/optimizers/callback_base.hpp>
 
+#define NXTGM_OPTIMIZER_DEFAULT_FACTORY(NAME)                                                                          \
+    class NAME##DiscreteGmOptimizerFactory : public DiscreteGmOptimizerFactoryBase                                     \
+    {                                                                                                                  \
+      public:                                                                                                          \
+        using factory_base_type = DiscreteGmOptimizerFactoryBase;                                                      \
+        virtual ~NAME##DiscreteGmOptimizerFactory() = default;                                                         \
+        std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,                                          \
+                                                        const nlohmann::json &params) const override                   \
+        {                                                                                                              \
+            return std::make_unique<NAME>(gm, params);                                                                 \
+        }                                                                                                              \
+        int priority() const override                                                                                  \
+        {                                                                                                              \
+            return 1;                                                                                                  \
+        }                                                                                                              \
+        std::string license() const override                                                                           \
+        {                                                                                                              \
+            return "Mit";                                                                                              \
+        }                                                                                                              \
+        std::string description() const override                                                                       \
+        {                                                                                                              \
+            return #NAME;                                                                                              \
+        }                                                                                                              \
+    };
+
 namespace nxtgm
 {
 enum class OptimizationStatus

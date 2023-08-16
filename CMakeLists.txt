@@ -55,14 +55,17 @@ add_library(nxtgm_shared SHARED
     src/nxtgm/models/gm/discrete_gm.cpp
     src/nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.cpp
     src/nxtgm/optimizers/gm/discrete/movemaker.cpp
-    src/nxtgm/optimizers/gm/discrete/brute_force_naive.cpp
-    src/nxtgm/optimizers/gm/discrete/ilp_highs.cpp
-    src/nxtgm/optimizers/gm/discrete/dynamic_programming.cpp
-    src/nxtgm/optimizers/gm/discrete/icm.cpp
-    src/nxtgm/optimizers/gm/discrete/matching_icm.cpp
-    src/nxtgm/optimizers/gm/discrete/belief_propagation.cpp
-    src/nxtgm/optimizers/gm/discrete/qpbo.cpp
-    src/nxtgm/optimizers/gm/discrete/graph_cut.cpp
+
+    src/nxtgm/optimizers/gm/discrete/optimizer_base.cpp
+    # make this all plugins
+    # src/nxtgm/optimizers/gm/discrete/icm.cpp
+    # src/nxtgm/optimizers/gm/discrete/brute_force_naive.cpp
+    # src/nxtgm/optimizers/gm/discrete/ilp_highs.cpp
+    # src/nxtgm/optimizers/gm/discrete/dynamic_programming.cpp
+    # src/nxtgm/optimizers/gm/discrete/matching_icm.cpp
+    # src/nxtgm/optimizers/gm/discrete/belief_propagation.cpp
+    # src/nxtgm/optimizers/gm/discrete/qpbo.cpp
+    # src/nxtgm/optimizers/gm/discrete/graph_cut.cpp
 )
 SET(NXTGM_SHARED_LIBRARY nxtgm_shared)
 
@@ -83,6 +86,7 @@ SET(NXTGM_PLUGIN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/nxtgm/plugins)
 set(NXTGM_PLUGIN_TYPES
     qpbo
     min_st_cut
+    discrete_gm_optimizer
 )
 add_subdirectory(src/nxtgm/plugins)
 
