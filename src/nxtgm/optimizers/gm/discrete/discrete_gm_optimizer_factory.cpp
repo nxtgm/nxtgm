@@ -8,6 +8,7 @@ namespace nxtgm
 std::unique_ptr<DiscreteGmOptimizerBase> discrete_gm_optimizer_factory(const DiscreteGm &gm, const std::string &name,
                                                                        const nlohmann::json parameter)
 {
+    const std::string plugin_name = "discrete_gm_optimizer_" + name;
     return get_plugin_registry<DiscreteGmOptimizerFactoryBase>().get_factory(name)->create(gm, parameter);
 }
 

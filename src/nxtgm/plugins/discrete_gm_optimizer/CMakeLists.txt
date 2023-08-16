@@ -2,9 +2,9 @@ set(PLUGIN_TYPE         discrete_gm_optimizer)
 SET(DISCRETE_GM_OPTIMIZER_INSTALL_PATH lib/nxtgm/plugins/${PLUGIN_TYPE})
 
 
-function(add_solver PLUGIN_TARGET_NAME)
-
-    add_xplugin(${PLUGIN_TARGET_NAME} ${PLUGIN_TARGET_NAME}.cpp)
+function(add_solver BASE_NAME)
+    SET(PLUGIN_TARGET_NAME discrete_gm_optimizer_${BASE_NAME})
+    add_xplugin(${PLUGIN_TARGET_NAME} ${BASE_NAME}.cpp)
     target_link_libraries(${PLUGIN_TARGET_NAME}  ${NXTGM_SHARED_LIBRARY})
     install(TARGETS ${PLUGIN_TARGET_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/nxtgm/plugins/${PLUGIN_TYPE})
 
