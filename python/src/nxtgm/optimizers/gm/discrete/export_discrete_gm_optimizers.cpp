@@ -3,7 +3,6 @@
 #include <pybind11/chrono.h>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
-#include <pybind11_json/pybind11_json.hpp>
 
 #include <xtensor-python/pytensor.hpp>
 

@@ -19,7 +19,6 @@ dependencies:
   # dependencies pythonbindings
   - python
   - pybind11
-  - pybind11_json
   - xtensor-python
   - numpy
   # python testing
