@@ -133,7 +133,7 @@ class TestOptimizers:
 
     @pytest.mark.skipif(os.name == 'nt', reason='not supported on windows')
     def test_ilp_highs(self):
-        gm = potts_chain(num_variables=10, num_labels=2)  # noqa 405
+        gm = potts_chain(num_variables=10, num_labels=2)
 
         # setup optimizer
         print('constructing optimizer')
@@ -158,7 +158,7 @@ class TestOptimizers:
         print(f'energy: {energy}, how_violated: {how_violated}')
 
     def test_icm(self):
-        gm = potts_chain(num_variables=10, num_labels=2)  # noqa 405
+        gm = potts_chain(num_variables=10, num_labels=2)
 
         # setup optimizer
         optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'icm')
