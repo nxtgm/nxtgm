@@ -29,10 +29,6 @@ void export_discrete_gm_optimizers(py::module_ &pymodule)
     // on the python side to allow for a more pythonic interface
     py::class_<OptimizerParameters>(pymodule, "_OptimizerParameters")
         .def(py::init<>())
-        //.def(py::init<const OptimizerParameters &>(), py::arg("parameters"))
-
-        // custom init from dict
-
         .def("__setitem__", [](OptimizerParameters &params, const std::string &key,
                                const std::string &value) { params.string_parameters[key] = value; })
         .def("__setitem__",
@@ -40,7 +36,6 @@ void export_discrete_gm_optimizers(py::module_ &pymodule)
         .def("__setitem__", [](OptimizerParameters &params, const std::string &key,
                                double value) { params.double_parameters[key] = value; })
         .def("__setitem__", [](OptimizerParameters &params, const std::string &key, const OptimizerParameters &value) {
-            std::cout << "setitem " << key << std::endl;
             params.optimizer_parameters[key] = value;
         });
 
