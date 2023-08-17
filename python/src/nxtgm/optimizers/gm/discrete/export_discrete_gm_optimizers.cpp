@@ -13,18 +13,10 @@ namespace py = pybind11;
 
 namespace nxtgm
 {
-template <class optimzier_type>
-auto export_optimizer(py::module_ &pymodule)
-{
-    auto optimizer_cls = py::class_<optimzier_type, DiscreteGmOptimizerBase>(pymodule, optimzier_type::name().c_str(),
-                                                                             py::dynamic_attr())
-                             .def(py::init<const DiscreteGm &, const nlohmann::json &>(), py::arg("gm"),
-                                  py::arg("parameters") = nlohmann::json(), py::keep_alive<0, 1>());
-}
 
 void export_discrete_gm_optimizers(py::module_ &pymodule)
 {
-    // enum
+
     py::enum_<OptimizationStatus>(pymodule, "OptimizationStatus")
         .value("OPTIMAL", OptimizationStatus::OPTIMAL)
         .value("PARTIAL_OPTIMAL", OptimizationStatus::PARTIAL_OPTIMAL)
@@ -33,6 +25,25 @@ void export_discrete_gm_optimizers(py::module_ &pymodule)
         .value("UNKNOWN", OptimizationStatus::UNKNOWN)
         .value("TIME_LIMIT_REACHED", OptimizationStatus::TIME_LIMIT_REACHED)
         .value("CALLBACK_EXIT", OptimizationStatus::CALLBACK_EXIT);
+
+    // we will create a class OptimizerParameters derived from _OptimizerParameters
+    // on the python side to allow for a more pythonic interface
+    py::class_<OptimizerParameters>(pymodule, "_OptimizerParameters")
+        .def(py::init<>())
+        //.def(py::init<const OptimizerParameters &>(), py::arg("parameters"))
+
+        // custom init from dict
+
+        .def("__setitem__", [](OptimizerParameters &params, const std::string &key,
+                               const std::string &value) { params.string_parameters[key] = value; })
+        .def("__setitem__",
+             [](OptimizerParameters &params, const std::string &key, int value) { params.int_parameters[key] = value; })
+        .def("__setitem__", [](OptimizerParameters &params, const std::string &key,
+                               double value) { params.double_parameters[key] = value; })
+        .def("__setitem__", [](OptimizerParameters &params, const std::string &key, const OptimizerParameters &value) {
+            std::cout << "setitem " << key << std::endl;
+            params.optimizer_parameters[key] = value;
+        });
 
     // reporter callback base
     using reporter_callback_base_type = DiscreteGmOptimizerBase::reporter_callback_base_type;
@@ -71,15 +82,7 @@ void export_discrete_gm_optimizers(py::module_ &pymodule)
         .def("current_solution_value", &DiscreteGmOptimizerBase::current_solution_value)
         .def("lower_bound", &DiscreteGmOptimizerBase::lower_bound);
 
-    pymodule.def("discrete_gm_optimizer_factory", &discrete_gm_optimizer_factory, py::arg("optimizer_name"),
-                 py::arg("gm"), py::arg("parameters") = nlohmann::json(), py::keep_alive<1, 2>());
-
-    // concrete optimizers
-    // export_optimizer<BruteForceNaive>(pymodule);
-    // export_optimizer<IlpHighs>(pymodule);
-    // export_optimizer<BeliefPropagation>(pymodule);
-    // export_optimizer<DynamicProgramming>(pymodule);
-    // export_optimizer<Icm>(pymodule);
-    // export_optimizer<MatchingIcm>(pymodule);
+    pymodule.def("_discrete_gm_optimizer_factory", &discrete_gm_optimizer_factory, py::arg("gm"),
+                 py::arg("optimizer_name"), py::arg("parameters") = OptimizerParameters(), py::keep_alive<1, 2>());
 }
 } // namespace nxtgm

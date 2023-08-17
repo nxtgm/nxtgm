@@ -81,7 +81,6 @@ OptimizationStatus ChainedOptimizers::optimize(reporter_callback_wrapper_type &r
 
     for (const auto &[optimizer_name, optimizer_parameters] : parameters_.optimizer_parameters)
     {
-
         auto optimizer = discrete_gm_optimizer_factory(gm, optimizer_name, optimizer_parameters);
 
         auto starting_point = const_discrete_solution_span(best_solution_.data(), best_solution_.size());
@@ -94,6 +93,8 @@ OptimizationStatus ChainedOptimizers::optimize(reporter_callback_wrapper_type &r
         {
             best_solution_value_ = solution_value;
             best_solution_ = optimizer->best_solution();
+
+            reporter_callback.report();
         }
 
         if (status == OptimizationStatus::OPTIMAL)
