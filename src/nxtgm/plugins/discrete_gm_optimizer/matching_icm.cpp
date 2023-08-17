@@ -16,12 +16,12 @@ class MatchingIcm : public DiscreteGmOptimizerBase
     class parameters_type : public OptimizerParametersBase
     {
       public:
-        inline parameters_type(const nlohmann::json &json_parameters)
-            : OptimizerParametersBase(json_parameters)
+        inline parameters_type(const OptimizerParameters &parameters)
+            : OptimizerParametersBase(parameters)
         {
-            if (json_parameters.contains("subgraph_size"))
+            if (auto it = parameters.int_parameters.find("subgraph_size"); it != parameters.int_parameters.end())
             {
-                subgraph_size = json_parameters["subgraph_size"];
+                subgraph_size = it->second;
             }
         }
         int subgraph_size = 3;
@@ -42,7 +42,7 @@ class MatchingIcm : public DiscreteGmOptimizerBase
     }
     virtual ~MatchingIcm() = default;
 
-    MatchingIcm(const DiscreteGm &gm, const nlohmann::json &parameters);
+    MatchingIcm(const DiscreteGm &gm, const OptimizerParameters &parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span starting_point) override;
@@ -70,9 +70,9 @@ XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::MatchingIcmDiscreteGmOptimizerFactory);
 
 namespace nxtgm
 {
-MatchingIcm::MatchingIcm(const DiscreteGm &gm, const nlohmann::json &json_parameters)
+MatchingIcm::MatchingIcm(const DiscreteGm &gm, const OptimizerParameters &parameters)
     : base_type(gm),
-      parameters_(json_parameters),
+      parameters_(parameters),
       movemaker_(gm),
       in_queue_(gm.num_variables(), 1)
 {

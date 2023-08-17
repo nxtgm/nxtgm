@@ -18,16 +18,16 @@ class IlpHighs : public DiscreteGmOptimizerBase
     class parameters_type : public OptimizerParametersBase
     {
       public:
-        inline parameters_type(const nlohmann::json &json_parameters)
-            : OptimizerParametersBase(json_parameters)
+        inline parameters_type(const OptimizerParameters &parameters)
+            : OptimizerParametersBase(parameters)
         {
-            if (json_parameters.contains("integer"))
+            if (auto it = parameters.int_parameters.find("integer"); it != parameters.int_parameters.end())
             {
-                integer = json_parameters["integer"].get<bool>();
+                integer = it->second;
             }
-            if (json_parameters.contains("highs_log_to_console"))
+            if (auto it = parameters.int_parameters.find("highs_log_to_console"); it != parameters.int_parameters.end())
             {
-                highs_log_to_console = json_parameters["highs_log_to_console"].get<bool>();
+                highs_log_to_console = it->second;
             }
         }
 
@@ -49,7 +49,7 @@ class IlpHighs : public DiscreteGmOptimizerBase
         return "IlpHighs";
     }
 
-    IlpHighs(const DiscreteGm &gm, const nlohmann::json &parameters);
+    IlpHighs(const DiscreteGm &gm, const OptimizerParameters &parameters);
 
     virtual ~IlpHighs() = default;
 
@@ -140,9 +140,9 @@ OptimizationStatus highsModelStatusToOptimizationStatus(Highs &highs, HighsModel
     }
 }
 
-IlpHighs::IlpHighs(const DiscreteGm &gm, const nlohmann::json &json_parameters)
+IlpHighs::IlpHighs(const DiscreteGm &gm, const OptimizerParameters &parameters)
     : base_type(gm),
-      parameters_(json_parameters),
+      parameters_(parameters),
       best_solution_(gm.num_variables(), 0),
       current_solution_(),
       best_sol_value_(),

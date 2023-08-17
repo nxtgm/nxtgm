@@ -32,6 +32,7 @@ find_package(xtensor REQUIRED)
 find_package(HIGHS REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(xplugin REQUIRED)
+find_package(tsl-ordered-map REQUIRED)
 
 ###############################################################
 # converage
@@ -53,9 +54,9 @@ add_library(nxtgm_shared SHARED
     src/nxtgm/constraint_functions/discrete_constraints.cpp
     src/nxtgm/models/solution_value.cpp
     src/nxtgm/models/gm/discrete_gm.cpp
+    src/nxtgm/optimizers/optimizer_parameters.cpp
     src/nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.cpp
     src/nxtgm/optimizers/gm/discrete/movemaker.cpp
-
     src/nxtgm/optimizers/gm/discrete/optimizer_base.cpp
 
 )
@@ -90,14 +91,20 @@ endif()
 # link libraries
 ###############################################################
 
+# public
 target_link_libraries(nxtgm_shared PUBLIC
     fmt::fmt
-    Boost::boost
     highs::highs
+    Boost::boost
     xtensor
     nlohmann_json::nlohmann_json
 )
 
+# private
+target_link_libraries(nxtgm_shared PRIVATE
+    xplugin::xplugin
+    tsl::ordered_map
+)
 
 
 

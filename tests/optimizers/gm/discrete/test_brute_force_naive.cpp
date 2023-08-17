@@ -28,9 +28,9 @@ TEST_CASE("brute-force-naive")
     SUBCASE("time-limited")
     {
 
-        njson parameters;
+        nxtgm::OptimizerParameters parameters;
         // 50 milliseconds as seconds
-        parameters["time_limit"] = 0.05;
+        parameters["time_limit_ms"] = 50;
 
         nxtgm::tests::test_discrete_gm_optimizer(
             "brute_force_naive", {parameters}, std::make_tuple(nxtgm::tests::PottsChain{10, 10}), 20,

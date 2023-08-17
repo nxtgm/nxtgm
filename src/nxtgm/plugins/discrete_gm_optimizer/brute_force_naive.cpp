@@ -9,8 +9,8 @@ class BruteForceNaive : public DiscreteGmOptimizerBase
     class parameters_type : public OptimizerParametersBase
     {
       public:
-        inline parameters_type(const nlohmann::json &json_parameters)
-            : OptimizerParametersBase(json_parameters)
+        inline parameters_type(const OptimizerParameters &parameters)
+            : OptimizerParametersBase(parameters)
         {
         }
     };
@@ -30,7 +30,7 @@ class BruteForceNaive : public DiscreteGmOptimizerBase
     }
     virtual ~BruteForceNaive() = default;
 
-    BruteForceNaive(const DiscreteGm &gm, const nlohmann::json &json_parameters);
+    BruteForceNaive(const DiscreteGm &gm, const OptimizerParameters &json_parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span starting_point) override;
@@ -49,9 +49,9 @@ class BruteForceNaive : public DiscreteGmOptimizerBase
     SolutionValue current_sol_value_;
 };
 
-BruteForceNaive::BruteForceNaive(const DiscreteGm &gm, const nlohmann::json &json_parameters)
+BruteForceNaive::BruteForceNaive(const DiscreteGm &gm, const OptimizerParameters &parameters)
     : base_type(gm),
-      parameters_(json_parameters),
+      parameters_(parameters),
       best_solution_(gm.space().size(), 0),
       current_solution_(gm.space().size(), 0),
       best_sol_value_(),

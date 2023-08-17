@@ -16,12 +16,25 @@ class DynamicProgramming : public DiscreteGmOptimizerBase
     class parameters_type : public OptimizerParametersBase
     {
       public:
-        inline parameters_type(const nlohmann::json &json_parameters)
-            : OptimizerParametersBase(json_parameters)
+        inline parameters_type(const OptimizerParameters &parameters)
+            : OptimizerParametersBase(parameters)
         {
-            if (json_parameters.contains("roots"))
+
+            if (auto it = parameters.any_parameters.find("roots"); it != parameters.any_parameters.end())
             {
-                roots = json_parameters["roots"].get<std::vector<std::size_t>>();
+                const std::any &roots_any = it->second;
+                if (roots_any.has_value() == false)
+                {
+                    throw std::runtime_error("roots must be a std::vector<std::size_t>");
+                }
+                if (roots_any.has_value() == false || roots_any.type() != typeid(std::vector<std::size_t>))
+                {
+                    throw std::runtime_error("roots must be a std::vector<std::size_t>");
+                }
+                else
+                {
+                    roots = std::any_cast<std::vector<std::size_t>>(roots_any);
+                }
             }
         }
         std::vector<std::size_t> roots;
@@ -42,7 +55,7 @@ class DynamicProgramming : public DiscreteGmOptimizerBase
     }
     virtual ~DynamicProgramming() = default;
 
-    DynamicProgramming(const DiscreteGm &gm, const nlohmann::json &parameters);
+    DynamicProgramming(const DiscreteGm &gm, const OptimizerParameters &parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span) override;
@@ -78,9 +91,9 @@ XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::DynamicProgrammingDiscreteGmOptimizerFacto
 namespace nxtgm
 {
 
-DynamicProgramming::DynamicProgramming(const DiscreteGm &gm, const nlohmann::json &json_parameters)
+DynamicProgramming::DynamicProgramming(const DiscreteGm &gm, const OptimizerParameters &parameters)
     : base_type(gm),
-      parameters_(json_parameters),
+      parameters_(parameters),
       best_solution_(gm.num_variables()),
       best_sol_value_(gm.evaluate(best_solution_)),
       factors_of_variables_(gm),

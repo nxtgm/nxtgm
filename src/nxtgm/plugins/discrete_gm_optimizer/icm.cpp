@@ -16,8 +16,8 @@ class Icm : public DiscreteGmOptimizerBase
     class parameters_type : public OptimizerParametersBase
     {
       public:
-        inline parameters_type(const nlohmann::json &json_parameters)
-            : OptimizerParametersBase(json_parameters)
+        inline parameters_type(const OptimizerParameters &parameters)
+            : OptimizerParametersBase(parameters)
         {
         }
     };
@@ -37,7 +37,7 @@ class Icm : public DiscreteGmOptimizerBase
     }
     virtual ~Icm() = default;
 
-    Icm(const DiscreteGm &gm, const nlohmann::json &parameters);
+    Icm(const DiscreteGm &gm, const OptimizerParameters &parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span starting_point) override;
@@ -67,9 +67,9 @@ XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::IcmDiscreteGmOptimizerFactory);
 namespace nxtgm
 {
 
-Icm::Icm(const DiscreteGm &gm, const nlohmann::json &json_parameters)
+Icm::Icm(const DiscreteGm &gm, const OptimizerParameters &parameters)
     : base_type(gm),
-      parameters_(json_parameters),
+      parameters_(parameters),
       movemaker_(gm),
       in_queue_(gm.num_variables(), 1)
 {

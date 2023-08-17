@@ -5,6 +5,7 @@
 #include <tuple>
 
 #include <nxtgm/optimizers/callback_base.hpp>
+#include <nxtgm/optimizers/optimizer_parameters.hpp>
 
 #define NXTGM_OPTIMIZER_DEFAULT_FACTORY(NAME)                                                                          \
     class NAME##DiscreteGmOptimizerFactory : public DiscreteGmOptimizerFactoryBase                                     \
@@ -13,7 +14,7 @@
         using factory_base_type = DiscreteGmOptimizerFactoryBase;                                                      \
         virtual ~NAME##DiscreteGmOptimizerFactory() = default;                                                         \
         std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,                                          \
-                                                        const nlohmann::json &params) const override                   \
+                                                        const OptimizerParameters &params) const override              \
         {                                                                                                              \
             return std::make_unique<NAME>(gm, params);                                                                 \
         }                                                                                                              \
@@ -49,11 +50,12 @@ enum class OptimizationStatus
 class OptimizerParametersBase
 {
   public:
-    inline OptimizerParametersBase(const nlohmann::json &json_parameters)
+    inline OptimizerParametersBase(const OptimizerParameters &p)
     {
-        if (json_parameters.contains("time_limit"))
+
+        if (auto it = p.int_parameters.find("time_limit_ms"); it != p.int_parameters.end())
         {
-            time_limit = std::chrono::seconds(json_parameters["time_limit"].get<int>());
+            time_limit = std::chrono::milliseconds(it->second);
         }
     }
 

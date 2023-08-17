@@ -12,24 +12,26 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
     class parameters_type : public OptimizerParametersBase
     {
       public:
-        inline parameters_type(const nlohmann::json &json_parameters)
-            : OptimizerParametersBase(json_parameters)
+        inline parameters_type(const OptimizerParameters &parameters)
+            : OptimizerParametersBase(parameters)
         {
-            if (json_parameters.contains("max_iterations"))
+
+            if (auto it = parameters.int_parameters.find("max_iterations"); it != parameters.int_parameters.end())
             {
-                max_iterations = json_parameters["max_iterations"];
+                max_iterations = it->second;
             }
-            if (json_parameters.contains("convergence_tolerance"))
+            if (auto it = parameters.double_parameters.find("convergence_tolerance");
+                it != parameters.double_parameters.end())
             {
-                convergence_tolerance = json_parameters["convergence_tolerance"];
+                convergence_tolerance = it->second;
             }
-            if (json_parameters.contains("damping"))
+            if (auto it = parameters.double_parameters.find("damping"); it != parameters.double_parameters.end())
             {
-                damping = json_parameters["damping"];
+                damping = it->second;
             }
-            if (json_parameters.contains("normalize_messages"))
+            if (auto it = parameters.int_parameters.find("normalize_messages"); it != parameters.int_parameters.end())
             {
-                normalize_messages = json_parameters["normalize_messages"];
+                normalize_messages = it->second;
             }
         }
 
@@ -54,7 +56,7 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
     }
     virtual ~BeliefPropagation() = default;
 
-    BeliefPropagation(const DiscreteGm &gm, const nlohmann::json &json_parameters);
+    BeliefPropagation(const DiscreteGm &gm, const OptimizerParameters &json_parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span starting_point) override;
@@ -108,7 +110,7 @@ XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::BeliefPropagationDiscreteGmOptimizerFactor
 namespace nxtgm
 {
 
-BeliefPropagation::BeliefPropagation(const DiscreteGm &gm, const nlohmann::json &json_parameters)
+BeliefPropagation::BeliefPropagation(const DiscreteGm &gm, const OptimizerParameters &json_parameters)
     : base_type(gm),
       parameters_(json_parameters),
       iteration_(0),

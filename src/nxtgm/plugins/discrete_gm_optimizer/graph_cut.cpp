@@ -14,16 +14,18 @@ class GraphCut : public DiscreteGmOptimizerBase
     class parameters_type : public OptimizerParametersBase
     {
       public:
-        inline parameters_type(const nlohmann::json &json_parameters)
-            : OptimizerParametersBase(json_parameters)
+        inline parameters_type(const OptimizerParameters &parameters)
+            : OptimizerParametersBase(parameters)
         {
-            if (json_parameters.contains("min_st_cut_plugin_name"))
+            if (auto it = parameters.string_parameters.find("min_st_cut_plugin_name");
+                it != parameters.string_parameters.end())
             {
-                min_st_cut_plugin_name = json_parameters["min_st_cut_plugin_name"].get<std::string>();
+                min_st_cut_plugin_name = it->second;
             }
-            if (json_parameters.contains("submodular_epsilon"))
+            if (auto it = parameters.double_parameters.find("submodular_epsilon");
+                it != parameters.double_parameters.end())
             {
-                submodular_epsilon = json_parameters["submodular_epsilon"].get<double>();
+                submodular_epsilon = it->second;
             }
         }
 
@@ -46,7 +48,7 @@ class GraphCut : public DiscreteGmOptimizerBase
     }
     virtual ~GraphCut() = default;
 
-    GraphCut(const DiscreteGm &gm, const nlohmann::json &parameters);
+    GraphCut(const DiscreteGm &gm, const OptimizerParameters &parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span starting_point) override;
@@ -73,9 +75,9 @@ XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::GraphCutDiscreteGmOptimizerFactory);
 
 namespace nxtgm
 {
-GraphCut::GraphCut(const DiscreteGm &gm, const nlohmann::json &json_parameters)
+GraphCut::GraphCut(const DiscreteGm &gm, const OptimizerParameters &parameters)
     : base_type(gm),
-      parameters_(json_parameters),
+      parameters_(parameters),
       best_solution_value_(),
       best_solution_(gm.num_variables(), 0),
       min_st_cut_(nullptr)

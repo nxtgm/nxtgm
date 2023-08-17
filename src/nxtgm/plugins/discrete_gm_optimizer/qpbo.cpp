@@ -15,12 +15,13 @@ class Qpbo : public DiscreteGmOptimizerBase
     class parameters_type : public OptimizerParametersBase
     {
       public:
-        inline parameters_type(const nlohmann::json &json_parameters)
-            : OptimizerParametersBase(json_parameters)
+        inline parameters_type(const OptimizerParameters &parameters)
+            : OptimizerParametersBase(parameters)
         {
-            if (json_parameters.contains("qpbo_plugin_name"))
+            if (auto it = parameters.string_parameters.find("qpbo_plugin_name");
+                it != parameters.string_parameters.end())
             {
-                qpbo_plugin_name = json_parameters["qpbo_plugin_name"].get<std::string>();
+                qpbo_plugin_name = it->second;
             }
         }
 
@@ -42,7 +43,7 @@ class Qpbo : public DiscreteGmOptimizerBase
     }
     virtual ~Qpbo() = default;
 
-    Qpbo(const DiscreteGm &gm, const nlohmann::json &parameters);
+    Qpbo(const DiscreteGm &gm, const OptimizerParameters &parameters);
 
     OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                 const_discrete_solution_span starting_point) override;
@@ -72,9 +73,9 @@ XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::QpboDiscreteGmOptimizerFactory);
 
 namespace nxtgm
 {
-Qpbo::Qpbo(const DiscreteGm &gm, const nlohmann::json &json_parameters)
+Qpbo::Qpbo(const DiscreteGm &gm, const OptimizerParameters &parameters)
     : base_type(gm),
-      parameters_(json_parameters),
+      parameters_(parameters),
       best_solution_value_(),
       best_solution_(gm.num_variables(), 0),
       qpbo_(nullptr),

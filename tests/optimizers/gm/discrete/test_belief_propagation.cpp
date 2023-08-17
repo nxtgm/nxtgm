@@ -5,7 +5,7 @@ TEST_CASE("belief-propagation")
     SUBCASE("trees")
     {
 
-        njson parameters;
+        nxtgm::OptimizerParameters parameters;
         parameters["max_iterations"] = 20000;
 
         nxtgm::tests::test_discrete_gm_optimizer(
@@ -20,7 +20,7 @@ TEST_CASE("belief-propagation")
     SUBCASE("trees-with-damping")
     {
 
-        njson parameters;
+        nxtgm::OptimizerParameters parameters;
         parameters["max_iterations"] = 20000;
         parameters["damping"] = 0.9;
 
@@ -37,7 +37,7 @@ TEST_CASE("belief-propagation")
     SUBCASE("large-trees")
     {
 
-        njson parameters;
+        nxtgm::OptimizerParameters parameters;
         parameters["max_iterations"] = 20000;
 
         nxtgm::tests::test_discrete_gm_optimizer(
