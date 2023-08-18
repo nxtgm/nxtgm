@@ -1,12 +1,57 @@
-#include <nxtgm/optimizers/gm/discrete/brute_force_naive.hpp>
+#include <nxtgm/optimizers/gm/discrete/optimizer_base.hpp>
 #include <nxtgm/utils/timer.hpp>
 
 namespace nxtgm
 {
 
-BruteForceNaive::BruteForceNaive(const DiscreteGm &gm, const nlohmann::json &json_parameters)
+class BruteForceNaive : public DiscreteGmOptimizerBase
+{
+    class parameters_type : public OptimizerParametersBase
+    {
+      public:
+        inline parameters_type(const OptimizerParameters &parameters)
+            : OptimizerParametersBase(parameters)
+        {
+        }
+    };
+
+  public:
+    using base_type = DiscreteGmOptimizerBase;
+    using solution_type = typename DiscreteGm::solution_type;
+
+    using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
+    using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
+
+    using base_type::optimize;
+
+    inline static std::string name()
+    {
+        return "BruteForceNaive";
+    }
+    virtual ~BruteForceNaive() = default;
+
+    BruteForceNaive(const DiscreteGm &gm, const OptimizerParameters &json_parameters);
+
+    OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                const_discrete_solution_span starting_point) override;
+
+    SolutionValue best_solution_value() const override;
+    SolutionValue current_solution_value() const override;
+
+    const solution_type &best_solution() const override;
+    const solution_type &current_solution() const override;
+
+  private:
+    parameters_type parameters_;
+    solution_type best_solution_;
+    solution_type current_solution_;
+    SolutionValue best_sol_value_;
+    SolutionValue current_sol_value_;
+};
+
+BruteForceNaive::BruteForceNaive(const DiscreteGm &gm, const OptimizerParameters &parameters)
     : base_type(gm),
-      parameters_(json_parameters),
+      parameters_(parameters),
       best_solution_(gm.space().size(), 0),
       current_solution_(gm.space().size(), 0),
       best_sol_value_(),
@@ -16,6 +61,15 @@ BruteForceNaive::BruteForceNaive(const DiscreteGm &gm, const nlohmann::json &jso
     best_sol_value_ = gm.evaluate(best_solution_, false /* early exit when infeasible*/);
     current_sol_value_ = best_sol_value_;
 }
+
+NXTGM_OPTIMIZER_DEFAULT_FACTORY(BruteForceNaive);
+
+} // namespace nxtgm
+
+XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::BruteForceNaiveDiscreteGmOptimizerFactory);
+
+namespace nxtgm
+{
 
 OptimizationStatus BruteForceNaive::optimize(reporter_callback_wrapper_type &reporter_callback,
                                              repair_callback_wrapper_type & /*repair_callback not used*/,

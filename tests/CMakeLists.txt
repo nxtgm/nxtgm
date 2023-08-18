@@ -57,6 +57,8 @@ nxtgm_regiter_test(icm                           optimizers/gm/discrete/test_icm
 nxtgm_regiter_test(matching_icm                  optimizers/gm/discrete/test_matching_icm.cpp)
 nxtgm_regiter_test(qpbo                          optimizers/gm/discrete/test_qpbo.cpp)
 nxtgm_regiter_test(graph_cut                     optimizers/gm/discrete/test_graph_cut.cpp)
+nxtgm_regiter_test(optimizers                    optimizers/gm/discrete/test_optimizers.cpp)
+nxtgm_regiter_test(optimizer_parameters          optimizers/test_optimizer_parameters.cpp)
 
 if(BUILD_SINGLE_BINARY_TESTS)
     message(STATUS "Adding single binary test")

@@ -1,16 +1,83 @@
 #include <iostream>
 #include <limits>
 #include <nxtgm/nxtgm.hpp>
-#include <nxtgm/optimizers/gm/discrete/graph_cut.hpp>
+#include <nxtgm/optimizers/gm/discrete/optimizer_base.hpp>
+#include <nxtgm/plugins/min_st_cut/min_st_cut_base.hpp>
 #include <nxtgm/plugins/plugin_registry.hpp>
 #include <nxtgm/utils/timer.hpp>
 
 namespace nxtgm
 {
 
-GraphCut::GraphCut(const DiscreteGm &gm, const nlohmann::json &json_parameters)
+class GraphCut : public DiscreteGmOptimizerBase
+{
+    class parameters_type : public OptimizerParametersBase
+    {
+      public:
+        inline parameters_type(const OptimizerParameters &parameters)
+            : OptimizerParametersBase(parameters)
+        {
+            if (auto it = parameters.string_parameters.find("min_st_cut_plugin_name");
+                it != parameters.string_parameters.end())
+            {
+                min_st_cut_plugin_name = it->second;
+            }
+            if (auto it = parameters.double_parameters.find("submodular_epsilon");
+                it != parameters.double_parameters.end())
+            {
+                submodular_epsilon = it->second;
+            }
+        }
+
+        std::string min_st_cut_plugin_name;
+        double submodular_epsilon = 1e-6;
+    };
+
+  public:
+    using base_type = DiscreteGmOptimizerBase;
+    using solution_type = typename DiscreteGm::solution_type;
+
+    using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
+    using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
+
+    using base_type::optimize;
+
+    inline static std::string name()
+    {
+        return "GraphCut";
+    }
+    virtual ~GraphCut() = default;
+
+    GraphCut(const DiscreteGm &gm, const OptimizerParameters &parameters);
+
+    OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                const_discrete_solution_span starting_point) override;
+
+    SolutionValue best_solution_value() const override;
+    SolutionValue current_solution_value() const override;
+
+    const solution_type &best_solution() const override;
+    const solution_type &current_solution() const override;
+
+  private:
+    parameters_type parameters_;
+
+    SolutionValue best_solution_value_;
+    solution_type best_solution_;
+
+    std::unique_ptr<MinStCutBase> min_st_cut_;
+};
+
+NXTGM_OPTIMIZER_DEFAULT_FACTORY(GraphCut);
+} // namespace nxtgm
+
+XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::GraphCutDiscreteGmOptimizerFactory);
+
+namespace nxtgm
+{
+GraphCut::GraphCut(const DiscreteGm &gm, const OptimizerParameters &parameters)
     : base_type(gm),
-      parameters_(json_parameters),
+      parameters_(parameters),
       best_solution_value_(),
       best_solution_(gm.num_variables(), 0),
       min_st_cut_(nullptr)

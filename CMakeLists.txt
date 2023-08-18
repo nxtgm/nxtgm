@@ -32,6 +32,7 @@ find_package(xtensor REQUIRED)
 find_package(HIGHS REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(xplugin REQUIRED)
+find_package(tsl-ordered-map REQUIRED)
 
 ###############################################################
 # converage
@@ -53,16 +54,11 @@ add_library(nxtgm_shared SHARED
     src/nxtgm/constraint_functions/discrete_constraints.cpp
     src/nxtgm/models/solution_value.cpp
     src/nxtgm/models/gm/discrete_gm.cpp
+    src/nxtgm/optimizers/optimizer_parameters.cpp
     src/nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.cpp
     src/nxtgm/optimizers/gm/discrete/movemaker.cpp
-    src/nxtgm/optimizers/gm/discrete/brute_force_naive.cpp
-    src/nxtgm/optimizers/gm/discrete/ilp_highs.cpp
-    src/nxtgm/optimizers/gm/discrete/dynamic_programming.cpp
-    src/nxtgm/optimizers/gm/discrete/icm.cpp
-    src/nxtgm/optimizers/gm/discrete/matching_icm.cpp
-    src/nxtgm/optimizers/gm/discrete/belief_propagation.cpp
-    src/nxtgm/optimizers/gm/discrete/qpbo.cpp
-    src/nxtgm/optimizers/gm/discrete/graph_cut.cpp
+    src/nxtgm/optimizers/gm/discrete/optimizer_base.cpp
+
 )
 SET(NXTGM_SHARED_LIBRARY nxtgm_shared)
 
@@ -80,10 +76,6 @@ target_include_directories(nxtgm_shared PUBLIC
 # plugins
 ###############################################################
 SET(NXTGM_PLUGIN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/nxtgm/plugins)
-set(NXTGM_PLUGIN_TYPES
-    qpbo
-    min_st_cut
-)
 add_subdirectory(src/nxtgm/plugins)
 
 
@@ -99,14 +91,20 @@ endif()
 # link libraries
 ###############################################################
 
+# public
 target_link_libraries(nxtgm_shared PUBLIC
     fmt::fmt
-    Boost::boost
     highs::highs
+    Boost::boost
     xtensor
     nlohmann_json::nlohmann_json
 )
 
+# private
+target_link_libraries(nxtgm_shared PRIVATE
+    xplugin::xplugin
+    tsl::ordered_map
+)
 
 
 

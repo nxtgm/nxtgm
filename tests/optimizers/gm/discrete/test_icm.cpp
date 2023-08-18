@@ -1,5 +1,4 @@
 #include <discrete_gm_optimizer_tester.hpp>
-#include <nxtgm/optimizers/gm/discrete/icm.hpp>
 
 TEST_CASE("icm")
 {

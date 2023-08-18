@@ -1,5 +1,4 @@
 #include <discrete_gm_optimizer_tester.hpp>
-#include <nxtgm/optimizers/gm/discrete/qpbo.hpp>
 
 TEST_CASE("qpbo")
 {

@@ -14,7 +14,9 @@ def add_random_unaries(gm, seed=0):
         gm.add_factor([i], function_id)
 
 
-def potts_chain(num_variables, num_labels, seed=0):
+def potts_chain(num_variables, num_labels, submodular=False, seed=0):
+    if submodular:
+        assert num_labels == 2
 
     np.random.seed(seed)
     gm = nxtgm.DiscreteGm(num_variables, num_labels)
@@ -25,7 +27,10 @@ def potts_chain(num_variables, num_labels, seed=0):
     # potts
     for i in range(num_variables-1):
         # random beta
-        beta = np.random.rand()
+        if submodular:
+            beta = np.random.rand()
+        else:
+            beta = np.random.rand()-0.5
         potts = nxtgm.Potts(num_labels, beta)
         function_id = gm.add_function(potts)
         gm.add_factor([i, i+1], function_id)

@@ -6,7 +6,6 @@
 #include <nxtgm/models/gm/discrete_gm.hpp>
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/optimizers/callbacks.hpp>
-#include <nxtgm/optimizers/gm/discrete/brute_force_naive.hpp>
 #include <nxtgm/utils/tuple_for_each.hpp>
 
 #include <nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.hpp>
@@ -19,10 +18,9 @@ inline std::pair<typename DiscreteGm::solution_type, SolutionValue> solve_brute_
 
     using gm_type = std::decay_t<decltype(model)>;
     using solution_type = typename gm_type::solution_type;
-    using optimizer_type = nxtgm::BruteForceNaive;
 
-    auto optimizer_parameters = nlohmann::json();
-    auto optimizer = std::make_unique<optimizer_type>(model, optimizer_parameters);
+    auto optimizer_parameters = OptimizerParameters();
+    auto optimizer = nxtgm::discrete_gm_optimizer_factory(model, "brute_force_naive", optimizer_parameters);
 
     optimizer->optimize();
     return std::pair<solution_type, SolutionValue>(optimizer->best_solution(), optimizer->best_solution_value());
@@ -313,7 +311,8 @@ struct CheckLocalNOptimality
 };
 
 template <class MODEL_GEN_TUPLE, class CHECKER_TUPLE>
-void test_discrete_gm_optimizer(const std::string &solver_name, std::initializer_list<nlohmann::json> solver_parameters,
+void test_discrete_gm_optimizer(const std::string &solver_name,
+                                std::initializer_list<OptimizerParameters> solver_parameters,
                                 MODEL_GEN_TUPLE &&model_gen_tuple, std::size_t n_runs, CHECKER_TUPLE &&checker_tuple,
                                 bool with_testing_callback = true)
 {

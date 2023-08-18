@@ -5,7 +5,6 @@ SET(PY_MODULE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/module)
 find_package(pybind11 REQUIRED)
 find_package(xtensor-python REQUIRED)
 find_package(NumPy REQUIRED)
-find_package(pybind11_json REQUIRED)
 
 # find numpy
 execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import numpy; print(numpy.get_include())"
@@ -29,7 +28,6 @@ pybind11_add_module(_nxtgm
 target_link_libraries(_nxtgm PRIVATE
     ${NXTGM_SHARED_LIBRARY}
     xtensor-python
-    pybind11_json
 )
 
 # include directories
@@ -57,6 +55,7 @@ add_custom_target(python_tests
 
 add_test(NAME python_tests COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target python_tests)
 
+set_property(TEST python_tests PROPERTY ENVIRONMENT "NXTGM_PLUGIN_PATH=${NXTGM_PLUGIN_OUTPUT_DIRECTORY}")
 
 # python get side-packakge dir
 execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"

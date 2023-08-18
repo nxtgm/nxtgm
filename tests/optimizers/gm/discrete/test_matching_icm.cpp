@@ -1,11 +1,10 @@
 #include <discrete_gm_optimizer_tester.hpp>
-#include <nxtgm/optimizers/gm/discrete/matching_icm.hpp>
 
 TEST_CASE("matching-icm")
 {
     SUBCASE("n2")
     {
-        njson params;
+        nxtgm::OptimizerParameters params;
         params["subgraph_size"] = 2;
 
         nxtgm::tests::test_discrete_gm_optimizer(
@@ -18,7 +17,7 @@ TEST_CASE("matching-icm")
     SUBCASE("n3")
     {
 
-        njson params;
+        nxtgm::OptimizerParameters params;
         params["subgraph_size"] = 3;
 
         nxtgm::tests::test_discrete_gm_optimizer(

@@ -1,5 +1,4 @@
 #include <discrete_gm_optimizer_tester.hpp>
-#include <nxtgm/optimizers/gm/discrete/dynamic_programming.hpp>
 
 TEST_CASE("dynamic-programming")
 {

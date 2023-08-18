@@ -15,10 +15,10 @@ dependencies:
   - highs
   - xtensor
   - xplugin >= 0.2.0
+  - tsl_ordered_map
   # dependencies pythonbindings
   - python
   - pybind11
-  - pybind11_json
   - xtensor-python
   - numpy
   # python testing
