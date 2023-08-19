@@ -7,12 +7,15 @@
 #include <nxtgm/plugins/qpbo/qpbo_base.hpp>
 #include <nxtgm/utils/timer.hpp>
 
+#include <algorithm>
+#include <random>
+
 namespace nxtgm
 {
 
 class Qpbo : public DiscreteGmOptimizerBase
 {
-    class parameters_type : public OptimizerParametersBase
+    class parameters_type : public OptimizerParametersBase, public QpboBase::ProbeOptions
     {
       public:
         inline parameters_type(const OptimizerParameters &parameters)
@@ -23,9 +26,30 @@ class Qpbo : public DiscreteGmOptimizerBase
             {
                 qpbo_plugin_name = it->second;
             }
+
+            if (auto it = parameters.int_parameters.find("probing"); it != parameters.int_parameters.end())
+            {
+                probing = it->second;
+            }
+            if (auto it = parameters.int_parameters.find("strong_persistencies"); it != parameters.int_parameters.end())
+            {
+                strong_persistencies = it->second;
+            }
+            if (auto it = parameters.int_parameters.find("improving"); it != parameters.int_parameters.end())
+            {
+                improving = it->second;
+            }
+            if (auto it = parameters.int_parameters.find("seed"); it != parameters.int_parameters.end())
+            {
+                seed = it->second;
+            }
         }
 
         std::string qpbo_plugin_name;
+        bool probing = false;
+        bool strong_persistencies = true;
+        bool improving = false;
+        unsigned seed = 0;
     };
 
   public:
@@ -54,15 +78,16 @@ class Qpbo : public DiscreteGmOptimizerBase
     const solution_type &best_solution() const override;
     const solution_type &current_solution() const override;
 
+    energy_type lower_bound() const override;
+
     bool is_partial_optimal(std::size_t variable_index) const override;
 
   private:
     parameters_type parameters_;
-
     SolutionValue best_solution_value_;
     solution_type best_solution_;
+    energy_type lower_bound_;
     std::vector<int> qpbo_labels_;
-
     std::unique_ptr<QpboBase> qpbo_;
 };
 
@@ -78,6 +103,7 @@ Qpbo::Qpbo(const DiscreteGm &gm, const OptimizerParameters &parameters)
       parameters_(parameters),
       best_solution_value_(),
       best_solution_(gm.num_variables(), 0),
+      lower_bound_(std::numeric_limits<energy_type>::infinity()),
       qpbo_(nullptr),
       qpbo_labels_(gm.num_variables(), -1)
 {
@@ -127,9 +153,14 @@ Qpbo::Qpbo(const DiscreteGm &gm, const OptimizerParameters &parameters)
     }
 }
 
+energy_type Qpbo::lower_bound() const
+{
+    return lower_bound_;
+}
+
 OptimizationStatus Qpbo::optimize(reporter_callback_wrapper_type &reporter_callback,
                                   repair_callback_wrapper_type & /*repair_callback not used*/,
-                                  const_discrete_solution_span)
+                                  const_discrete_solution_span starting_point)
 {
 
     reporter_callback.begin();
@@ -140,20 +171,103 @@ OptimizationStatus Qpbo::optimize(reporter_callback_wrapper_type &reporter_callb
     // shortcut to the model
     const auto &gm = this->model();
 
-    qpbo_->solve(qpbo_labels_.data());
+    qpbo_->merge_parallel_edges();
+    qpbo_->solve();
+    if (!parameters_.strong_persistencies)
+    {
+        qpbo_->compute_weak_persistencies();
+    }
 
+    lower_bound_ = qpbo_->lower_bound();
+    qpbo_->get_labels(qpbo_labels_.data());
+
+    // count unlabeled variables
     std::size_t num_unlabeled = 0;
     for (std::size_t vi = 0; vi < gm.num_variables(); ++vi)
     {
-        const auto qpbo_label = qpbo_labels_[vi];
-        if (qpbo_label < 0)
+        if (qpbo_labels_[vi] < 0)
         {
             ++num_unlabeled;
-            best_solution_[vi] = 0;
         }
-        else
+    }
+
+    if (num_unlabeled > 0 && (parameters_.probing || parameters_.improving))
+    {
+        std::vector<int> list_unlabeled(gm.num_variables());
+        num_unlabeled = 0;
+        for (std::size_t vi = 0; vi < gm.num_variables(); ++vi)
         {
-            best_solution_[vi] = qpbo_label;
+            const auto qpbo_label = qpbo_labels_[vi];
+            if (qpbo_label < 0)
+            {
+                ++num_unlabeled;
+                best_solution_[vi] = 0;
+                list_unlabeled[num_unlabeled - 1] = vi;
+            }
+            else
+            {
+                best_solution_[vi] = qpbo_label;
+            }
+        }
+
+        // initialize mapping
+        std::vector<int> mapping(gm.num_variables());
+        for (std::size_t vi = 0; vi < gm.num_variables(); ++vi)
+        {
+            mapping[vi] = vi * 2;
+        }
+
+        if (parameters_.probing && num_unlabeled > 0)
+        {
+            typename QpboBase::ProbeOptions options;
+            options.persistencies = QpboBase::Persistencies::Weak;
+
+            std::vector<int> new_mapping(gm.num_variables());
+            qpbo_->probe(new_mapping.data(), options);
+            qpbo_->merge_mappings(gm.num_constraints(), mapping.data(), new_mapping.data());
+            qpbo_->compute_weak_persistencies();
+
+            // Read out entire labelling again (as weak persistencies may have changed)
+            num_unlabeled = 0;
+            for (std::size_t vi = 0; vi < gm.num_variables(); ++vi)
+            {
+                qpbo_labels_[vi] = qpbo_->get_label(mapping[vi] / 2);
+                const auto qpbo_label = qpbo_labels_[vi];
+                if (qpbo_label < 0)
+                {
+                    ++num_unlabeled;
+                    best_solution_[vi] = 0;
+                    list_unlabeled[num_unlabeled - 1] = vi;
+                }
+                else
+                {
+                    best_solution_[vi] = qpbo_label;
+                }
+            }
+        }
+        if (parameters_.improving && starting_point.size() == gm.num_variables())
+        {
+            std::vector<int> improve_order(gm.num_variables());
+
+            // Set the labels to the starting point
+            for (std::size_t i = 0; i < num_unlabeled; ++i)
+            {
+                improve_order[i] = mapping[list_unlabeled[i]] / 2;
+                qpbo_->set_label(improve_order[i], starting_point[improve_order[i]]);
+            }
+
+            // randomize the order
+            std::random_device rd;
+            std::mt19937 g(parameters_.seed);
+            std::shuffle(improve_order.begin(), improve_order.begin() + num_unlabeled, g);
+
+            // QPBO-I
+            qpbo_->improve();
+            for (std::size_t i = 0; i < num_unlabeled; ++i)
+            {
+                best_solution_[list_unlabeled[i]] =
+                    (qpbo_->get_label(mapping[list_unlabeled[i]] / 2) + mapping[list_unlabeled[i]]) % 2;
+            }
         }
     }
 
