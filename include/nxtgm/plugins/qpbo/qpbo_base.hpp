@@ -44,8 +44,8 @@ class QpboBase
     virtual void add_unary_term(std::size_t node, const double *cost) = 0;
     virtual void add_pairwise_term(std::size_t node1, std::size_t node2, const double *cost) = 0;
     virtual void solve() = 0;
-
-    // `
+    virtual void reset() = 0;
+    virtual void add_nodes(std::size_t n) = 0;
     virtual void stitch() = 0;
     virtual int get_region(std::size_t node) = 0;
     virtual void merge_parallel_edges() = 0;

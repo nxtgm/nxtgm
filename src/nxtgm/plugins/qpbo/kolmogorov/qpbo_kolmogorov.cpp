@@ -26,7 +26,8 @@ class QpboKolmogorov : public QpboBase
     void add_unary_term(std::size_t node, const double *cost) override;
     void add_pairwise_term(std::size_t node1, std::size_t node2, const double *cost) override;
     void solve() override;
-
+    void reset() override;
+    void add_nodes(std::size_t n) override;
     void stitch() override;
     int get_region(std::size_t node) override;
     void merge_parallel_edges() override;
@@ -80,6 +81,16 @@ void QpboKolmogorov::add_pairwise_term(std::size_t node1, std::size_t node2, con
 void QpboKolmogorov::solve()
 {
     qpbo_->Solve();
+}
+
+void QpboKolmogorov::reset()
+{
+    qpbo_->Reset();
+}
+
+void QpboKolmogorov::add_nodes(std::size_t n)
+{
+    qpbo_->AddNode(n);
 }
 
 void QpboKolmogorov::stitch()
