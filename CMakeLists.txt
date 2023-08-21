@@ -66,17 +66,6 @@ add_library(nxtgm_shared SHARED
 )
 SET(NXTGM_SHARED_LIBRARY nxtgm_shared)
 
-
-
-
-# on windows, linking fails because it does not find  nxtgm_testing_shared
-#
-target_link_libraries(nxtgm_testing_shared PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
-
-
 ###############################################################
 # include directories
 ###############################################################
