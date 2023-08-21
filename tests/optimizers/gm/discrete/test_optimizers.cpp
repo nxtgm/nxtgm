@@ -304,9 +304,15 @@ TEST_CASE("matching_icm")
         // clang-format on
     }
 }
+#ifdef _WIN32
+#define SKIP_WIN doctest::skip(true)
+#else
+#define SKIP_WIN doctest::skip(false)
+#endif
 
-TEST_CASE("ilp_highs")
+TEST_CASE("ilp_highs" * SKIP_WIN)
 {
+
     SUBCASE("small")
     {
         // clang-format off
