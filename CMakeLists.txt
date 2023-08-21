@@ -70,7 +70,7 @@ add_library(nxtgm_testing_shared SHARED
     src/nxtgm/models/gm/discrete_gm/testing/optimizer_tester.cpp
 )
 SET(NXTGM_TESTING_SHARED_LIBRARY SHARED nxtgm_testing_shared)
-#target_link_libraries(nxtgm_testing_shared PUBLIC nxtgm_shared)
+target_link_libraries(nxtgm_testing_shared PUBLIC nxtgm_shared)
 
 
 ###############################################################
@@ -78,10 +78,6 @@ SET(NXTGM_TESTING_SHARED_LIBRARY SHARED nxtgm_testing_shared)
 ###############################################################
 SET(NXTGM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(nxtgm_shared PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
-target_include_directories(nxtgm_testing_shared PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
@@ -166,6 +162,9 @@ if (APPLE)
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib; ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 elseif(NOT EMSCRIPTEN)
     set_target_properties(nxtgm_shared PROPERTIES
+        BUILD_WITH_INSTALL_RPATH 1
+    )
+    set_target_properties(nxtgm_testing_shared PROPERTIES
         BUILD_WITH_INSTALL_RPATH 1
     )
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib; ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
