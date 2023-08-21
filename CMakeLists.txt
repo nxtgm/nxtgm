@@ -70,7 +70,15 @@ add_library(nxtgm_testing_shared SHARED
     src/nxtgm/models/gm/discrete_gm/testing/optimizer_tester.cpp
 )
 SET(NXTGM_TESTING_SHARED_LIBRARY SHARED nxtgm_testing_shared)
-target_link_libraries(nxtgm_testing_shared PUBLIC nxtgm_shared)
+
+
+
+# on windows, linking fails because it does not find  nxtgm_testing_shared
+#
+target_link_libraries(nxtgm_testing_shared PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
 
 
 ###############################################################
@@ -96,6 +104,7 @@ add_subdirectory(src/nxtgm/plugins)
 target_compile_features(nxtgm_shared PUBLIC cxx_std_17)
 if (WIN32)
     set_property(TARGET nxtgm_shared PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS true)
+    set_property(TARGET nxtgm_testing_shared PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS true)
 endif()
 
 ###############################################################
@@ -157,6 +166,9 @@ endif()
 
 if (APPLE)
     set_target_properties(nxtgm_shared PROPERTIES
+        MACOSX_RPATH ON
+    )
+    set_target_properties(nxtgm_testing_shared PROPERTIES
         MACOSX_RPATH ON
     )
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib; ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
