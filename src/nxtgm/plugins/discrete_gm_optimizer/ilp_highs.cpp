@@ -32,7 +32,7 @@ class IlpHighs : public DiscreteGmOptimizerBase
         }
 
         bool integer = true;
-        bool highs_log_to_console = true;
+        bool highs_log_to_console = false;
     };
 
   public:

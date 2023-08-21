@@ -18,14 +18,7 @@ function(add_nxtgm_test name)
     message(STATUS "Adding test ${target_name}")
     add_executable(${target_name} main.cpp ${ARGN})
     target_compile_features(${target_name} PRIVATE cxx_std_17)
-    target_link_libraries(${target_name} PRIVATE nxtgm_shared doctest::doctest )
-
-
-    # make sure to link the just build nxtgm_shared library and **not** the installed one
-    # this is important for the single binary test
-
-
-
+    target_link_libraries(${target_name} PRIVATE nxtgm_testing_shared doctest::doctest)
     target_include_directories(${target_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     add_test(NAME ${target_name} COMMAND ${target_name})
     set_property(TEST ${target_name} PROPERTY ENVIRONMENT "NXTGM_PLUGIN_PATH=${NXTGM_PLUGIN_OUTPUT_DIRECTORY}")
@@ -48,15 +41,6 @@ nxtgm_regiter_test(solution_value                models/test_solution_value.cpp)
 nxtgm_regiter_test(discrete_constraints          constraint_functions/test_discrete_constraints.cpp)
 nxtgm_regiter_test(discrete_energy_functions     energy_functions/test_discrete_energy_functions.cpp)
 nxtgm_regiter_test(space                         spaces/test_space.cpp)
-nxtgm_regiter_test(discrete_gm                   models/gm/test_discrete_gm.cpp)
-nxtgm_regiter_test(brute_force_naive             optimizers/gm/discrete/test_brute_force_naive.cpp)
-nxtgm_regiter_test(ilp_highs                     optimizers/gm/discrete/test_ilp_highs.cpp)
-nxtgm_regiter_test(dynamic_programming           optimizers/gm/discrete/test_dynamic_programming.cpp)
-nxtgm_regiter_test(belief_propagation            optimizers/gm/discrete/test_belief_propagation.cpp)
-nxtgm_regiter_test(icm                           optimizers/gm/discrete/test_icm.cpp)
-nxtgm_regiter_test(matching_icm                  optimizers/gm/discrete/test_matching_icm.cpp)
-nxtgm_regiter_test(qpbo                          optimizers/gm/discrete/test_qpbo.cpp)
-nxtgm_regiter_test(graph_cut                     optimizers/gm/discrete/test_graph_cut.cpp)
 nxtgm_regiter_test(optimizers                    optimizers/gm/discrete/test_optimizers.cpp)
 nxtgm_regiter_test(optimizer_parameters          optimizers/test_optimizer_parameters.cpp)
 

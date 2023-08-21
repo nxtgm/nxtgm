@@ -53,7 +53,7 @@ add_library(nxtgm_shared SHARED
     src/nxtgm/constraint_functions/discrete_constraint_function_base.cpp
     src/nxtgm/constraint_functions/discrete_constraints.cpp
     src/nxtgm/models/solution_value.cpp
-    src/nxtgm/models/gm/discrete_gm.cpp
+    src/nxtgm/models/gm/discrete_gm/discrete_gm.cpp
     src/nxtgm/optimizers/optimizer_parameters.cpp
     src/nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.cpp
     src/nxtgm/optimizers/gm/discrete/movemaker.cpp
@@ -61,6 +61,17 @@ add_library(nxtgm_shared SHARED
 
 )
 SET(NXTGM_SHARED_LIBRARY nxtgm_shared)
+
+###############################################################
+# testlibrary
+###############################################################
+add_library(nxtgm_testing_shared SHARED
+    src/nxtgm/models/gm/discrete_gm/testing/testmodels.cpp
+    src/nxtgm/models/gm/discrete_gm/testing/optimizer_tester.cpp
+)
+SET(NXTGM_TESTING_SHARED_LIBRARY nxtgm_testing_shared)
+target_link_libraries(nxtgm_testing_shared PUBLIC nxtgm_shared)
+
 
 ###############################################################
 # include directories
@@ -169,7 +180,7 @@ set(NXTGM_CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 
 
 # install targets
-install(TARGETS nxtgm_shared
+install(TARGETS nxtgm_shared nxtgm_testing_shared
     EXPORT nxtgmTargets
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
