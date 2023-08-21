@@ -209,7 +209,7 @@ void RequireOptimality::require(DiscreteGmOptimizerBase *optimizer, Optimization
 
         // REQUIRE_MESSAGE(solution_value.energy() == doctest::Approx(optimal_solution_value.energy()), print());
         // REQUIRE(solution_value.energy() == doctest::Approx(optimal_solution_value.energy()));
-        NXTGM_TEST_EQ_TOL(solution_value.energy(), optimal_solution_value.energy(), 1e-6, info);
+        NXTGM_TEST_EQ_TOL(solution_value.energy(), optimal_solution_value.energy(), 1e-6, info + print());
     }
 }
 

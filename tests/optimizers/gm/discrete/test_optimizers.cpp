@@ -235,19 +235,27 @@ TEST_CASE("icm")
 
 TEST_CASE("qpbo")
 {
+    TestDiscreteGmOptimizerOptions test_options;
+    test_options.seed = 42;
+
+    OptimizerParameters parameters;
+    parameters["strong_persistencies"] = 0;
+    parameters["probing"] = 1;
+
     SUBCASE("small")
     {
         // clang-format off
         test_discrete_gm_optimizer(
             "qpbo",
-            OptimizerParameters(),
+            parameters,
             {
                 potts_grid(3,4,2,true),
                 potts_grid(10,1,2,false),
                 star(5,2),
                 sparse_potts_chain(4, 2)
             },
-            require_optimality(/*proven*/ true)
+            require_optimality(/*proven*/ true),
+            test_options
         );
         // clang-format on
     }
@@ -257,7 +265,7 @@ TEST_CASE("qpbo")
         // clang-format off
         test_discrete_gm_optimizer(
             "qpbo",
-            OptimizerParameters(),
+            parameters,
             {
                 potts_grid(10,10,2,true),
                 star(20,2)
