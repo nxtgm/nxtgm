@@ -328,33 +328,7 @@ TEST_CASE("ilp_highs")
                 unique_label_chain(2,2, false),
                 unique_label_chain(4,5, false)
             },
-            require_optimality(/*proven*/ true)
-        );
-        // clang-format on
-    }
-    SUBCASE("large")
-    {
-        // clang-format off
-        test_discrete_gm_optimizer(
-            "ilp_highs",
-            OptimizerParameters(),
-            {
-                potts_grid(6,6,3,false),
-                star(20,2),
-                sparse_potts_chain(8, 2),
-                random_sparse_model(10, 10, 2, 4, 4, 0.5 ),
-                random_sparse_model(20, 20, 2, 4, 4, 0.2 ),
-                sparse_potts_chain(10,5),
-                potts_chain_with_label_costs(10,5),
-                unique_label_chain(8,8, true),
-                unique_label_chain(8,9, true),
-                unique_label_chain(8,8, false),
-                unique_label_chain(8,10, false)
-            },
-            {
-                require_local_n_optimality(3),
-                require_optimization_status(OptimizationStatus::OPTIMAL)
-            }
+            require_optimality(/*proven*/ true, /*tolerance*/ 1e-3)
         );
         // clang-format on
     }

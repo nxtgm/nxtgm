@@ -45,15 +45,16 @@ std::unique_ptr<DiscreteGmOptimizerRequireBase> require_feasiblity();
 class RequireOptimality : public DiscreteGmOptimizerRequireBase
 {
   public:
-    RequireOptimality(bool proven);
+    RequireOptimality(bool proven, energy_type tolerance);
     virtual ~RequireOptimality() = default;
     std::string name() const override;
     void require(DiscreteGmOptimizerBase *optimizer, OptimizationStatus status, const std::string &info) const override;
 
   private:
-    bool proven = false;
+    bool proven;
+    energy_type tolerance;
 };
-std::unique_ptr<DiscreteGmOptimizerRequireBase> require_optimality(bool proven = false);
+std::unique_ptr<DiscreteGmOptimizerRequireBase> require_optimality(bool proven = false, energy_type tolerance = 1e-6);
 
 class RequireInfesibility : public DiscreteGmOptimizerRequireBase
 {

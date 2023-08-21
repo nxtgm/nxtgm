@@ -159,13 +159,14 @@ std::unique_ptr<DiscreteGmOptimizerRequireBase> require_feasiblity()
     return std::make_unique<RequireFeasiblity>();
 }
 
-RequireOptimality::RequireOptimality(bool proven)
-    : proven(proven)
+RequireOptimality::RequireOptimality(bool proven, energy_type tolerance)
+    : proven(proven),
+      tolerance(tolerance)
 {
 }
-std::unique_ptr<DiscreteGmOptimizerRequireBase> require_optimality(bool proven)
+std::unique_ptr<DiscreteGmOptimizerRequireBase> require_optimality(bool proven, energy_type tolerance)
 {
-    return std::make_unique<RequireOptimality>(proven);
+    return std::make_unique<RequireOptimality>(proven, tolerance);
 }
 
 std::string RequireOptimality::name() const
@@ -209,7 +210,7 @@ void RequireOptimality::require(DiscreteGmOptimizerBase *optimizer, Optimization
 
         // REQUIRE_MESSAGE(solution_value.energy() == doctest::Approx(optimal_solution_value.energy()), print());
         // REQUIRE(solution_value.energy() == doctest::Approx(optimal_solution_value.energy()));
-        NXTGM_TEST_EQ_TOL(solution_value.energy(), optimal_solution_value.energy(), 1e-6, info + print());
+        NXTGM_TEST_EQ_TOL(solution_value.energy(), optimal_solution_value.energy(), tolerance, info + print());
     }
 }
 
