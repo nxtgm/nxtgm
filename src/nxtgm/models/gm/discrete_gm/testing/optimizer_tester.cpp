@@ -9,9 +9,9 @@ namespace nxtgm
 template <class F>
 void run_time_limited(F &&f, std::chrono::duration<double, std::milli> time_limit)
 {
-    auto start = std::chrono::steady_clock::now();
+    auto start = std::chrono::high_resolution_clock::now();
     f();
-    auto end = std::chrono::steady_clock::now();
+    auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration<double, std::milli>(end - start);
 
     // running mean of duration
@@ -34,7 +34,7 @@ void run_time_limited(F &&f, std::chrono::duration<double, std::milli> time_limi
         f();
         ++count;
     }
-    end = std::chrono::steady_clock::now();
+    end = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration<double, std::milli>(end - start);
 }
 
