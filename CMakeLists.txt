@@ -69,7 +69,7 @@ add_library(nxtgm_testing_shared SHARED
     src/nxtgm/models/gm/discrete_gm/testing/testmodels.cpp
     src/nxtgm/models/gm/discrete_gm/testing/optimizer_tester.cpp
 )
-SET(NXTGM_TESTING_SHARED_LIBRARY nxtgm_testing_shared)
+SET(NXTGM_TESTING_SHARED_LIBRARY SHARED nxtgm_testing_shared)
 target_link_libraries(nxtgm_testing_shared PUBLIC nxtgm_shared)
 
 
