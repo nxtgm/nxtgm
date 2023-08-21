@@ -53,12 +53,16 @@ add_library(nxtgm_shared SHARED
     src/nxtgm/constraint_functions/discrete_constraint_function_base.cpp
     src/nxtgm/constraint_functions/discrete_constraints.cpp
     src/nxtgm/models/solution_value.cpp
-    src/nxtgm/models/gm/discrete_gm.cpp
+    src/nxtgm/models/gm/discrete_gm/discrete_gm.cpp
     src/nxtgm/optimizers/optimizer_parameters.cpp
     src/nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.cpp
     src/nxtgm/optimizers/gm/discrete/movemaker.cpp
     src/nxtgm/optimizers/gm/discrete/optimizer_base.cpp
-
+    # this testing needs to be partof the shared library
+    # since plugin authors want to test their plugins
+    # for emscripten, we might want to remove this (TODO)
+    src/nxtgm/models/gm/discrete_gm/testing/testmodels.cpp
+    src/nxtgm/models/gm/discrete_gm/testing/optimizer_tester.cpp
 )
 SET(NXTGM_SHARED_LIBRARY nxtgm_shared)
 
@@ -148,11 +152,13 @@ if (APPLE)
     set_target_properties(nxtgm_shared PROPERTIES
         MACOSX_RPATH ON
     )
+
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib; ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 elseif(NOT EMSCRIPTEN)
     set_target_properties(nxtgm_shared PROPERTIES
         BUILD_WITH_INSTALL_RPATH 1
     )
+
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib; ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
     set(CMAKE_SKIP_BUILD_RPATH FALSE)
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)

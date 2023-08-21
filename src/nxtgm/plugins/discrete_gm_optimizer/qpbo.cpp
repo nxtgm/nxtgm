@@ -188,6 +188,11 @@ OptimizationStatus Qpbo::optimize(reporter_callback_wrapper_type &reporter_callb
         if (qpbo_labels_[vi] < 0)
         {
             ++num_unlabeled;
+            best_solution_[vi] = 0;
+        }
+        else
+        {
+            best_solution_[vi] = qpbo_labels_[vi];
         }
     }
 

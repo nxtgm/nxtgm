@@ -3,7 +3,6 @@
 #include <boost/container/small_vector.hpp>
 #include <boost/core/span.hpp>
 #include <cstdint>
-
 #include <vector>
 
 namespace nxtgm

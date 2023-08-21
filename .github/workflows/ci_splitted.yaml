@@ -113,6 +113,7 @@ jobs:
         run: |
           mkdir bld
           cd bld
+          set PATH=%PATH%;%CD%
           cmake .. ^
             -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^

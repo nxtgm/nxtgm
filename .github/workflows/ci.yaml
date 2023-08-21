@@ -109,8 +109,10 @@ jobs:
       - name: build and test
         shell: cmd /C CALL {0}
         run: |
+
           mkdir bld
           cd bld
+          set PATH=%PATH%;%CD%
           cmake .. ^
             -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
