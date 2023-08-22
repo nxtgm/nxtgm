@@ -22,6 +22,9 @@
 namespace nxtgm
 {
 
+DiscreteGm concat_models(const std::vector<DiscreteGm> &models);
+// DiscreteGm merge_models(const std::vector<DiscreteGm> & models, const std::vector<std::size_t> & offsets);
+
 class DiscreteGmTestmodel
 {
   public:
@@ -29,6 +32,29 @@ class DiscreteGmTestmodel
     virtual ~DiscreteGmTestmodel() = default;
     virtual std::pair<DiscreteGm, std::string> operator()(unsigned seed) = 0;
 };
+
+class ConcatenatedModels : public DiscreteGmTestmodel
+{
+  public:
+    ConcatenatedModels(std::vector<std::unique_ptr<DiscreteGmTestmodel>> &&model_generators);
+    ConcatenatedModels(std::unique_ptr<DiscreteGmTestmodel> model_gen_1,
+                       std::unique_ptr<DiscreteGmTestmodel> model_gen_2);
+    ConcatenatedModels(std::unique_ptr<DiscreteGmTestmodel> model_gen_1,
+                       std::unique_ptr<DiscreteGmTestmodel> model_gen_2,
+                       std::unique_ptr<DiscreteGmTestmodel> model_gen_3);
+    std::pair<DiscreteGm, std::string> operator()(unsigned seed) override;
+
+  private:
+    std::vector<std::unique_ptr<DiscreteGmTestmodel>> model_generators;
+};
+
+std::unique_ptr<DiscreteGmTestmodel> concatenated_models(
+    std::vector<std::unique_ptr<DiscreteGmTestmodel>> &&model_generators);
+std::unique_ptr<DiscreteGmTestmodel> concatenated_models(std::unique_ptr<DiscreteGmTestmodel> model_gen_1,
+                                                         std::unique_ptr<DiscreteGmTestmodel> model_gen_2);
+std::unique_ptr<DiscreteGmTestmodel> concatenated_models(std::unique_ptr<DiscreteGmTestmodel> model_gen_1,
+                                                         std::unique_ptr<DiscreteGmTestmodel> model_gen_2,
+                                                         std::unique_ptr<DiscreteGmTestmodel> model_gen_3);
 
 class Star : public DiscreteGmTestmodel
 {

@@ -91,6 +91,17 @@ class RequireLocalNOptimality : public DiscreteGmOptimizerRequireBase
 };
 std::unique_ptr<DiscreteGmOptimizerRequireBase> require_local_n_optimality(std::size_t n = 2);
 
+class RequireCorrectPartialOptimality : public DiscreteGmOptimizerRequireBase
+{
+  public:
+    RequireCorrectPartialOptimality() = default;
+    virtual ~RequireCorrectPartialOptimality() = default;
+    std::string name() const override;
+    void require(DiscreteGmOptimizerBase *optimizer, OptimizationStatus status, const std::string &info) const override;
+};
+
+std::unique_ptr<DiscreteGmOptimizerRequireBase> require_correct_partial_optimality();
+
 struct TestDiscreteGmOptimizerOptions
 {
     static std::chrono::duration<double> default_per_model_time_limit();

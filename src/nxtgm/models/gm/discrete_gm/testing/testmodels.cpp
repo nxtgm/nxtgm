@@ -3,6 +3,130 @@
 namespace nxtgm
 {
 
+DiscreteGm concat_models(const std::vector<DiscreteGm> &models)
+{
+
+    std::vector<discrete_label_type> joint_space;
+    std::vector<std::size_t> offsets;
+
+    // space and offsets and names
+    std::size_t total_num_var = 0;
+    auto i = 0;
+    for (const auto &model : models)
+    {
+
+        const auto &space = model.space();
+
+        offsets.push_back(total_num_var);
+        total_num_var += space.size();
+
+        for (auto vi = 0; vi < space.size(); ++vi)
+        {
+            joint_space.push_back(space[vi]);
+        }
+    }
+
+    DiscreteGm concated_gm(joint_space.begin(), joint_space.end());
+
+    // factors
+    for (auto mi = 0; mi < models.size(); ++mi)
+    {
+        const auto &model = models[mi];
+        const auto &offset = offsets[mi];
+        for (auto fi = 0; fi < model.num_factors(); ++fi)
+        {
+            const auto &factor = model.factor(fi);
+            std::vector<std::size_t> vars(factor.variables().begin(), factor.variables().end());
+            for (auto &vi : vars)
+            {
+                vi += offset;
+            }
+            auto cloned_function = factor.function()->clone();
+            auto fid = concated_gm.add_energy_function(std::move(cloned_function));
+            concated_gm.add_factor(vars, fid);
+        }
+    }
+
+    // constraints
+    for (auto mi = 0; mi < models.size(); ++mi)
+    {
+        const auto &model = models[mi];
+        const auto &offset = offsets[mi];
+        for (auto ci = 0; ci < model.num_constraints(); ++ci)
+        {
+            const auto &constraint = model.constraint(ci);
+            std::vector<std::size_t> vars(constraint.variables().begin(), constraint.variables().end());
+            for (auto &vi : vars)
+            {
+                vi += offset;
+            }
+            auto cloned_function = constraint.function()->clone();
+            auto fid = concated_gm.add_constraint_function(std::move(cloned_function));
+            concated_gm.add_constraint(vars, fid);
+        }
+    }
+
+    return concated_gm;
+}
+
+ConcatenatedModels::ConcatenatedModels(std::vector<std::unique_ptr<DiscreteGmTestmodel>> &&model_generators)
+    : model_generators(std::move(model_generators))
+{
+}
+
+ConcatenatedModels::ConcatenatedModels(std::unique_ptr<DiscreteGmTestmodel> model_gen_1,
+                                       std::unique_ptr<DiscreteGmTestmodel> model_gen_2)
+    : model_generators()
+{
+    model_generators.push_back(std::move(model_gen_1));
+    model_generators.push_back(std::move(model_gen_2));
+}
+
+ConcatenatedModels::ConcatenatedModels(std::unique_ptr<DiscreteGmTestmodel> model_gen_1,
+                                       std::unique_ptr<DiscreteGmTestmodel> model_gen_2,
+                                       std::unique_ptr<DiscreteGmTestmodel> model_gen_3)
+    : model_generators()
+{
+    model_generators.push_back(std::move(model_gen_1));
+    model_generators.push_back(std::move(model_gen_2));
+    model_generators.push_back(std::move(model_gen_3));
+}
+
+std::pair<DiscreteGm, std::string> ConcatenatedModels::operator()(unsigned seed)
+{
+    std::vector<DiscreteGm> models;
+    std::stringstream ss;
+    ss << "ConcatenatedModels(";
+
+    for (auto &model_generator : model_generators)
+    {
+        auto [model, name] = model_generator->operator()(seed);
+        ss << name << ", ";
+        models.push_back(std::move(model));
+    }
+    ss << ")";
+
+    auto concated_gm = concat_models(models);
+    return std::pair<DiscreteGm, std::string>(std::move(concated_gm), ss.str());
+}
+std::unique_ptr<DiscreteGmTestmodel> concatenated_models(
+    std::vector<std::unique_ptr<DiscreteGmTestmodel>> &&model_generators)
+{
+    return std::make_unique<ConcatenatedModels>(std::move(model_generators));
+}
+
+std::unique_ptr<DiscreteGmTestmodel> concatenated_models(std::unique_ptr<DiscreteGmTestmodel> model_gen_1,
+                                                         std::unique_ptr<DiscreteGmTestmodel> model_gen_2)
+{
+    return std::make_unique<ConcatenatedModels>(std::move(model_gen_1), std::move(model_gen_2));
+}
+std::unique_ptr<DiscreteGmTestmodel> concatenated_models(std::unique_ptr<DiscreteGmTestmodel> model_gen_1,
+                                                         std::unique_ptr<DiscreteGmTestmodel> model_gen_2,
+                                                         std::unique_ptr<DiscreteGmTestmodel> model_gen_3)
+{
+    return std::make_unique<ConcatenatedModels>(std::move(model_gen_1), std::move(model_gen_2), std::move(model_gen_3));
+}
+
 Star::Star(std::size_t n_arms, std::size_t n_labels)
     : n_arms(n_arms),
       n_labels(n_labels)
