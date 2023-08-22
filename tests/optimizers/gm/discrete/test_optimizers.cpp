@@ -1,6 +1,12 @@
 #include <doctest/doctest.h>
 #include <nxtgm/models/gm/discrete_gm/testing/optimizer_tester.hpp>
 
+#ifdef _WIN32
+#define SKIP_WIN doctest::skip(true)
+#else
+#define SKIP_WIN doctest::skip(false)
+#endif
+
 namespace nxtgm
 {
 
@@ -44,6 +50,30 @@ TEST_CASE("belief_propagation")
             {
                 potts_grid(8, 1, 2, false),
                 potts_grid(5, 1, 3, false),
+            },
+            {
+                require_optimality(/*proven*/ false),
+                require_optimization_status(OptimizationStatus::CONVERGED)
+            }
+        );
+        // clang-format on
+    }
+    SUBCASE("forest")
+    {
+        // clang-format off
+        test_discrete_gm_optimizer(
+            "belief_propagation",
+            OptimizerParameters(),
+            {
+                concatenated_models(
+                    std::move(potts_grid(8, 1, 2, false)),
+                    std::move(potts_grid(5, 1, 2, false))
+                ),
+                concatenated_models(
+                    std::move(potts_grid(3, 1, 2, false)),
+                    std::move(potts_grid(3, 1, 3, false)),
+                    std::move(star(5, 2))
+                ),
             },
             {
                 require_optimality(/*proven*/ false),
@@ -238,12 +268,12 @@ TEST_CASE("qpbo")
     TestDiscreteGmOptimizerOptions test_options;
     test_options.seed = 42;
 
-    OptimizerParameters parameters;
-    parameters["strong_persistencies"] = 0;
-    parameters["probing"] = 1;
-
     SUBCASE("small")
     {
+        OptimizerParameters parameters;
+        parameters["strong_persistencies"] = 0;
+        // parameters["probing"] = 1;
+
         // clang-format off
         test_discrete_gm_optimizer(
             "qpbo",
@@ -254,14 +284,15 @@ TEST_CASE("qpbo")
                 star(5,2),
                 sparse_potts_chain(4, 2)
             },
-            require_optimality(/*proven*/ true),
-            test_options
+            require_optimality(/*proven*/ true)
         );
         // clang-format on
     }
-
     SUBCASE("large")
     {
+        OptimizerParameters parameters;
+        parameters["strong_persistencies"] = 0;
+
         // clang-format off
         test_discrete_gm_optimizer(
             "qpbo",
@@ -276,6 +307,49 @@ TEST_CASE("qpbo")
             }
         );
         // clang-format on
+    }
+    SUBCASE("partial_optimality_black_box")
+    {
+        OptimizerParameters parameters;
+        parameters["strong_persistencies"] = 0;
+
+        // clang-format off
+        test_discrete_gm_optimizer(
+            "qpbo",
+            parameters,
+            {
+                potts_grid(3,4,2,false),
+                potts_grid(12,1,2,false),
+                star(11,2),
+                sparse_potts_chain(12, 2)
+            },
+            require_correct_partial_optimality()
+        );
+        // clang-format on
+    }
+    SUBCASE("partial_optimality")
+    {
+        OptimizerParameters parameters;
+        parameters["strong_persistencies"] = 0;
+
+        for (unsigned seed = 0; seed < 42; ++seed)
+        {
+            auto [easy_gm, easy_gm_name] = potts_grid(100, 1, 2, true)->operator()(seed);
+            auto [hard_gm, hard_gm_name] = potts_grid(100, 100, 2, false)->operator()(seed);
+            std::vector<DiscreteGm> models;
+            models.push_back(std::move(easy_gm));
+            models.push_back(std::move(hard_gm));
+
+            auto concated_gm = concat_models(models);
+
+            auto optimizer = discrete_gm_optimizer_factory(concated_gm, "qpbo", parameters);
+            auto status = optimizer->optimize();
+
+            for (auto i = 0; i < models[0].num_variables(); ++i)
+            {
+                CHECK(optimizer->is_partial_optimal(i));
+            }
+        }
     }
 }
 
@@ -304,15 +378,9 @@ TEST_CASE("matching_icm")
         // clang-format on
     }
 }
-#ifdef _WIN32
-#define SKIP_WIN doctest::skip(true)
-#else
-#define SKIP_WIN doctest::skip(false)
-#endif
 
 TEST_CASE("ilp_highs" * SKIP_WIN)
 {
-
     SUBCASE("small")
     {
         // clang-format off

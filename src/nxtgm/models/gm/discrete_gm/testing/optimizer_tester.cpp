@@ -438,6 +438,79 @@ std::unique_ptr<DiscreteGmOptimizerRequireBase> require_local_n_optimality(std::
     }
 }
 
+void RequireCorrectPartialOptimality::require(DiscreteGmOptimizerBase *optimizer, OptimizationStatus status,
+                                              const std::string &info) const
+{
+    const auto &gm = optimizer->model();
+    if (gm.num_variables() != 12)
+    {
+        throw std::runtime_error("RequireCorrectPartialOptimality only works for gm's with 12 variables (we hard code "
+                                 "some nested for loops)");
+    }
+
+    const auto &best_solution = optimizer->best_solution();
+
+    std::vector<std::size_t> start(gm.num_variables(), 0);
+    std::vector<std::size_t> end(gm.num_variables());
+
+    for (std::size_t vi = 0; vi < gm.num_variables(); ++vi)
+    {
+        end[vi] = gm.space()[vi];
+        if (optimizer->is_partial_optimal(vi))
+        {
+            start[vi] = best_solution[vi];
+            end[vi] = best_solution[vi] + 1;
+        }
+    }
+
+    // find the best solution when fixing the partial optimal variables
+    std::vector<discrete_label_type> solution(gm.num_variables());
+
+    SolutionValue fixed_best_solution_value(std::numeric_limits<energy_type>::infinity(), false);
+
+    // clang-format off
+    for(solution[0]=start[0];   solution[0]<end[0];   ++solution[0])
+    for(solution[1]=start[1];   solution[1]<end[1];   ++solution[1])
+    for(solution[2]=start[2];   solution[2]<end[2];   ++solution[2])
+    for(solution[3]=start[3];   solution[3]<end[3];   ++solution[3])
+    for(solution[4]=start[4];   solution[4]<end[4];   ++solution[4])
+    for(solution[5]=start[5];   solution[5]<end[5];   ++solution[5])
+    for(solution[6]=start[6];   solution[6]<end[6];   ++solution[6])
+    for(solution[7]=start[7];   solution[7]<end[7];   ++solution[7])
+    for(solution[8]=start[8];   solution[8]<end[8];   ++solution[8])
+    for(solution[9]=start[9];   solution[9]<end[9];   ++solution[9])
+    for(solution[10]=start[10]; solution[10]<end[10]; ++solution[10])
+    for(solution[11]=start[11]; solution[11]<end[11]; ++solution[11])
+    {
+        auto solution_value = gm.evaluate(solution);
+        if(solution_value < fixed_best_solution_value)
+        {
+            fixed_best_solution_value = solution_value;
+        }
+    }
+
+    // solve model with brute force
+    auto brute_force_solution_and_value = solve_brute_force(gm);
+    auto brute_force_solution = brute_force_solution_and_value.first;
+    auto brute_force_solution_value = brute_force_solution_and_value.second;
+
+    // check if the best solution is the same
+    NXTGM_TEST_EQ_TOL(fixed_best_solution_value.energy(), brute_force_solution_value.energy(), 1e-5, info);
+
+}
+
+std::string RequireCorrectPartialOptimality::name() const
+{
+    return "RequireCorrectPartialOptimality";
+}
+
+std::unique_ptr<DiscreteGmOptimizerRequireBase> require_correct_partial_optimality()
+{
+    return std::make_unique<RequireCorrectPartialOptimality>();
+}
+
+
+
 std::chrono::duration<double> TestDiscreteGmOptimizerOptions::default_per_model_time_limit()
 {
     // check env var
