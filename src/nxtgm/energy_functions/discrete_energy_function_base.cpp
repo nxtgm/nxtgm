@@ -6,6 +6,8 @@
 #include <nxtgm/utils/tuple_for_each.hpp>
 // xtensor view
 #include <xtensor/xview.hpp>
+// xtensor adapt
+#include <xtensor/xadapt.hpp>
 
 #include <nxtgm/energy_functions/discrete_energy_functions.hpp>
 #include <nxtgm/utils/n_nested_loops.hpp>
@@ -18,6 +20,19 @@ auto bind_at(const XTENSOR &xtensor, std::size_t axis, std::size_t value)
 {
     xt::xstrided_slice_vector sv(xtensor.dimension(), xt::all());
     sv[axis] = value;
+    return xt::strided_view(xtensor, sv);
+}
+
+template <class XTENSOR, class AXES, class LABELS>
+auto bind_many(const XTENSOR &xtensor, AXES &&axes, LABELS &&labels)
+{
+    xt::xstrided_slice_vector sv(xtensor.dimension(), xt::all());
+
+    for (std::size_t i = 0; i < axes.size(); ++i)
+    {
+        sv[axes[i]] = labels[i];
+    }
+
     return xt::strided_view(xtensor, sv);
 }
 
@@ -184,10 +199,28 @@ void DiscreteEnergyFunctionBase::compute_factor_to_variable_messages(const energ
     }
 }
 
-std::pair<std::unique_ptr<DiscreteEnergyFunctionBase>, energy_type> DiscreteEnergyFunctionBase::bind(
+std::unique_ptr<DiscreteEnergyFunctionBase> DiscreteEnergyFunctionBase::bind(
     const span<std::size_t> &binded_vars, const span<discrete_label_type> &binded_vars_labels) const
 {
-    throw std::runtime_error("Not implemented");
+    // copy the energy
+    small_factor_size_vector<energy_type> energies(this->size());
+    this->copy_energies(energies.data());
+
+    const std::size_t arity = this->arity();
+
+    // copy the shape (this is stupid atm)
+    // xtensor adapt only takes std vector
+    small_arity_vector<discrete_label_type> shape(arity);
+    std::vector<std::size_t> size_t_shape(arity);
+    this->copy_shape(shape.data());
+    std::copy(shape.begin(), shape.end(), size_t_shape.begin());
+
+    // create an xtensor view
+    auto energy_view = xt::adapt(energies.data(), arity, xt::no_ownership(), size_t_shape);
+
+    // bind the variables
+    auto binded = bind_many(energy_view, binded_vars, binded_vars_labels);
+    return std::make_unique<XArray>(std::move(binded));
 }
 
 template <class T>

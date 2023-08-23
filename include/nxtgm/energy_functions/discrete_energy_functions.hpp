@@ -44,6 +44,9 @@ class Potts : public DiscreteEnergyFunctionBase
     static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize_json(const nlohmann::json &json);
     nlohmann::json serialize_json() const override;
 
+    std::unique_ptr<DiscreteEnergyFunctionBase> bind(
+        const span<std::size_t> &binded_vars, const span<discrete_label_type> &binded_vars_labels) const override;
+
   private:
     std::size_t num_labels_;
     energy_type beta_;
