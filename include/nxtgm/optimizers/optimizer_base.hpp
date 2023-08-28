@@ -2,38 +2,75 @@
 
 #include <chrono>
 #include <limits>
-#include <tuple>
-
 #include <nxtgm/optimizers/callback_base.hpp>
 #include <nxtgm/optimizers/optimizer_parameters.hpp>
-
-#define NXTGM_OPTIMIZER_DEFAULT_FACTORY(NAME)                                                                          \
-    class NAME##DiscreteGmOptimizerFactory : public DiscreteGmOptimizerFactoryBase                                     \
-    {                                                                                                                  \
-      public:                                                                                                          \
-        using factory_base_type = DiscreteGmOptimizerFactoryBase;                                                      \
-        virtual ~NAME##DiscreteGmOptimizerFactory() = default;                                                         \
-        std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,                                          \
-                                                        const OptimizerParameters &params) const override              \
-        {                                                                                                              \
-            return std::make_unique<NAME>(gm, params);                                                                 \
-        }                                                                                                              \
-        int priority() const override                                                                                  \
-        {                                                                                                              \
-            return 1;                                                                                                  \
-        }                                                                                                              \
-        std::string license() const override                                                                           \
-        {                                                                                                              \
-            return "Mit";                                                                                              \
-        }                                                                                                              \
-        std::string description() const override                                                                       \
-        {                                                                                                              \
-            return #NAME;                                                                                              \
-        }                                                                                                              \
-    };
+#include <nxtgm/utils/timer.hpp>
+#include <tuple>
 
 namespace nxtgm
 {
+
+enum class OptimizerFlags : uint64_t
+{
+    None = 0,
+    WarmStartable = 1 << 0,
+    Optimal = 1 << 1,
+    PartialOptimal = 1 << 2,
+    LocalOptimal = 1 << 3,
+    OptimalOnTrees = 1 << 4,
+    OptimalOnBinarySecondOrderSubmodular = 1 << 5,
+    MetaOptimizer = 1 << 6
+};
+
+inline OptimizerFlags operator|(OptimizerFlags lhs, OptimizerFlags rhs)
+{
+    return static_cast<OptimizerFlags>(static_cast<std::underlying_type<OptimizerFlags>::type>(lhs) |
+                                       static_cast<std::underlying_type<OptimizerFlags>::type>(rhs));
+}
+
+inline OptimizerFlags operator&(OptimizerFlags lhs, OptimizerFlags rhs)
+{
+    return static_cast<OptimizerFlags>(static_cast<std::underlying_type<OptimizerFlags>::type>(lhs) &
+                                       static_cast<std::underlying_type<OptimizerFlags>::type>(rhs));
+}
+
+class OptimizerTimer : public AutoStartedTimer
+{
+  public:
+    using AutoStartedTimer::AutoStartedTimer;
+
+    template <class REPORTER_CALLBACK>
+    bool begin(REPORTER_CALLBACK &&reporter_callback)
+    {
+        if (!reporter_callback)
+        {
+            return true;
+        }
+
+        return this->paused_call([&]() { reporter_callback->begin(); });
+    }
+    template <class REPORTER_CALLBACK>
+    bool end(REPORTER_CALLBACK &&reporter_callback)
+    {
+        if (!reporter_callback)
+        {
+            return true;
+        }
+
+        return this->paused_call([&]() { reporter_callback->end(); });
+    }
+    template <class REPORTER_CALLBACK>
+    bool report(REPORTER_CALLBACK &&reporter_callback)
+    {
+        if (!reporter_callback)
+        {
+            return true;
+        }
+
+        return this->paused_call([&]() { reporter_callback->report(); });
+    }
+};
+
 enum class OptimizationStatus
 {
     OPTIMAL,
@@ -84,6 +121,12 @@ class OptimizerBase
     }
 
     virtual ~OptimizerBase() = default;
+
+    virtual bool is_warm_startable() const
+    {
+        return false;
+    }
+
     virtual energy_type lower_bound() const
     {
         return -std::numeric_limits<energy_type>::infinity();
@@ -99,19 +142,16 @@ class OptimizerBase
         return this->model().evaluate(this->best_solution(), false /* early exit when infeasible*/);
     }
 
-    virtual OptimizationStatus optimize(reporter_callback_base_type *reporter_callback = nullptr,
-                                        repair_callback_base_type *repair_callback = nullptr,
-                                        const_discrete_solution_span starting_point = const_discrete_solution_span())
+    OptimizationStatus optimize(reporter_callback_base_type *reporter_callback = nullptr,
+                                repair_callback_base_type *repair_callback = nullptr,
+                                const_discrete_solution_span starting_point = const_discrete_solution_span())
     {
+        // this calls begin / end in the constructor / destructor
         reporter_callback_wrapper_type reporter_callback_wrapper(reporter_callback);
         repair_callback_wrapper_type repair_callback_wrapper(repair_callback);
 
-        return this->optimize(reporter_callback_wrapper, repair_callback_wrapper, starting_point);
+        return this->optimize_impl(reporter_callback_wrapper, repair_callback_wrapper, starting_point);
     }
-
-    virtual OptimizationStatus optimize(reporter_callback_wrapper_type &reporter_callback,
-                                        repair_callback_wrapper_type &repair_callback,
-                                        const_discrete_solution_span starting_point) = 0;
 
     virtual const model_type &model() const
     {
@@ -119,6 +159,11 @@ class OptimizerBase
     }
     virtual const solution_type &best_solution() const = 0;
     virtual const solution_type &current_solution() const = 0;
+
+  protected:
+    virtual OptimizationStatus optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                             repair_callback_wrapper_type &repair_callback,
+                                             const_discrete_solution_span starting_point) = 0;
 
   private:
     const model_type &model_;

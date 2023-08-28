@@ -17,8 +17,6 @@ class ChainedOptimizers : public DiscreteGmOptimizerBase
     using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
     using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
 
-    using base_type::optimize;
-
     inline static std::string name()
     {
         return "ChainedOptimizers";
@@ -27,8 +25,8 @@ class ChainedOptimizers : public DiscreteGmOptimizerBase
 
     ChainedOptimizers(const DiscreteGm &gm, const OptimizerParameters &parameters);
 
-    OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
-                                const_discrete_solution_span starting_point) override;
+    OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                     const_discrete_solution_span starting_point) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;
@@ -46,10 +44,38 @@ class ChainedOptimizers : public DiscreteGmOptimizerBase
     std::vector<uint8_t> is_partial_optimal_;
 };
 
-NXTGM_OPTIMIZER_DEFAULT_FACTORY(ChainedOptimizers);
+class ChainedOptimizerFactory : public DiscreteGmOptimizerFactoryBase
+{
+  public:
+    using factory_base_type = DiscreteGmOptimizerFactoryBase;
+    virtual ~ChainedOptimizerFactory() = default;
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
+                                                    const OptimizerParameters &params) const override
+    {
+        return std::make_unique<ChainedOptimizers>(gm, params);
+    }
+    int priority() const override
+    {
+        return plugin_priority(PluginPriority::MEDIUM);
+    }
+    std::string license() const override
+    {
+        return "MIT";
+    }
+    std::string description() const override
+    {
+        return "Chain multiple optizer st. optimzers are warm started with the best solution of the previous "
+               "optimizer(s).";
+    }
+    OptimizerFlags flags() const override
+    {
+        return OptimizerFlags::MetaOptimizer | OptimizerFlags::WarmStartable;
+    }
+};
+
 } // namespace nxtgm
 
-XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::ChainedOptimizersDiscreteGmOptimizerFactory);
+XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::ChainedOptimizerFactory);
 
 namespace nxtgm
 {
@@ -64,12 +90,10 @@ ChainedOptimizers::ChainedOptimizers(const DiscreteGm &gm, const OptimizerParame
     best_solution_value_ = gm.evaluate(best_solution_, false /* early exit when infeasible*/);
 }
 
-OptimizationStatus ChainedOptimizers::optimize(reporter_callback_wrapper_type &reporter_callback,
-                                               repair_callback_wrapper_type & /*repair_callback not used*/,
-                                               const_discrete_solution_span)
+OptimizationStatus ChainedOptimizers::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                                    repair_callback_wrapper_type & /*repair_callback not used*/,
+                                                    const_discrete_solution_span)
 {
-
-    reporter_callback.begin();
 
     // start the timer
     AutoStartedTimer timer;
@@ -112,9 +136,6 @@ OptimizationStatus ChainedOptimizers::optimize(reporter_callback_wrapper_type &r
             total_status = OptimizationStatus::LOCAL_OPTIMAL;
         }
     }
-
-    // indicate the end of the optimization
-    reporter_callback.end();
 
     return total_status;
 }

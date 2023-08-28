@@ -68,6 +68,11 @@ bool SolutionValue::operator<=(const SolutionValue &other) const
     }
 }
 
+SolutionValue operator+(const SolutionValue &lhs, const SolutionValue &rhs)
+{
+    return SolutionValue(lhs.energy() + rhs.energy(), lhs.how_violated() + rhs.how_violated());
+}
+
 SolutionValue &SolutionValue::operator+=(const SolutionValue &other)
 {
     energy_ += other.energy_;

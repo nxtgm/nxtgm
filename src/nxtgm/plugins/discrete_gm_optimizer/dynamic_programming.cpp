@@ -47,8 +47,6 @@ class DynamicProgramming : public DiscreteGmOptimizerBase
     using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
     using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
 
-    using base_type::optimize;
-
     inline static std::string name()
     {
         return "DynamicProgramming";
@@ -57,8 +55,8 @@ class DynamicProgramming : public DiscreteGmOptimizerBase
 
     DynamicProgramming(const DiscreteGm &gm, const OptimizerParameters &parameters);
 
-    OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
-                                const_discrete_solution_span) override;
+    OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                     const_discrete_solution_span) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;
@@ -83,10 +81,36 @@ class DynamicProgramming : public DiscreteGmOptimizerBase
     std::vector<std::size_t> ordered_nodes_;
 };
 
-NXTGM_OPTIMIZER_DEFAULT_FACTORY(DynamicProgramming);
+class DynamicProgrammingFactory : public DiscreteGmOptimizerFactoryBase
+{
+  public:
+    using factory_base_type = DiscreteGmOptimizerFactoryBase;
+    virtual ~DynamicProgrammingFactory() = default;
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
+                                                    const OptimizerParameters &params) const override
+    {
+        return std::make_unique<DynamicProgramming>(gm, params);
+    }
+    int priority() const override
+    {
+        return plugin_priority(PluginPriority::MEDIUM);
+    }
+    std::string license() const override
+    {
+        return "MIT";
+    }
+    std::string description() const override
+    {
+        return "Dynamic Programming for second order graphical models";
+    }
+    OptimizerFlags flags() const override
+    {
+        return OptimizerFlags::OptimalOnTrees;
+    }
+};
 } // namespace nxtgm
 
-XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::DynamicProgrammingDiscreteGmOptimizerFactory);
+XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::DynamicProgrammingFactory);
 
 namespace nxtgm
 {
@@ -184,12 +208,11 @@ DynamicProgramming::DynamicProgramming(const DiscreteGm &gm, const OptimizerPara
     }
 }
 
-OptimizationStatus DynamicProgramming::optimize(reporter_callback_wrapper_type &reporter_callback,
-                                                repair_callback_wrapper_type & /*repair_callback not used*/,
-                                                const_discrete_solution_span /*initial_solution not used*/
+OptimizationStatus DynamicProgramming::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                                     repair_callback_wrapper_type & /*repair_callback not used*/,
+                                                     const_discrete_solution_span /*initial_solution not used*/
 )
 {
-    reporter_callback.begin();
     AutoStartedTimer timer;
 
     const auto &gm = this->model();
@@ -277,9 +300,6 @@ OptimizationStatus DynamicProgramming::optimize(reporter_callback_wrapper_type &
     this->compute_labels();
 
     this->best_sol_value_ = gm.evaluate(this->best_solution_);
-
-    // indicate the end of the optimization
-    reporter_callback.end();
 
     return status;
 }

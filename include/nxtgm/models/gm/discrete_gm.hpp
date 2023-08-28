@@ -232,19 +232,19 @@ class DiscreteGm
         return std::max(max_factor_arity_, max_constraint_arity_);
     }
 
-    discrete_label_type num_labels(std::size_t variable_index) const
+    inline discrete_label_type num_labels(std::size_t variable_index) const
     {
         return space_[variable_index];
     }
-    std::size_t num_variables() const
+    inline std::size_t num_variables() const
     {
         return space_.size();
     }
-    std::size_t num_factors() const
+    inline std::size_t num_factors() const
     {
         return factors_.size();
     }
-    std::size_t num_constraints() const
+    inline std::size_t num_constraints() const
     {
         return constraints_.size();
     }
@@ -403,6 +403,9 @@ class DiscreteGm
 
     nlohmann::json serialize_json() const;
     static DiscreteGm deserialize_json(const nlohmann::json &json);
+
+    std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionValue> bind(
+        span<const uint8_t>, span<const discrete_label_type> labeles, bool is_include_mask) const;
 
   private:
     template <class VARIABLE_INDICIES>

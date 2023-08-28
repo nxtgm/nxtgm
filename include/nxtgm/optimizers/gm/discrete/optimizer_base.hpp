@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <memory>
+#include <nxtgm/plugins/plugin_priority.hpp>
 #include <string>
 #include <unordered_map>
 
@@ -56,6 +57,9 @@ class DiscreteGmOptimizerFactoryBase
 
     // description of the plugin
     virtual std::string description() const = 0;
+
+    // flags of the plugin
+    virtual OptimizerFlags flags() const = 0;
 };
 
 } // namespace nxtgm

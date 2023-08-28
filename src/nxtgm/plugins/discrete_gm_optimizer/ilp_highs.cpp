@@ -42,8 +42,6 @@ class IlpHighs : public DiscreteGmOptimizerBase
     using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
     using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
 
-    using base_type::optimize;
-
     inline static std::string name()
     {
         return "IlpHighs";
@@ -53,9 +51,9 @@ class IlpHighs : public DiscreteGmOptimizerBase
 
     virtual ~IlpHighs() = default;
 
-    OptimizationStatus optimize(reporter_callback_wrapper_type &reporter_callback,
-                                repair_callback_wrapper_type & /*repair_callback not used*/,
-                                const_discrete_solution_span starting_point) override;
+    OptimizationStatus optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                     repair_callback_wrapper_type & /*repair_callback not used*/,
+                                     const_discrete_solution_span starting_point) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;
@@ -85,10 +83,37 @@ class IlpHighs : public DiscreteGmOptimizerBase
     HighsModel highs_model_;
 };
 
-NXTGM_OPTIMIZER_DEFAULT_FACTORY(IlpHighs);
+class IlpHighsFactory : public DiscreteGmOptimizerFactoryBase
+{
+  public:
+    using factory_base_type = DiscreteGmOptimizerFactoryBase;
+    virtual ~IlpHighsFactory() = default;
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
+                                                    const OptimizerParameters &params) const override
+    {
+        return std::make_unique<IlpHighs>(gm, params);
+    }
+    int priority() const override
+    {
+        return plugin_priority(PluginPriority::MEDIUM);
+    }
+    std::string license() const override
+    {
+        return "MIT";
+    }
+    std::string description() const override
+    {
+        return "Iterated conditional models optimizer";
+    }
+    OptimizerFlags flags() const override
+    {
+        return OptimizerFlags::Optimal;
+    }
+};
+
 } // namespace nxtgm
 
-XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::IlpHighsDiscreteGmOptimizerFactory);
+XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::IlpHighsFactory);
 
 namespace nxtgm
 {
@@ -210,13 +235,10 @@ void IlpHighs::setup_lp()
     highs_model_.lp_.a_matrix_.start_.push_back(highs_model_.lp_.a_matrix_.index_.size());
 }
 
-OptimizationStatus IlpHighs::optimize(reporter_callback_wrapper_type &reporter_callback,
-                                      repair_callback_wrapper_type & /*repair_callback not used*/,
-                                      const_discrete_solution_span)
+OptimizationStatus IlpHighs::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                           repair_callback_wrapper_type & /*repair_callback not used*/,
+                                           const_discrete_solution_span)
 {
-
-    reporter_callback.begin();
-
     const bool continue_opt = reporter_callback.report();
 
     // Create a Highs instance
@@ -240,7 +262,6 @@ OptimizationStatus IlpHighs::optimize(reporter_callback_wrapper_type &reporter_c
     OptimizationStatus status = highsModelStatusToOptimizationStatus(highs, highs.getModelStatus());
     if (status == OptimizationStatus::INFEASIBLE)
     {
-        reporter_callback.end();
         return OptimizationStatus::INFEASIBLE;
     }
 
@@ -285,7 +306,6 @@ OptimizationStatus IlpHighs::optimize(reporter_callback_wrapper_type &reporter_c
         status = highsModelStatusToOptimizationStatus(highs, highs.getModelStatus());
         if (status == OptimizationStatus::INFEASIBLE)
         {
-            reporter_callback.end();
             return OptimizationStatus::INFEASIBLE;
         }
     }
@@ -294,7 +314,6 @@ OptimizationStatus IlpHighs::optimize(reporter_callback_wrapper_type &reporter_c
         indicator_variable_mapping_.lp_solution_to_model_solution(solution.col_value, best_solution_);
 
     this->best_sol_value_ = this->model().evaluate(this->best_solution_);
-    reporter_callback.end();
 
     return status;
 }

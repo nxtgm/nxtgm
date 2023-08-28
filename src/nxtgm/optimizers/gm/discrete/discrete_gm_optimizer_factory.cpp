@@ -12,4 +12,10 @@ std::unique_ptr<DiscreteGmOptimizerBase> discrete_gm_optimizer_factory(const Dis
     return get_plugin_registry<DiscreteGmOptimizerFactoryBase>().get_factory(plugin_name)->create(gm, parameter);
 }
 
+DiscreteGmOptimizerFactoryBase *get_discrete_gm_optimizer_factory(const std::string &name)
+{
+    const std::string plugin_name = "discrete_gm_optimizer_" + name;
+    return get_plugin_registry<DiscreteGmOptimizerFactoryBase>().get_factory(plugin_name);
+}
+
 } // namespace nxtgm

@@ -22,8 +22,6 @@ class BruteForceNaive : public DiscreteGmOptimizerBase
     using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
     using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
 
-    using base_type::optimize;
-
     inline static std::string name()
     {
         return "BruteForceNaive";
@@ -32,8 +30,8 @@ class BruteForceNaive : public DiscreteGmOptimizerBase
 
     BruteForceNaive(const DiscreteGm &gm, const OptimizerParameters &json_parameters);
 
-    OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
-                                const_discrete_solution_span starting_point) override;
+    OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                     const_discrete_solution_span starting_point) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;
@@ -49,6 +47,34 @@ class BruteForceNaive : public DiscreteGmOptimizerBase
     SolutionValue current_sol_value_;
 };
 
+class BruteForceFactory : public DiscreteGmOptimizerFactoryBase
+{
+  public:
+    using factory_base_type = DiscreteGmOptimizerFactoryBase;
+    virtual ~BruteForceFactory() = default;
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
+                                                    const OptimizerParameters &params) const override
+    {
+        return std::make_unique<BruteForceNaive>(gm, params);
+    }
+    int priority() const override
+    {
+        return plugin_priority(PluginPriority::VERY_LOW);
+    }
+    std::string license() const override
+    {
+        return "MIT";
+    }
+    std::string description() const override
+    {
+        return "Naive brute force optimizer suitable for very small problems.";
+    }
+    OptimizerFlags flags() const override
+    {
+        return OptimizerFlags::OptimalOnTrees;
+    }
+};
+
 BruteForceNaive::BruteForceNaive(const DiscreteGm &gm, const OptimizerParameters &parameters)
     : base_type(gm),
       parameters_(parameters),
@@ -62,18 +88,16 @@ BruteForceNaive::BruteForceNaive(const DiscreteGm &gm, const OptimizerParameters
     current_sol_value_ = best_sol_value_;
 }
 
-NXTGM_OPTIMIZER_DEFAULT_FACTORY(BruteForceNaive);
-
 } // namespace nxtgm
 
-XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::BruteForceNaiveDiscreteGmOptimizerFactory);
+XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::BruteForceFactory);
 
 namespace nxtgm
 {
 
-OptimizationStatus BruteForceNaive::optimize(reporter_callback_wrapper_type &reporter_callback,
-                                             repair_callback_wrapper_type & /*repair_callback not used*/,
-                                             const_discrete_solution_span)
+OptimizationStatus BruteForceNaive::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                                  repair_callback_wrapper_type & /*repair_callback not used*/,
+                                                  const_discrete_solution_span)
 {
     // if the starting point is not empty, use it as the initial solution
 
@@ -82,9 +106,6 @@ OptimizationStatus BruteForceNaive::optimize(reporter_callback_wrapper_type &rep
     OptimizationStatus status = OptimizationStatus::OPTIMAL;
 
     static const bool early_stop_infeasible = true;
-
-    // indicate the start of the optimization
-    reporter_callback.begin();
 
     // just iterate over all possible solutions:
     // `exitable_for_each_solution` is like
@@ -123,9 +144,6 @@ OptimizationStatus BruteForceNaive::optimize(reporter_callback_wrapper_type &rep
         // continue the brtue force search
         return true;
     });
-
-    // indicate the end of the optimization
-    reporter_callback.end();
 
     if (!this->best_sol_value_.is_feasible())
     {

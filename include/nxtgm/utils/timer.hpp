@@ -1,3 +1,4 @@
+#pragma once
 #include <chrono>
 
 namespace nxtgm
@@ -12,55 +13,17 @@ class AutoStartedTimer
   private:
     struct RAIIPauseResume
     {
-        inline RAIIPauseResume(AutoStartedTimer &timer)
-            : timer_(timer)
-        {
-            timer_.pause();
-        }
-        inline ~RAIIPauseResume()
-        {
-            timer_.resume();
-        }
+        RAIIPauseResume(AutoStartedTimer &timer);
+        ~RAIIPauseResume();
         AutoStartedTimer &timer_;
     };
 
-    void start()
-    {
-        start_ = clock_type::now();
-        running_ = true;
-        duration_ = duration_type::zero();
-    }
-
-    void pause()
-    {
-        if (running_)
-        {
-            duration_ += clock_type::now() - start_;
-            running_ = false;
-        }
-        else
-        {
-            throw std::runtime_error("Timer already paused");
-        }
-    }
-    void resume()
-    {
-        if (!running_)
-        {
-            start_ = clock_type::now();
-            running_ = true;
-        }
-        else
-        {
-            throw std::runtime_error("Timer already running");
-        }
-    }
+    void start();
+    void pause();
+    void resume();
 
   public:
-    AutoStartedTimer()
-    {
-        this->start();
-    }
+    AutoStartedTimer();
 
     template <typename Fn>
     std::invoke_result_t<Fn> paused_call(Fn &&fn)
@@ -69,11 +32,7 @@ class AutoStartedTimer
         return fn();
     }
 
-    duration_type elapsed() const
-    {
-
-        return duration_ + (clock_type::now() - start_);
-    }
+    duration_type elapsed() const;
 
   private:
     time_point start_;

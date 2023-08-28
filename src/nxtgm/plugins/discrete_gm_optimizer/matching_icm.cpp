@@ -34,8 +34,6 @@ class MatchingIcm : public DiscreteGmOptimizerBase
     using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
     using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
 
-    using base_type::optimize;
-
     inline static std::string name()
     {
         return "MatchingIcm";
@@ -44,8 +42,8 @@ class MatchingIcm : public DiscreteGmOptimizerBase
 
     MatchingIcm(const DiscreteGm &gm, const OptimizerParameters &parameters);
 
-    OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
-                                const_discrete_solution_span starting_point) override;
+    OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                     const_discrete_solution_span starting_point) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;
@@ -63,10 +61,37 @@ class MatchingIcm : public DiscreteGmOptimizerBase
     std::queue<std::size_t> queue_;
 };
 
-NXTGM_OPTIMIZER_DEFAULT_FACTORY(MatchingIcm);
+class MatchingIcmFactory : public DiscreteGmOptimizerFactoryBase
+{
+  public:
+    using factory_base_type = DiscreteGmOptimizerFactoryBase;
+    virtual ~MatchingIcmFactory() = default;
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
+                                                    const OptimizerParameters &params) const override
+    {
+        return std::make_unique<MatchingIcm>(gm, params);
+    }
+    int priority() const override
+    {
+        return plugin_priority(PluginPriority::LOW);
+    }
+    std::string license() const override
+    {
+        return "MIT";
+    }
+    std::string description() const override
+    {
+        return "Iterated conditional models optimizer for matching problems";
+    }
+    OptimizerFlags flags() const override
+    {
+        return OptimizerFlags::LocalOptimal;
+    }
+};
+
 } // namespace nxtgm
 
-XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::MatchingIcmDiscreteGmOptimizerFactory);
+XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::MatchingIcmFactory);
 
 namespace nxtgm
 {
@@ -84,17 +109,14 @@ MatchingIcm::MatchingIcm(const DiscreteGm &gm, const OptimizerParameters &parame
     }
 }
 
-OptimizationStatus MatchingIcm::optimize(reporter_callback_wrapper_type &reporter_callback,
-                                         repair_callback_wrapper_type & /*repair_callback not used*/,
-                                         const_discrete_solution_span starting_point)
+OptimizationStatus MatchingIcm::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                              repair_callback_wrapper_type & /*repair_callback not used*/,
+                                              const_discrete_solution_span starting_point)
 {
     if (starting_point.size() > 0)
     {
         this->movemaker_.set_current_solution(starting_point);
     }
-
-    // indicate the start of the optimization
-    reporter_callback.begin();
 
     // start the timer
     AutoStartedTimer timer;
@@ -132,9 +154,6 @@ OptimizationStatus MatchingIcm::optimize(reporter_callback_wrapper_type &reporte
                 return true;
             });
     }
-
-    // indicate the end of the optimization
-    reporter_callback.end();
 
     return OptimizationStatus::LOCAL_OPTIMAL;
 }

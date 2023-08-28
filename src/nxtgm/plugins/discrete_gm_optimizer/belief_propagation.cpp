@@ -48,8 +48,6 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
     using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
     using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
 
-    using base_type::optimize;
-
     inline static std::string name()
     {
         return "BeliefPropagation";
@@ -58,8 +56,8 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
 
     BeliefPropagation(const DiscreteGm &gm, const OptimizerParameters &json_parameters);
 
-    OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
-                                const_discrete_solution_span starting_point) override;
+    OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                     const_discrete_solution_span starting_point) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;
@@ -101,11 +99,37 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
     solution_type current_solution_;
 };
 
-NXTGM_OPTIMIZER_DEFAULT_FACTORY(BeliefPropagation);
+class BeliefPropagationFactory : public DiscreteGmOptimizerFactoryBase
+{
+  public:
+    using factory_base_type = DiscreteGmOptimizerFactoryBase;
+    virtual ~BeliefPropagationFactory() = default;
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
+                                                    const OptimizerParameters &params) const override
+    {
+        return std::make_unique<BeliefPropagation>(gm, params);
+    }
+    int priority() const override
+    {
+        return plugin_priority(PluginPriority::MEDIUM);
+    }
+    std::string license() const override
+    {
+        return "MIT";
+    }
+    std::string description() const override
+    {
+        return "BeliefPropagation with parallel message passing update rules";
+    }
+    OptimizerFlags flags() const override
+    {
+        return OptimizerFlags::OptimalOnTrees;
+    }
+};
 
 } // namespace nxtgm
 
-XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::BeliefPropagationDiscreteGmOptimizerFactory);
+XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::BeliefPropagationFactory);
 
 namespace nxtgm
 {
@@ -157,14 +181,10 @@ BeliefPropagation::BeliefPropagation(const DiscreteGm &gm, const OptimizerParame
     message_storage_[1].resize(message_storage_size, 0);
 }
 
-OptimizationStatus BeliefPropagation::optimize(reporter_callback_wrapper_type &reporter_callback,
-                                               repair_callback_wrapper_type & /*repair_callback not used*/,
-                                               const_discrete_solution_span)
+OptimizationStatus BeliefPropagation::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                                    repair_callback_wrapper_type & /*repair_callback not used*/,
+                                                    const_discrete_solution_span)
 {
-    // std::cout<<"BeliefPropagation::optimize"<<std::endl;
-    //  indicate the start of the optimization
-    reporter_callback.begin();
-
     // start the timer
     AutoStartedTimer timer;
 
@@ -189,7 +209,6 @@ OptimizationStatus BeliefPropagation::optimize(reporter_callback_wrapper_type &r
         auto delta = this->compute_convergence_delta();
         if (delta < parameters_.convergence_tolerance)
         {
-            reporter_callback.end();
             return OptimizationStatus::CONVERGED;
         }
 
@@ -199,13 +218,10 @@ OptimizationStatus BeliefPropagation::optimize(reporter_callback_wrapper_type &r
         // check if the time limit is reached
         if (timer.elapsed() > this->parameters_.time_limit)
         {
-            reporter_callback.end();
             return OptimizationStatus::TIME_LIMIT_REACHED;
         }
     }
 
-    // indicate the end of the optimization
-    reporter_callback.end();
     return OptimizationStatus::ITERATION_LIMIT_REACHED;
 }
 
