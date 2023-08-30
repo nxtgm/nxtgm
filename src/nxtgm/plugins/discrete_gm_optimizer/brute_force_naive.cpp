@@ -6,14 +6,11 @@ namespace nxtgm
 
 class BruteForceNaive : public DiscreteGmOptimizerBase
 {
-    class parameters_type : public OptimizerParametersBase
-    {
-      public:
-        inline parameters_type(const OptimizerParameters &parameters)
-            : OptimizerParametersBase(parameters)
-        {
-        }
-    };
+    // class parameters_type
+    //   public:
+    //     inline parameters_type(OptimizerParameters &&){
+    //     }
+    // };
 
   public:
     using base_type = DiscreteGmOptimizerBase;
@@ -28,7 +25,7 @@ class BruteForceNaive : public DiscreteGmOptimizerBase
     }
     virtual ~BruteForceNaive() = default;
 
-    BruteForceNaive(const DiscreteGm &gm, const OptimizerParameters &json_parameters);
+    BruteForceNaive(const DiscreteGm &gm, OptimizerParameters &&parameters);
 
     OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                      const_discrete_solution_span starting_point) override;
@@ -40,7 +37,7 @@ class BruteForceNaive : public DiscreteGmOptimizerBase
     const solution_type &current_solution() const override;
 
   private:
-    parameters_type parameters_;
+    // parameters_type parameters_;
     solution_type best_solution_;
     solution_type current_solution_;
     SolutionValue best_sol_value_;
@@ -52,10 +49,9 @@ class BruteForceFactory : public DiscreteGmOptimizerFactoryBase
   public:
     using factory_base_type = DiscreteGmOptimizerFactoryBase;
     virtual ~BruteForceFactory() = default;
-    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
-                                                    const OptimizerParameters &params) const override
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
     {
-        return std::make_unique<BruteForceNaive>(gm, params);
+        return std::make_unique<BruteForceNaive>(gm, std::move(params));
     }
     int priority() const override
     {
@@ -75,14 +71,14 @@ class BruteForceFactory : public DiscreteGmOptimizerFactoryBase
     }
 };
 
-BruteForceNaive::BruteForceNaive(const DiscreteGm &gm, const OptimizerParameters &parameters)
-    : base_type(gm),
-      parameters_(parameters),
+BruteForceNaive::BruteForceNaive(const DiscreteGm &gm, OptimizerParameters &&parameters)
+    : base_type(gm, parameters),
       best_solution_(gm.space().size(), 0),
       current_solution_(gm.space().size(), 0),
       best_sol_value_(),
       current_sol_value_()
 {
+    ensure_all_handled(name(), parameters);
 
     best_sol_value_ = gm.evaluate(best_solution_, false /* early exit when infeasible*/);
     current_sol_value_ = best_sol_value_;
@@ -99,9 +95,6 @@ OptimizationStatus BruteForceNaive::optimize_impl(reporter_callback_wrapper_type
                                                   repair_callback_wrapper_type & /*repair_callback not used*/,
                                                   const_discrete_solution_span)
 {
-    // if the starting point is not empty, use it as the initial solution
-
-    AutoStartedTimer timer;
 
     OptimizationStatus status = OptimizationStatus::OPTIMAL;
 
@@ -123,11 +116,7 @@ OptimizationStatus BruteForceNaive::optimize_impl(reporter_callback_wrapper_type
             this->best_sol_value_ = this->current_sol_value_;
             this->best_solution_ = solution;
 
-            // reporter_callback returns "continue-optimize"
-            // and false indicate the optimization should be stopped.
-            // we exclude the time spent in the callback from the timer
-            // via `paused_call`
-            if (reporter_callback && !timer.paused_call([&]() { return reporter_callback.report(); }))
+            if (!this->report(reporter_callback))
             {
                 status = OptimizationStatus::CALLBACK_EXIT;
                 return false;
@@ -135,7 +124,7 @@ OptimizationStatus BruteForceNaive::optimize_impl(reporter_callback_wrapper_type
         }
 
         // check if the time limit is reached
-        if (timer.elapsed() > this->parameters_.time_limit)
+        if (this->time_limit_reached())
         {
             status = OptimizationStatus::TIME_LIMIT_REACHED;
             return false;

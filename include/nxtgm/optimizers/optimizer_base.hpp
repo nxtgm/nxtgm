@@ -34,43 +34,6 @@ inline OptimizerFlags operator&(OptimizerFlags lhs, OptimizerFlags rhs)
                                        static_cast<std::underlying_type<OptimizerFlags>::type>(rhs));
 }
 
-class OptimizerTimer : public AutoStartedTimer
-{
-  public:
-    using AutoStartedTimer::AutoStartedTimer;
-
-    template <class REPORTER_CALLBACK>
-    bool begin(REPORTER_CALLBACK &&reporter_callback)
-    {
-        if (!reporter_callback)
-        {
-            return true;
-        }
-
-        return this->paused_call([&]() { reporter_callback->begin(); });
-    }
-    template <class REPORTER_CALLBACK>
-    bool end(REPORTER_CALLBACK &&reporter_callback)
-    {
-        if (!reporter_callback)
-        {
-            return true;
-        }
-
-        return this->paused_call([&]() { reporter_callback->end(); });
-    }
-    template <class REPORTER_CALLBACK>
-    bool report(REPORTER_CALLBACK &&reporter_callback)
-    {
-        if (!reporter_callback)
-        {
-            return true;
-        }
-
-        return this->paused_call([&]() { reporter_callback->report(); });
-    }
-};
-
 enum class OptimizationStatus
 {
     OPTIMAL,
@@ -82,21 +45,6 @@ enum class OptimizationStatus
     ITERATION_LIMIT_REACHED,
     CONVERGED,
     CALLBACK_EXIT
-};
-
-class OptimizerParametersBase
-{
-  public:
-    inline OptimizerParametersBase(const OptimizerParameters &p)
-    {
-
-        if (auto it = p.int_parameters.find("time_limit_ms"); it != p.int_parameters.end())
-        {
-            time_limit = std::chrono::milliseconds(it->second);
-        }
-    }
-
-    std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
 };
 
 template <class MODEL_TYPE, class DERIVED_OPTIMIZER_BASE>
@@ -115,9 +63,16 @@ class OptimizerBase
     using repair_callback_base_type = RepairCallbackBase<self_type>;
     using repair_callback_wrapper_type = RepairCallbackWrapper<repair_callback_base_type>;
 
-    inline OptimizerBase(const model_type &model)
-        : model_(model)
+    inline OptimizerBase(const model_type &model, OptimizerParameters &parameters)
+        : model_(model),
+          timer_(),
+          time_limit_(std::chrono::duration<double>::max())
     {
+        if (auto it = parameters.int_parameters.find("time_limit_ms"); it != parameters.int_parameters.end())
+        {
+            time_limit_ = std::chrono::milliseconds(it->second);
+            parameters.int_parameters.erase(it);
+        }
     }
 
     virtual ~OptimizerBase() = default;
@@ -149,7 +104,7 @@ class OptimizerBase
         // this calls begin / end in the constructor / destructor
         reporter_callback_wrapper_type reporter_callback_wrapper(reporter_callback);
         repair_callback_wrapper_type repair_callback_wrapper(repair_callback);
-
+        timer_.start();
         return this->optimize_impl(reporter_callback_wrapper, repair_callback_wrapper, starting_point);
     }
 
@@ -165,7 +120,36 @@ class OptimizerBase
                                              repair_callback_wrapper_type &repair_callback,
                                              const_discrete_solution_span starting_point) = 0;
 
+  public:
+    std::chrono::duration<double> remaining_time() const
+    {
+        return time_limit_ - timer_.elapsed();
+    }
+
+    bool time_limit_reached() const
+    {
+        return timer_.elapsed() > time_limit_;
+    }
+    std::chrono::duration<double> get_time_limit() const
+    {
+        return time_limit_;
+    }
+    void set_time_limit(std::chrono::duration<double> time_limit)
+    {
+        time_limit_ = time_limit;
+    }
+
+    bool report(reporter_callback_wrapper_type &reporter_callback)
+    {
+        timer_.pause();
+        const auto ret = reporter_callback.report();
+        timer_.resume();
+        return ret;
+    }
+
   private:
     const model_type &model_;
+    Timer timer_;
+    std::chrono::duration<double> time_limit_;
 };
 } // namespace nxtgm

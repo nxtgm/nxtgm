@@ -37,7 +37,7 @@ class DiscreteGmOptimizerFactoryBase
     virtual ~DiscreteGmOptimizerFactoryBase() = default;
 
     virtual std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
-                                                            const OptimizerParameters &params) const = 0;
+                                                            OptimizerParameters &&params) const = 0;
 
     static std::string plugin_type()
     {

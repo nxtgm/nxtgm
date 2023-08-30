@@ -9,29 +9,32 @@ namespace nxtgm
 
 class BeliefPropagation : public DiscreteGmOptimizerBase
 {
-    class parameters_type : public OptimizerParametersBase
+    class parameters_type
     {
       public:
-        inline parameters_type(const OptimizerParameters &parameters)
-            : OptimizerParametersBase(parameters)
+        inline parameters_type(OptimizerParameters &parameters)
         {
 
             if (auto it = parameters.int_parameters.find("max_iterations"); it != parameters.int_parameters.end())
             {
                 max_iterations = it->second;
+                parameters.int_parameters.erase(it);
             }
             if (auto it = parameters.double_parameters.find("convergence_tolerance");
                 it != parameters.double_parameters.end())
             {
                 convergence_tolerance = it->second;
+                parameters.double_parameters.erase(it);
             }
             if (auto it = parameters.double_parameters.find("damping"); it != parameters.double_parameters.end())
             {
                 damping = it->second;
+                parameters.double_parameters.erase(it);
             }
             if (auto it = parameters.int_parameters.find("normalize_messages"); it != parameters.int_parameters.end())
             {
                 normalize_messages = it->second;
+                parameters.int_parameters.erase(it);
             }
         }
 
@@ -54,7 +57,7 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
     }
     virtual ~BeliefPropagation() = default;
 
-    BeliefPropagation(const DiscreteGm &gm, const OptimizerParameters &json_parameters);
+    BeliefPropagation(const DiscreteGm &gm, OptimizerParameters &&json_parameters);
 
     OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                      const_discrete_solution_span starting_point) override;
@@ -104,10 +107,9 @@ class BeliefPropagationFactory : public DiscreteGmOptimizerFactoryBase
   public:
     using factory_base_type = DiscreteGmOptimizerFactoryBase;
     virtual ~BeliefPropagationFactory() = default;
-    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
-                                                    const OptimizerParameters &params) const override
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
     {
-        return std::make_unique<BeliefPropagation>(gm, params);
+        return std::make_unique<BeliefPropagation>(gm, std::move(params));
     }
     int priority() const override
     {
@@ -134,9 +136,9 @@ XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::BeliefPropagationFactory);
 namespace nxtgm
 {
 
-BeliefPropagation::BeliefPropagation(const DiscreteGm &gm, const OptimizerParameters &json_parameters)
-    : base_type(gm),
-      parameters_(json_parameters),
+BeliefPropagation::BeliefPropagation(const DiscreteGm &gm, OptimizerParameters &&parameters)
+    : base_type(gm, parameters),
+      parameters_(parameters),
       iteration_(0),
       message_storage_(),
       belief_storage_(),
@@ -151,6 +153,8 @@ BeliefPropagation::BeliefPropagation(const DiscreteGm &gm, const OptimizerParame
       best_solution_(gm.num_variables(), 0),
       current_solution_(gm.num_variables(), 0)
 {
+    ensure_all_handled(name(), parameters);
+
     current_solution_value_ = gm.evaluate(current_solution_, false /* early exit when infeasible*/);
     best_solution_value_ = current_solution_value_;
 
@@ -185,17 +189,8 @@ OptimizationStatus BeliefPropagation::optimize_impl(reporter_callback_wrapper_ty
                                                     repair_callback_wrapper_type & /*repair_callback not used*/,
                                                     const_discrete_solution_span)
 {
-    // start the timer
-    AutoStartedTimer timer;
-
     // shortcut to the model
     const auto &gm = this->model();
-
-    // report the current solution to callack
-    if (reporter_callback && !timer.paused_call([&]() { return reporter_callback.report(); }))
-    {
-        return OptimizationStatus::CALLBACK_EXIT;
-    }
 
     for (std::size_t i = 0; i < parameters_.max_iterations; ++i)
     {
@@ -215,8 +210,13 @@ OptimizationStatus BeliefPropagation::optimize_impl(reporter_callback_wrapper_ty
         // copy the messages
         std::copy(message_storage_[0].begin(), message_storage_[0].end(), message_storage_[1].begin());
 
+        // check if the callback wants to exit
+        if (!this->report(reporter_callback))
+        {
+            return OptimizationStatus::CALLBACK_EXIT;
+        }
         // check if the time limit is reached
-        if (timer.elapsed() > this->parameters_.time_limit)
+        if (this->time_limit_reached())
         {
             return OptimizationStatus::TIME_LIMIT_REACHED;
         }

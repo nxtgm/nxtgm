@@ -4,24 +4,14 @@
 namespace nxtgm
 {
 
-AutoStartedTimer::RAIIPauseResume::RAIIPauseResume(AutoStartedTimer &timer)
-    : timer_(timer)
-{
-    timer_.pause();
-}
-AutoStartedTimer::RAIIPauseResume::~RAIIPauseResume()
-{
-    timer_.resume();
-}
-
-void AutoStartedTimer::start()
+void Timer::start()
 {
     start_ = clock_type::now();
     running_ = true;
     duration_ = duration_type::zero();
 }
 
-void AutoStartedTimer::pause()
+void Timer::pause()
 {
     if (running_)
     {
@@ -33,7 +23,7 @@ void AutoStartedTimer::pause()
         throw std::runtime_error("Timer already paused");
     }
 }
-void AutoStartedTimer::resume()
+void Timer::resume()
 {
     if (!running_)
     {
@@ -46,12 +36,7 @@ void AutoStartedTimer::resume()
     }
 }
 
-AutoStartedTimer::AutoStartedTimer()
-{
-    this->start();
-}
-
-typename AutoStartedTimer::duration_type AutoStartedTimer::elapsed() const
+typename Timer::duration_type Timer::elapsed() const
 {
 
     return duration_ + (clock_type::now() - start_);

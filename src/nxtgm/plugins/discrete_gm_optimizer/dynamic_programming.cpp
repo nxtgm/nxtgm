@@ -13,11 +13,10 @@ namespace nxtgm
 
 class DynamicProgramming : public DiscreteGmOptimizerBase
 {
-    class parameters_type : public OptimizerParametersBase
+    class parameters_type
     {
       public:
-        inline parameters_type(const OptimizerParameters &parameters)
-            : OptimizerParametersBase(parameters)
+        inline parameters_type(OptimizerParameters &&parameters)
         {
 
             if (auto it = parameters.any_parameters.find("roots"); it != parameters.any_parameters.end())
@@ -53,7 +52,7 @@ class DynamicProgramming : public DiscreteGmOptimizerBase
     }
     virtual ~DynamicProgramming() = default;
 
-    DynamicProgramming(const DiscreteGm &gm, const OptimizerParameters &parameters);
+    DynamicProgramming(const DiscreteGm &gm, OptimizerParameters &&parameters);
 
     OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                      const_discrete_solution_span) override;
@@ -86,10 +85,9 @@ class DynamicProgrammingFactory : public DiscreteGmOptimizerFactoryBase
   public:
     using factory_base_type = DiscreteGmOptimizerFactoryBase;
     virtual ~DynamicProgrammingFactory() = default;
-    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
-                                                    const OptimizerParameters &params) const override
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
     {
-        return std::make_unique<DynamicProgramming>(gm, params);
+        return std::make_unique<DynamicProgramming>(gm, std::move(params));
     }
     int priority() const override
     {
@@ -115,9 +113,9 @@ XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::DynamicProgrammingFactory);
 namespace nxtgm
 {
 
-DynamicProgramming::DynamicProgramming(const DiscreteGm &gm, const OptimizerParameters &parameters)
-    : base_type(gm),
-      parameters_(parameters),
+DynamicProgramming::DynamicProgramming(const DiscreteGm &gm, OptimizerParameters &&parameters)
+    : base_type(gm, parameters),
+      parameters_(std::move(parameters)),
       best_solution_(gm.num_variables()),
       best_sol_value_(gm.evaluate(best_solution_)),
       factors_of_variables_(gm),
@@ -213,19 +211,11 @@ OptimizationStatus DynamicProgramming::optimize_impl(reporter_callback_wrapper_t
                                                      const_discrete_solution_span /*initial_solution not used*/
 )
 {
-    AutoStartedTimer timer;
-
     const auto &gm = this->model();
     OptimizationStatus status = OptimizationStatus::OPTIMAL;
 
     for (std::size_t i = 1; i <= gm.num_variables(); ++i)
     {
-
-        // check if the time limit is reached
-        if (timer.elapsed() > this->parameters_.time_limit)
-        {
-            return OptimizationStatus::TIME_LIMIT_REACHED;
-        }
 
         const auto node = ordered_nodes_[gm.num_variables() - i];
 

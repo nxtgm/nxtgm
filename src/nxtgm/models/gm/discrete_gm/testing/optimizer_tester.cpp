@@ -255,7 +255,7 @@ void RequireLocalOptimality::require(DiscreteGmOptimizerBase *optimizer, Optimiz
 
     if (proven)
     {
-        NXTGM_TEST(status == OptimizationStatus::LOCAL_OPTIMAL, info);
+        NXTGM_TEST(status == OptimizationStatus::LOCAL_OPTIMAL || status == OptimizationStatus::OPTIMAL, info);
     }
 
     const auto &model = optimizer->model();

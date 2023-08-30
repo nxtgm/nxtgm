@@ -76,7 +76,12 @@ void export_discrete_gm_optimizers(py::module_ &pymodule)
         .def("current_solution_value", &DiscreteGmOptimizerBase::current_solution_value)
         .def("lower_bound", &DiscreteGmOptimizerBase::lower_bound);
 
-    pymodule.def("_discrete_gm_optimizer_factory", &discrete_gm_optimizer_factory, py::arg("gm"),
-                 py::arg("optimizer_name"), py::arg("parameters") = OptimizerParameters(), py::keep_alive<1, 2>());
+    pymodule.def(
+        "_discrete_gm_optimizer_factory",
+        [](const DiscreteGm &gm, const std::string &optimizer_name, const OptimizerParameters &parameters) {
+            return discrete_gm_optimizer_factory(gm, optimizer_name, parameters);
+        },
+        py::arg("gm"), py::arg("optimizer_name"), py::arg("parameters") = OptimizerParameters(),
+        py::keep_alive<1, 2>());
 }
 } // namespace nxtgm

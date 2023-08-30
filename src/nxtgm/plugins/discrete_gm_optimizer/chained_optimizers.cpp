@@ -23,7 +23,7 @@ class ChainedOptimizers : public DiscreteGmOptimizerBase
     }
     virtual ~ChainedOptimizers() = default;
 
-    ChainedOptimizers(const DiscreteGm &gm, const OptimizerParameters &parameters);
+    ChainedOptimizers(const DiscreteGm &gm, OptimizerParameters &&parameters);
 
     OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                      const_discrete_solution_span starting_point) override;
@@ -49,10 +49,9 @@ class ChainedOptimizerFactory : public DiscreteGmOptimizerFactoryBase
   public:
     using factory_base_type = DiscreteGmOptimizerFactoryBase;
     virtual ~ChainedOptimizerFactory() = default;
-    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
-                                                    const OptimizerParameters &params) const override
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
     {
-        return std::make_unique<ChainedOptimizers>(gm, params);
+        return std::make_unique<ChainedOptimizers>(gm, std::move(params));
     }
     int priority() const override
     {
@@ -79,14 +78,15 @@ XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::ChainedOptimizerFactory);
 
 namespace nxtgm
 {
-ChainedOptimizers::ChainedOptimizers(const DiscreteGm &gm, const OptimizerParameters &parameters)
-    : base_type(gm),
+ChainedOptimizers::ChainedOptimizers(const DiscreteGm &gm, OptimizerParameters &&parameters)
+    : base_type(gm, parameters),
       parameters_(parameters),
       best_solution_value_(),
       best_solution_(gm.num_variables(), 0),
       is_partial_optimal_(gm.num_variables(), 0)
 {
-
+    parameters.optimizer_parameters.clear();
+    ensure_all_handled(name(), parameters);
     best_solution_value_ = gm.evaluate(best_solution_, false /* early exit when infeasible*/);
 }
 
@@ -94,10 +94,6 @@ OptimizationStatus ChainedOptimizers::optimize_impl(reporter_callback_wrapper_ty
                                                     repair_callback_wrapper_type & /*repair_callback not used*/,
                                                     const_discrete_solution_span)
 {
-
-    // start the timer
-    AutoStartedTimer timer;
-
     // shortcut to the model
     const auto &gm = this->model();
 
@@ -118,22 +114,22 @@ OptimizationStatus ChainedOptimizers::optimize_impl(reporter_callback_wrapper_ty
             best_solution_value_ = solution_value;
             best_solution_ = optimizer->best_solution();
 
-            reporter_callback.report();
+            if (!this->report(reporter_callback))
+            {
+                return OptimizationStatus::CALLBACK_EXIT;
+            }
         }
-
-        if (status == OptimizationStatus::OPTIMAL)
+        if (this->time_limit_reached())
         {
-            total_status = OptimizationStatus::OPTIMAL;
-            break;
+            return OptimizationStatus::TIME_LIMIT_REACHED;
         }
-        else if (status == OptimizationStatus::INFEASIBLE)
+        if (status == OptimizationStatus::OPTIMAL || status == OptimizationStatus::INFEASIBLE)
         {
-            total_status = OptimizationStatus::INFEASIBLE;
-            break;
+            return status;
         }
         else if (status == OptimizationStatus::LOCAL_OPTIMAL)
         {
-            total_status = OptimizationStatus::LOCAL_OPTIMAL;
+            total_status = status;
         }
     }
 

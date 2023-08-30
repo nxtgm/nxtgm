@@ -13,14 +13,6 @@ namespace nxtgm
 
 class Icm : public DiscreteGmOptimizerBase
 {
-    class parameters_type : public OptimizerParametersBase
-    {
-      public:
-        inline parameters_type(const OptimizerParameters &parameters)
-            : OptimizerParametersBase(parameters)
-        {
-        }
-    };
 
   public:
     using base_type = DiscreteGmOptimizerBase;
@@ -35,7 +27,7 @@ class Icm : public DiscreteGmOptimizerBase
     }
     virtual ~Icm() = default;
 
-    Icm(const DiscreteGm &gm, const OptimizerParameters &parameters);
+    Icm(const DiscreteGm &gm, OptimizerParameters &&parameters);
 
     OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
                                      const_discrete_solution_span starting_point) override;
@@ -49,8 +41,6 @@ class Icm : public DiscreteGmOptimizerBase
   private:
     void compute_labels();
 
-    parameters_type parameters_;
-
     Movemaker movemaker_;
     std::vector<uint8_t> in_queue_;
     std::queue<std::size_t> queue_;
@@ -61,10 +51,9 @@ class IcmFactory : public DiscreteGmOptimizerFactoryBase
   public:
     using factory_base_type = DiscreteGmOptimizerFactoryBase;
     virtual ~IcmFactory() = default;
-    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
-                                                    const OptimizerParameters &params) const override
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
     {
-        return std::make_unique<Icm>(gm, params);
+        return std::make_unique<Icm>(gm, std::move(params));
     }
     int priority() const override
     {
@@ -91,12 +80,12 @@ XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::IcmFactory);
 namespace nxtgm
 {
 
-Icm::Icm(const DiscreteGm &gm, const OptimizerParameters &parameters)
-    : base_type(gm),
-      parameters_(parameters),
+Icm::Icm(const DiscreteGm &gm, OptimizerParameters &&parameters)
+    : base_type(gm, parameters),
       movemaker_(gm),
       in_queue_(gm.num_variables(), 1)
 {
+    ensure_all_handled(name(), parameters);
     // put all variables on queue
     for (std::size_t i = 0; i < gm.num_variables(); ++i)
     {
@@ -113,9 +102,6 @@ OptimizationStatus Icm::optimize_impl(reporter_callback_wrapper_type &reporter_c
     {
         movemaker_.set_current_solution(starting_point);
     }
-
-    // start the timer
-    AutoStartedTimer timer;
 
     // shortcut to the model
     const auto &gm = this->model();
@@ -135,7 +121,7 @@ OptimizationStatus Icm::optimize_impl(reporter_callback_wrapper_type &reporter_c
         if (did_improve)
         {
             // report the current solution to callack
-            if (reporter_callback && !timer.paused_call([&]() { return reporter_callback.report(); }))
+            if (!this->report(reporter_callback))
             {
                 return OptimizationStatus::CALLBACK_EXIT;
             }
@@ -166,7 +152,7 @@ OptimizationStatus Icm::optimize_impl(reporter_callback_wrapper_type &reporter_c
         }
 
         // check if the time limit is reached
-        if (timer.elapsed() > this->parameters_.time_limit)
+        if (this->time_limit_reached())
         {
             return OptimizationStatus::TIME_LIMIT_REACHED;
         }

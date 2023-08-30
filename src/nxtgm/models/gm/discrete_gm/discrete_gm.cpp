@@ -151,7 +151,7 @@ std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionVal
 
             if (mask[vi] != is_include_mask)
             {
-                binded_gm_factor_variables.push_back(gm_to_binded_gm[vi]);
+                // binded_gm_factor_variables.push_back(gm_to_binded_gm[vi]);
                 local_binded_vars.push_back(v);
                 local_binded_vars_labels.push_back(labels[vi]);
             }
@@ -161,10 +161,15 @@ std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionVal
             }
         }
 
+        NXTGM_CHECK_OP(local_binded_vars.size(), <=, factor.arity(), "");
+        NXTGM_CHECK_OP(local_binded_vars.size() + binded_gm_factor_variables.size(), ==, factor.arity(), "");
+
         if (local_binded_vars.size() > 0 && local_binded_vars.size() < factor.variables().size())
         {
             // some variables are binded
-            auto binded_function = factor.function()->bind(local_binded_vars, local_binded_vars_labels);
+            auto binded_function = factor.function()->bind(
+                span<const std::size_t>(local_binded_vars.data(), local_binded_vars.size()),
+                span<const discrete_label_type>(local_binded_vars_labels.data(), local_binded_vars_labels.size()));
             auto fid = binded_gm.add_energy_function(std::move(binded_function));
             binded_gm.add_factor(binded_gm_factor_variables, fid);
         }

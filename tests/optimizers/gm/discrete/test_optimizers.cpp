@@ -14,7 +14,7 @@ TEST_CASE("chained_optimizers")
 {
 
     OptimizerParameters icm_params;
-    icm_params["time_limit"] = 10000000;
+    icm_params["time_limit_ms"] = 10000000;
 
     OptimizerParameters belief_propagation_params;
     belief_propagation_params["max_iterations"] = 100;
@@ -403,6 +403,43 @@ TEST_CASE("ilp_highs" * SKIP_WIN)
                 unique_label_chain(4,5, false)
             },
             require_optimality(/*proven*/ true, /*tolerance*/ 1e-3)
+        );
+        // clang-format on
+    }
+}
+
+TEST_CASE("reduced_gm_optimizer")
+{
+    SUBCASE("brute_force_naive")
+    {
+        OptimizerParameters parameters;
+        parameters["sub_optimizer"] = "brute_force_naive";
+
+        // clang-format off
+        test_discrete_gm_optimizer(
+            "reduced_gm_optimizer",
+            parameters,
+            {
+                potts_grid(4,3,2,false)
+            },
+            require_optimality(/*proven*/ true, /*tolerance*/ 1e-3)
+        );
+        // clang-format on
+    }
+    SUBCASE("icm")
+    {
+        OptimizerParameters parameters;
+        parameters["sub_optimizer"] = "icm";
+
+        // clang-format off
+        test_discrete_gm_optimizer(
+            "reduced_gm_optimizer",
+            parameters,
+            {
+                potts_grid(10,10,2,false)
+            },
+            // return status needs to be local_optimal OR optimal
+            require_local_optimality(/*proven*/true)
         );
         // clang-format on
     }

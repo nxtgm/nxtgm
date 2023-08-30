@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <map>
 #include <string>
 #include <tsl/ordered_map.h>
@@ -68,5 +69,12 @@ class OptimizerParameters
     tsl::ordered_map<std::string, double> double_parameters;
     tsl::ordered_map<std::string, std::any> any_parameters;
     detail::ordered_map_vec<std::string, OptimizerParameters> optimizer_parameters;
+    bool empty() const;
 };
+
+void ensure_all_handled(const std::string &optimizer_name, const OptimizerParameters &parameters);
+
+// Define the function outside the class definition.
+std::ostream &operator<<(std::ostream &out, const OptimizerParameters &p);
+
 } // namespace nxtgm

@@ -60,8 +60,8 @@ void Potts::add_energies(energy_type *energies) const
     }
 }
 
-std::unique_ptr<DiscreteEnergyFunctionBase> Potts::bind(const span<std::size_t> &binded_vars,
-                                                        const span<discrete_label_type> &binded_vars_labels) const
+std::unique_ptr<DiscreteEnergyFunctionBase> Potts::bind(span<const std::size_t> binded_vars,
+                                                        span<const discrete_label_type> binded_vars_labels) const
 {
     auto values = xt::xtensor<energy_type, 1>::from_shape({std::size_t(num_labels_)});
     values.fill(beta_);

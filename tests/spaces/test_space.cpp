@@ -64,7 +64,7 @@ TEST_CASE("discrete-space-bind")
 
         CHECK_EQ(binded_space.size(), 2);
         CHECK_EQ(binded_space[0], 3);
-        CHECK_EQ(binded_space[1], 3);
+        CHECK_EQ(binded_space[1], 4);
         CHECK(!binded_space.is_simple());
 
         CHECK_EQ(space_to_subspace.size(), 2);
@@ -80,6 +80,22 @@ TEST_CASE("discrete-space-bind")
     SUBCASE("simple")
     {
         DiscreteSpace space(10, 3);
+        CHECK(space.is_simple());
+
+        std::vector<uint8_t> mask(space.size(), 0);
+
+        mask[1] = 1;
+        mask[3] = 1;
+
+        auto [binded_space_, space_to_subspace_] = space.subspace(span<uint8_t>(mask.data(), mask.size()), true);
+
+        DiscreteSpace binded_space = std::move(binded_space_);
+        std::unordered_map<std::size_t, std::size_t> space_to_subspace = std::move(space_to_subspace_);
+
+        CHECK_EQ(binded_space.size(), 2);
+        CHECK_EQ(binded_space[0], 3);
+        CHECK_EQ(binded_space[1], 3);
+        CHECK(binded_space.is_simple());
     }
 }
 

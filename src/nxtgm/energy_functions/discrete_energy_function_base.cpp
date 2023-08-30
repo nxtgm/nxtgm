@@ -200,7 +200,7 @@ void DiscreteEnergyFunctionBase::compute_factor_to_variable_messages(const energ
 }
 
 std::unique_ptr<DiscreteEnergyFunctionBase> DiscreteEnergyFunctionBase::bind(
-    const span<std::size_t> &binded_vars, const span<discrete_label_type> &binded_vars_labels) const
+    span<const std::size_t> binded_vars, span<const discrete_label_type> binded_vars_labels) const
 {
     // copy the energy
     small_factor_size_vector<energy_type> energies(this->size());

@@ -15,19 +15,20 @@ namespace nxtgm
 
 class IlpHighs : public DiscreteGmOptimizerBase
 {
-    class parameters_type : public OptimizerParametersBase
+    class parameters_type
     {
       public:
-        inline parameters_type(const OptimizerParameters &parameters)
-            : OptimizerParametersBase(parameters)
+        inline parameters_type(OptimizerParameters &parameters)
         {
             if (auto it = parameters.int_parameters.find("integer"); it != parameters.int_parameters.end())
             {
                 integer = it->second;
+                parameters.int_parameters.erase(it);
             }
             if (auto it = parameters.int_parameters.find("highs_log_to_console"); it != parameters.int_parameters.end())
             {
                 highs_log_to_console = it->second;
+                parameters.int_parameters.erase(it);
             }
         }
 
@@ -47,7 +48,7 @@ class IlpHighs : public DiscreteGmOptimizerBase
         return "IlpHighs";
     }
 
-    IlpHighs(const DiscreteGm &gm, const OptimizerParameters &parameters);
+    IlpHighs(const DiscreteGm &gm, OptimizerParameters &&parameters);
 
     virtual ~IlpHighs() = default;
 
@@ -88,10 +89,9 @@ class IlpHighsFactory : public DiscreteGmOptimizerFactoryBase
   public:
     using factory_base_type = DiscreteGmOptimizerFactoryBase;
     virtual ~IlpHighsFactory() = default;
-    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
-                                                    const OptimizerParameters &params) const override
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
     {
-        return std::make_unique<IlpHighs>(gm, params);
+        return std::make_unique<IlpHighs>(gm, std::move(params));
     }
     int priority() const override
     {
@@ -165,8 +165,8 @@ OptimizationStatus highsModelStatusToOptimizationStatus(Highs &highs, HighsModel
     }
 }
 
-IlpHighs::IlpHighs(const DiscreteGm &gm, const OptimizerParameters &parameters)
-    : base_type(gm),
+IlpHighs::IlpHighs(const DiscreteGm &gm, OptimizerParameters &&parameters)
+    : base_type(gm, parameters),
       parameters_(parameters),
       best_solution_(gm.num_variables(), 0),
       current_solution_(),
@@ -177,6 +177,7 @@ IlpHighs::IlpHighs(const DiscreteGm &gm, const OptimizerParameters &parameters)
       indicator_variable_mapping_(gm.space()),
       highs_model_()
 {
+    ensure_all_handled(name(), parameters);
     best_sol_value_ = this->model().evaluate(best_solution_, false);
     current_solution_ = best_solution_;
     current_sol_value_ = best_sol_value_;
@@ -244,6 +245,7 @@ OptimizationStatus IlpHighs::optimize_impl(reporter_callback_wrapper_type &repor
     // Create a Highs instance
     Highs highs;
     highs.setOptionValue("log_to_console", parameters_.highs_log_to_console);
+    highs.setOptionValue("time_limit", this->remaining_time().count());
     HighsStatus return_status;
 
     // Pass the model to HiGHS

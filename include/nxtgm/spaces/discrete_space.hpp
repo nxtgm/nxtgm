@@ -29,7 +29,7 @@ class DiscreteSpace
     {
     }
 
-    template <class ITER>
+    template <class ITER, typename = std::enable_if_t<!std::is_integral_v<ITER>>>
     inline DiscreteSpace(ITER begin, ITER end)
         : n_labels_(begin, end),
           n_variables_(),
