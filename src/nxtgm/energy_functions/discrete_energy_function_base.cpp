@@ -216,10 +216,11 @@ std::unique_ptr<DiscreteEnergyFunctionBase> DiscreteEnergyFunctionBase::bind(
     std::copy(shape.begin(), shape.end(), size_t_shape.begin());
 
     // create an xtensor view
-    auto energy_view = xt::adapt(energies.data(), arity, xt::no_ownership(), size_t_shape);
+    auto energy_view = xt::adapt(energies.data(), this->size(), xt::no_ownership(), size_t_shape);
 
     // bind the variables
     auto binded = bind_many(energy_view, binded_vars, binded_vars_labels);
+
     return std::make_unique<XArray>(std::move(binded));
 }
 
