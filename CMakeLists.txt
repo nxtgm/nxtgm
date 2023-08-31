@@ -47,6 +47,7 @@ endif()
 ###############################################################
 
 add_library(nxtgm_shared SHARED
+    src/nxtgm/utils/timer.cpp
     src/nxtgm/energy_functions/discrete_energy_function_base.cpp
     src/nxtgm/energy_functions/discrete_energy_functions.cpp
     src/nxtgm/spaces/discrete_space.cpp

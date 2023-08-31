@@ -6,6 +6,8 @@
 #include <nlohmann/json.hpp>
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/utils/n_nested_loops.hpp>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace nxtgm
@@ -27,7 +29,7 @@ class DiscreteSpace
     {
     }
 
-    template <class ITER>
+    template <class ITER, typename = std::enable_if_t<!std::is_integral_v<ITER>>>
     inline DiscreteSpace(ITER begin, ITER end)
         : n_labels_(begin, end),
           n_variables_(),
@@ -42,6 +44,9 @@ class DiscreteSpace
           is_simple_(false)
     {
     }
+
+    std::pair<DiscreteSpace, std::unordered_map<std::size_t, std::size_t>> subspace(span<const std::uint8_t> mask,
+                                                                                    bool is_include_mask) const;
 
     inline nxtgm::discrete_label_type operator[](std::size_t variable) const
     {

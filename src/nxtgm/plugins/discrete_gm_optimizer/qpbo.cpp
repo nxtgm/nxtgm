@@ -15,33 +15,37 @@ namespace nxtgm
 
 class Qpbo : public DiscreteGmOptimizerBase
 {
-    class parameters_type : public OptimizerParametersBase, public QpboBase::ProbeOptions
+    class parameters_type
     {
       public:
-        inline parameters_type(const OptimizerParameters &parameters)
-            : OptimizerParametersBase(parameters)
+        inline parameters_type(OptimizerParameters &parameters)
         {
             if (auto it = parameters.string_parameters.find("qpbo_plugin_name");
                 it != parameters.string_parameters.end())
             {
                 qpbo_plugin_name = it->second;
+                parameters.string_parameters.erase(it);
             }
 
             if (auto it = parameters.int_parameters.find("probing"); it != parameters.int_parameters.end())
             {
                 probing = it->second;
+                parameters.int_parameters.erase(it);
             }
             if (auto it = parameters.int_parameters.find("strong_persistencies"); it != parameters.int_parameters.end())
             {
                 strong_persistencies = it->second;
+                parameters.int_parameters.erase(it);
             }
             if (auto it = parameters.int_parameters.find("improving"); it != parameters.int_parameters.end())
             {
                 improving = it->second;
+                parameters.int_parameters.erase(it);
             }
             if (auto it = parameters.int_parameters.find("seed"); it != parameters.int_parameters.end())
             {
                 seed = it->second;
+                parameters.int_parameters.erase(it);
             }
         }
 
@@ -59,18 +63,16 @@ class Qpbo : public DiscreteGmOptimizerBase
     using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
     using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
 
-    using base_type::optimize;
-
     inline static std::string name()
     {
         return "Qpbo";
     }
     virtual ~Qpbo() = default;
 
-    Qpbo(const DiscreteGm &gm, const OptimizerParameters &parameters);
+    Qpbo(const DiscreteGm &gm, OptimizerParameters &&parameters);
 
-    OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
-                                const_discrete_solution_span starting_point) override;
+    OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                     const_discrete_solution_span starting_point) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;
@@ -91,15 +93,42 @@ class Qpbo : public DiscreteGmOptimizerBase
     std::unique_ptr<QpboBase> qpbo_;
 };
 
-NXTGM_OPTIMIZER_DEFAULT_FACTORY(Qpbo);
+class QpboDiscreteGmOptimizerFactory : public DiscreteGmOptimizerFactoryBase
+{
+  public:
+    using factory_base_type = DiscreteGmOptimizerFactoryBase;
+    virtual ~QpboDiscreteGmOptimizerFactory() = default;
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
+    {
+        return std::make_unique<Qpbo>(gm, std::move(params));
+    }
+    int priority() const override
+    {
+        return plugin_priority(PluginPriority::HIGH);
+    }
+    std::string license() const override
+    {
+        return "MIT";
+    }
+    std::string description() const override
+    {
+        return "QPBO optimizer";
+    }
+    OptimizerFlags flags() const override
+    {
+        return OptimizerFlags::PartialOptimal | OptimizerFlags::OptimalOnBinarySecondOrderSubmodular |
+               OptimizerFlags::OptimalOnTrees;
+    }
+};
+
 } // namespace nxtgm
 
 XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::QpboDiscreteGmOptimizerFactory);
 
 namespace nxtgm
 {
-Qpbo::Qpbo(const DiscreteGm &gm, const OptimizerParameters &parameters)
-    : base_type(gm),
+Qpbo::Qpbo(const DiscreteGm &gm, OptimizerParameters &&parameters)
+    : base_type(gm, parameters),
       parameters_(parameters),
       best_solution_value_(),
       best_solution_(gm.num_variables(), 0),
@@ -107,6 +136,7 @@ Qpbo::Qpbo(const DiscreteGm &gm, const OptimizerParameters &parameters)
       qpbo_(nullptr),
       qpbo_labels_(gm.num_variables(), -1)
 {
+    ensure_all_handled(name(), parameters);
 
     best_solution_value_ = gm.evaluate(best_solution_, false /* early exit when infeasible*/);
 
@@ -158,16 +188,10 @@ energy_type Qpbo::lower_bound() const
     return lower_bound_;
 }
 
-OptimizationStatus Qpbo::optimize(reporter_callback_wrapper_type &reporter_callback,
-                                  repair_callback_wrapper_type & /*repair_callback not used*/,
-                                  const_discrete_solution_span starting_point)
+OptimizationStatus Qpbo::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                       repair_callback_wrapper_type & /*repair_callback not used*/,
+                                       const_discrete_solution_span starting_point)
 {
-
-    reporter_callback.begin();
-
-    // start the timer
-    AutoStartedTimer timer;
-
     // shortcut to the model
     const auto &gm = this->model();
 
@@ -277,9 +301,6 @@ OptimizationStatus Qpbo::optimize(reporter_callback_wrapper_type &reporter_callb
     }
 
     best_solution_value_ = gm.evaluate(best_solution_, false /* early exit when infeasible*/);
-
-    // indicate the end of the optimization
-    reporter_callback.end();
 
     return num_unlabeled == 0 ? OptimizationStatus::OPTIMAL : OptimizationStatus::CONVERGED;
 }

@@ -39,6 +39,12 @@ void DiscreteConstraintFunctionBase::add_to_lp(IlpData &ilp_data, const std::siz
     throw std::runtime_error("Not implemented");
 }
 
+std::unique_ptr<DiscreteConstraintFunctionBase> DiscreteConstraintFunctionBase::bind(
+    const span<std::size_t> &binded_vars, const span<discrete_label_type> &binded_vars_labels) const
+{
+    throw std::runtime_error("DiscreteConstraintFunctionBase::bind is not implemented");
+}
+
 template <class T>
 struct Identity
 {

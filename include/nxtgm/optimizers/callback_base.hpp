@@ -61,6 +61,17 @@ class ReporterCallbackWrapper
     ReporterCallbackWrapper(reporter_callback_base_type *reporter_callback)
         : reporter_callback_(reporter_callback)
     {
+        if (this->reporter_callback_ != nullptr)
+        {
+            this->reporter_callback_->begin();
+        }
+    }
+    ~ReporterCallbackWrapper()
+    {
+        if (this->reporter_callback_ != nullptr)
+        {
+            this->reporter_callback_->end();
+        }
     }
     inline bool report()
     {
@@ -70,20 +81,7 @@ class ReporterCallbackWrapper
         }
         return true;
     }
-    inline void begin()
-    {
-        if (this->reporter_callback_ != nullptr)
-        {
-            this->reporter_callback_->begin();
-        }
-    }
-    inline void end()
-    {
-        if (this->reporter_callback_ != nullptr)
-        {
-            this->reporter_callback_->end();
-        }
-    }
+
     // convert to bool
     inline operator bool() const
     {

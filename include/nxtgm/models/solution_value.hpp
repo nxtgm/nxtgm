@@ -48,6 +48,9 @@ class SolutionValue
     energy_type how_violated_;
 };
 
+// free operator
+SolutionValue operator+(const SolutionValue &lhs, const SolutionValue &rhs);
+
 // print class
 std::ostream &operator<<(std::ostream &os, const SolutionValue &solution);
 

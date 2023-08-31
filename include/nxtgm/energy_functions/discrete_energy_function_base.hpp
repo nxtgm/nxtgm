@@ -52,8 +52,8 @@ class DiscreteEnergyFunctionBase
 
     virtual std::unique_ptr<DiscreteEnergyFunctionBase> clone() const = 0;
 
-    virtual std::pair<std::unique_ptr<DiscreteEnergyFunctionBase>, energy_type> bind(
-        const span<std::size_t> &binded_vars, const span<discrete_label_type> &binded_vars_labels) const;
+    virtual std::unique_ptr<DiscreteEnergyFunctionBase> bind(span<const std::size_t> binded_vars,
+                                                             span<const discrete_label_type> binded_vars_labels) const;
 
     virtual nlohmann::json serialize_json() const = 0;
 };

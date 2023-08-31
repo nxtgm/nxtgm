@@ -11,11 +11,10 @@ namespace nxtgm
 
 class GraphCut : public DiscreteGmOptimizerBase
 {
-    class parameters_type : public OptimizerParametersBase
+    class parameters_type
     {
       public:
-        inline parameters_type(const OptimizerParameters &parameters)
-            : OptimizerParametersBase(parameters)
+        inline parameters_type(OptimizerParameters &&parameters)
         {
             if (auto it = parameters.string_parameters.find("min_st_cut_plugin_name");
                 it != parameters.string_parameters.end())
@@ -40,18 +39,16 @@ class GraphCut : public DiscreteGmOptimizerBase
     using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
     using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
 
-    using base_type::optimize;
-
     inline static std::string name()
     {
         return "GraphCut";
     }
     virtual ~GraphCut() = default;
 
-    GraphCut(const DiscreteGm &gm, const OptimizerParameters &parameters);
+    GraphCut(const DiscreteGm &gm, OptimizerParameters &&parameters);
 
-    OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
-                                const_discrete_solution_span starting_point) override;
+    OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                     const_discrete_solution_span starting_point) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;
@@ -68,16 +65,42 @@ class GraphCut : public DiscreteGmOptimizerBase
     std::unique_ptr<MinStCutBase> min_st_cut_;
 };
 
-NXTGM_OPTIMIZER_DEFAULT_FACTORY(GraphCut);
+class GraphCutFactory : public DiscreteGmOptimizerFactoryBase
+{
+  public:
+    using factory_base_type = DiscreteGmOptimizerFactoryBase;
+    virtual ~GraphCutFactory() = default;
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
+    {
+        return std::make_unique<GraphCut>(gm, std::move(params));
+    }
+    int priority() const override
+    {
+        return plugin_priority(PluginPriority::MEDIUM);
+    }
+    std::string license() const override
+    {
+        return "MIT";
+    }
+    std::string description() const override
+    {
+        return "Graph cut optimizer";
+    }
+    OptimizerFlags flags() const override
+    {
+        return OptimizerFlags::OptimalOnBinarySecondOrderSubmodular;
+    }
+};
+
 } // namespace nxtgm
 
-XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::GraphCutDiscreteGmOptimizerFactory);
+XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::GraphCutFactory);
 
 namespace nxtgm
 {
-GraphCut::GraphCut(const DiscreteGm &gm, const OptimizerParameters &parameters)
-    : base_type(gm),
-      parameters_(parameters),
+GraphCut::GraphCut(const DiscreteGm &gm, OptimizerParameters &&parameters)
+    : base_type(gm, parameters),
+      parameters_(std::move(parameters)),
       best_solution_value_(),
       best_solution_(gm.num_variables(), 0),
       min_st_cut_(nullptr)
@@ -172,24 +195,15 @@ GraphCut::GraphCut(const DiscreteGm &gm, const OptimizerParameters &parameters)
     }
 }
 
-OptimizationStatus GraphCut::optimize(reporter_callback_wrapper_type &reporter_callback,
-                                      repair_callback_wrapper_type & /*repair_callback not used*/,
-                                      const_discrete_solution_span)
+OptimizationStatus GraphCut::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                           repair_callback_wrapper_type & /*repair_callback not used*/,
+                                           const_discrete_solution_span)
 {
-
-    reporter_callback.begin();
-
-    // start the timer
-    AutoStartedTimer timer;
-
     // shortcut to the model
     const auto &gm = this->model();
 
     /*const auto flow = */ min_st_cut_->solve(best_solution_.data());
     best_solution_value_ = gm.evaluate(best_solution_, false /* early exit when infeasible*/);
-
-    // indicate the end of the optimization
-    reporter_callback.end();
 
     return OptimizationStatus::OPTIMAL;
 }

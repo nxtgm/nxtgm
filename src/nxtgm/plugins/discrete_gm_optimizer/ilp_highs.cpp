@@ -15,19 +15,20 @@ namespace nxtgm
 
 class IlpHighs : public DiscreteGmOptimizerBase
 {
-    class parameters_type : public OptimizerParametersBase
+    class parameters_type
     {
       public:
-        inline parameters_type(const OptimizerParameters &parameters)
-            : OptimizerParametersBase(parameters)
+        inline parameters_type(OptimizerParameters &parameters)
         {
             if (auto it = parameters.int_parameters.find("integer"); it != parameters.int_parameters.end())
             {
                 integer = it->second;
+                parameters.int_parameters.erase(it);
             }
             if (auto it = parameters.int_parameters.find("highs_log_to_console"); it != parameters.int_parameters.end())
             {
                 highs_log_to_console = it->second;
+                parameters.int_parameters.erase(it);
             }
         }
 
@@ -42,20 +43,18 @@ class IlpHighs : public DiscreteGmOptimizerBase
     using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
     using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
 
-    using base_type::optimize;
-
     inline static std::string name()
     {
         return "IlpHighs";
     }
 
-    IlpHighs(const DiscreteGm &gm, const OptimizerParameters &parameters);
+    IlpHighs(const DiscreteGm &gm, OptimizerParameters &&parameters);
 
     virtual ~IlpHighs() = default;
 
-    OptimizationStatus optimize(reporter_callback_wrapper_type &reporter_callback,
-                                repair_callback_wrapper_type & /*repair_callback not used*/,
-                                const_discrete_solution_span starting_point) override;
+    OptimizationStatus optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                     repair_callback_wrapper_type & /*repair_callback not used*/,
+                                     const_discrete_solution_span starting_point) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;
@@ -85,10 +84,36 @@ class IlpHighs : public DiscreteGmOptimizerBase
     HighsModel highs_model_;
 };
 
-NXTGM_OPTIMIZER_DEFAULT_FACTORY(IlpHighs);
+class IlpHighsFactory : public DiscreteGmOptimizerFactoryBase
+{
+  public:
+    using factory_base_type = DiscreteGmOptimizerFactoryBase;
+    virtual ~IlpHighsFactory() = default;
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
+    {
+        return std::make_unique<IlpHighs>(gm, std::move(params));
+    }
+    int priority() const override
+    {
+        return plugin_priority(PluginPriority::MEDIUM);
+    }
+    std::string license() const override
+    {
+        return "MIT";
+    }
+    std::string description() const override
+    {
+        return "Iterated conditional models optimizer";
+    }
+    OptimizerFlags flags() const override
+    {
+        return OptimizerFlags::Optimal;
+    }
+};
+
 } // namespace nxtgm
 
-XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::IlpHighsDiscreteGmOptimizerFactory);
+XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::IlpHighsFactory);
 
 namespace nxtgm
 {
@@ -140,8 +165,8 @@ OptimizationStatus highsModelStatusToOptimizationStatus(Highs &highs, HighsModel
     }
 }
 
-IlpHighs::IlpHighs(const DiscreteGm &gm, const OptimizerParameters &parameters)
-    : base_type(gm),
+IlpHighs::IlpHighs(const DiscreteGm &gm, OptimizerParameters &&parameters)
+    : base_type(gm, parameters),
       parameters_(parameters),
       best_solution_(gm.num_variables(), 0),
       current_solution_(),
@@ -152,6 +177,7 @@ IlpHighs::IlpHighs(const DiscreteGm &gm, const OptimizerParameters &parameters)
       indicator_variable_mapping_(gm.space()),
       highs_model_()
 {
+    ensure_all_handled(name(), parameters);
     best_sol_value_ = this->model().evaluate(best_solution_, false);
     current_solution_ = best_solution_;
     current_sol_value_ = best_sol_value_;
@@ -210,18 +236,16 @@ void IlpHighs::setup_lp()
     highs_model_.lp_.a_matrix_.start_.push_back(highs_model_.lp_.a_matrix_.index_.size());
 }
 
-OptimizationStatus IlpHighs::optimize(reporter_callback_wrapper_type &reporter_callback,
-                                      repair_callback_wrapper_type & /*repair_callback not used*/,
-                                      const_discrete_solution_span)
+OptimizationStatus IlpHighs::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                           repair_callback_wrapper_type & /*repair_callback not used*/,
+                                           const_discrete_solution_span)
 {
-
-    reporter_callback.begin();
-
     const bool continue_opt = reporter_callback.report();
 
     // Create a Highs instance
     Highs highs;
     highs.setOptionValue("log_to_console", parameters_.highs_log_to_console);
+    highs.setOptionValue("time_limit", this->remaining_time().count());
     HighsStatus return_status;
 
     // Pass the model to HiGHS
@@ -240,7 +264,6 @@ OptimizationStatus IlpHighs::optimize(reporter_callback_wrapper_type &reporter_c
     OptimizationStatus status = highsModelStatusToOptimizationStatus(highs, highs.getModelStatus());
     if (status == OptimizationStatus::INFEASIBLE)
     {
-        reporter_callback.end();
         return OptimizationStatus::INFEASIBLE;
     }
 
@@ -285,7 +308,6 @@ OptimizationStatus IlpHighs::optimize(reporter_callback_wrapper_type &reporter_c
         status = highsModelStatusToOptimizationStatus(highs, highs.getModelStatus());
         if (status == OptimizationStatus::INFEASIBLE)
         {
-            reporter_callback.end();
             return OptimizationStatus::INFEASIBLE;
         }
     }
@@ -294,7 +316,6 @@ OptimizationStatus IlpHighs::optimize(reporter_callback_wrapper_type &reporter_c
         indicator_variable_mapping_.lp_solution_to_model_solution(solution.col_value, best_solution_);
 
     this->best_sol_value_ = this->model().evaluate(this->best_solution_);
-    reporter_callback.end();
 
     return status;
 }

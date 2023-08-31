@@ -4,7 +4,7 @@ channels:
 
 dependencies:
   # Build tools
-  - cmake
+  - cmake < 3.27.4
   - doctest
   - cxx-compiler
   - ninja
@@ -29,7 +29,7 @@ dependencies:
   - scikit-image
   # documentation
   - doxygen
-  - sphinx
+  - sphinx < 7
   - sphinx_rtd_theme
   - breathe
   - sphinx-sitemap

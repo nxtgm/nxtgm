@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <vector>
 
+#include <nxtgm/nxtgm_runtime_checks.hpp>
+
 namespace nxtgm
 {
 template <typename T>
@@ -27,6 +29,9 @@ using discrete_label_span = span<discrete_label_type>;
 
 template <typename T>
 using small_arity_vector = boost::container::small_vector<T, 10>;
+
+template <typename T>
+using small_factor_size_vector = boost::container::small_vector<T, 100>;
 
 constexpr energy_type constraint_feasiblility_limit = 1e-5;
 

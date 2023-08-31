@@ -123,6 +123,120 @@ nlohmann::json DiscreteGm::serialize_json() const
     json_result["gm"] = jgm;
     return json_result;
 }
+
+std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionValue> DiscreteGm::bind(
+    span<const uint8_t> mask, span<const discrete_label_type> labels, bool is_include_mask) const
+{
+
+    auto [binded_space, gm_to_binded_gm] = space_.subspace(mask, is_include_mask);
+
+    // binded gm
+    DiscreteGm binded_gm(binded_space);
+    SolutionValue constant_part(0, 0);
+
+    // factors
+    for (const auto &factor : factors_)
+    {
+
+        // binded variables wrt to the factor
+        std::vector<std::size_t> local_binded_vars;
+        std::vector<discrete_label_type> local_binded_vars_labels;
+
+        // variable indices wrt to the binded-gm factor
+        std::vector<std::size_t> binded_gm_factor_variables;
+
+        for (std::size_t v = 0; v < factor.variables().size(); v++)
+        {
+            const auto vi = factor.variables()[v];
+
+            if (mask[vi] != is_include_mask)
+            {
+                // binded_gm_factor_variables.push_back(gm_to_binded_gm[vi]);
+                local_binded_vars.push_back(v);
+                local_binded_vars_labels.push_back(labels[vi]);
+            }
+            else
+            {
+                binded_gm_factor_variables.push_back(gm_to_binded_gm[vi]);
+            }
+        }
+
+        NXTGM_CHECK_OP(local_binded_vars.size(), <=, factor.arity(), "");
+        NXTGM_CHECK_OP(local_binded_vars.size() + binded_gm_factor_variables.size(), ==, factor.arity(), "");
+
+        if (local_binded_vars.size() > 0 && local_binded_vars.size() < factor.variables().size())
+        {
+            // some variables are binded
+            auto binded_function = factor.function()->bind(
+                span<const std::size_t>(local_binded_vars.data(), local_binded_vars.size()),
+                span<const discrete_label_type>(local_binded_vars_labels.data(), local_binded_vars_labels.size()));
+            auto fid = binded_gm.add_energy_function(std::move(binded_function));
+            binded_gm.add_factor(binded_gm_factor_variables, fid);
+        }
+        else if (local_binded_vars.size() == factor.variables().size())
+        {
+            // all variables are binded
+            constant_part.energy() += factor.function()->energy(local_binded_vars_labels.data());
+        }
+        else
+        {
+            // no variables are binded
+            auto cloned = factor.function()->clone();
+            auto fid = binded_gm.add_energy_function(std::move(cloned));
+            binded_gm.add_factor(binded_gm_factor_variables, fid);
+        }
+    }
+
+    // constraints
+    for (const auto &constraint : constraints_)
+    {
+
+        // binded variables wrt to the constraint
+        std::vector<std::size_t> local_binded_vars;
+        std::vector<discrete_label_type> local_binded_vars_labels;
+
+        // variable indices wrt to the binded-gm constraint
+        std::vector<std::size_t> binded_gm_constraint_variables;
+
+        for (std::size_t v = 0; v < constraint.variables().size(); v++)
+        {
+            const auto vi = constraint.variables()[v];
+            if (mask[vi] != is_include_mask)
+            {
+                local_binded_vars.push_back(v);
+                local_binded_vars_labels.push_back(labels[vi]);
+            }
+            else
+            {
+                binded_gm_constraint_variables.push_back(gm_to_binded_gm[vi]);
+            }
+        }
+
+        if (local_binded_vars.size() > 0 && local_binded_vars.size() < constraint.variables().size())
+        {
+            // some variables are binded
+            auto binded_function = constraint.function()->bind(local_binded_vars, local_binded_vars_labels);
+            auto cid = binded_gm.add_constraint_function(std::move(binded_function));
+            binded_gm.add_constraint(binded_gm_constraint_variables, cid);
+        }
+        else if (local_binded_vars.size() == constraint.variables().size())
+        {
+            // all variables are binded
+            constant_part.how_violated() += constraint.function()->how_violated(local_binded_vars_labels.data());
+        }
+        else
+        {
+            // no variables are binded
+            auto cloned = constraint.function()->clone();
+            auto cid = binded_gm.add_constraint_function(std::move(cloned));
+            binded_gm.add_constraint(binded_gm_constraint_variables, cid);
+        }
+    }
+
+    return std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionValue>(
+        std::move(binded_gm), std::move(gm_to_binded_gm), constant_part);
+}
+
 DiscreteGm DiscreteGm::deserialize_json(const nlohmann::json &json)
 {
 

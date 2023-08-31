@@ -9,29 +9,32 @@ namespace nxtgm
 
 class BeliefPropagation : public DiscreteGmOptimizerBase
 {
-    class parameters_type : public OptimizerParametersBase
+    class parameters_type
     {
       public:
-        inline parameters_type(const OptimizerParameters &parameters)
-            : OptimizerParametersBase(parameters)
+        inline parameters_type(OptimizerParameters &parameters)
         {
 
             if (auto it = parameters.int_parameters.find("max_iterations"); it != parameters.int_parameters.end())
             {
                 max_iterations = it->second;
+                parameters.int_parameters.erase(it);
             }
             if (auto it = parameters.double_parameters.find("convergence_tolerance");
                 it != parameters.double_parameters.end())
             {
                 convergence_tolerance = it->second;
+                parameters.double_parameters.erase(it);
             }
             if (auto it = parameters.double_parameters.find("damping"); it != parameters.double_parameters.end())
             {
                 damping = it->second;
+                parameters.double_parameters.erase(it);
             }
             if (auto it = parameters.int_parameters.find("normalize_messages"); it != parameters.int_parameters.end())
             {
                 normalize_messages = it->second;
+                parameters.int_parameters.erase(it);
             }
         }
 
@@ -48,18 +51,16 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
     using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
     using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
 
-    using base_type::optimize;
-
     inline static std::string name()
     {
         return "BeliefPropagation";
     }
     virtual ~BeliefPropagation() = default;
 
-    BeliefPropagation(const DiscreteGm &gm, const OptimizerParameters &json_parameters);
+    BeliefPropagation(const DiscreteGm &gm, OptimizerParameters &&json_parameters);
 
-    OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
-                                const_discrete_solution_span starting_point) override;
+    OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                     const_discrete_solution_span starting_point) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;
@@ -101,18 +102,43 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
     solution_type current_solution_;
 };
 
-NXTGM_OPTIMIZER_DEFAULT_FACTORY(BeliefPropagation);
+class BeliefPropagationFactory : public DiscreteGmOptimizerFactoryBase
+{
+  public:
+    using factory_base_type = DiscreteGmOptimizerFactoryBase;
+    virtual ~BeliefPropagationFactory() = default;
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
+    {
+        return std::make_unique<BeliefPropagation>(gm, std::move(params));
+    }
+    int priority() const override
+    {
+        return plugin_priority(PluginPriority::MEDIUM);
+    }
+    std::string license() const override
+    {
+        return "MIT";
+    }
+    std::string description() const override
+    {
+        return "BeliefPropagation with parallel message passing update rules";
+    }
+    OptimizerFlags flags() const override
+    {
+        return OptimizerFlags::OptimalOnTrees;
+    }
+};
 
 } // namespace nxtgm
 
-XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::BeliefPropagationDiscreteGmOptimizerFactory);
+XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::BeliefPropagationFactory);
 
 namespace nxtgm
 {
 
-BeliefPropagation::BeliefPropagation(const DiscreteGm &gm, const OptimizerParameters &json_parameters)
-    : base_type(gm),
-      parameters_(json_parameters),
+BeliefPropagation::BeliefPropagation(const DiscreteGm &gm, OptimizerParameters &&parameters)
+    : base_type(gm, parameters),
+      parameters_(parameters),
       iteration_(0),
       message_storage_(),
       belief_storage_(),
@@ -127,6 +153,8 @@ BeliefPropagation::BeliefPropagation(const DiscreteGm &gm, const OptimizerParame
       best_solution_(gm.num_variables(), 0),
       current_solution_(gm.num_variables(), 0)
 {
+    ensure_all_handled(name(), parameters);
+
     current_solution_value_ = gm.evaluate(current_solution_, false /* early exit when infeasible*/);
     best_solution_value_ = current_solution_value_;
 
@@ -157,25 +185,12 @@ BeliefPropagation::BeliefPropagation(const DiscreteGm &gm, const OptimizerParame
     message_storage_[1].resize(message_storage_size, 0);
 }
 
-OptimizationStatus BeliefPropagation::optimize(reporter_callback_wrapper_type &reporter_callback,
-                                               repair_callback_wrapper_type & /*repair_callback not used*/,
-                                               const_discrete_solution_span)
+OptimizationStatus BeliefPropagation::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                                    repair_callback_wrapper_type & /*repair_callback not used*/,
+                                                    const_discrete_solution_span)
 {
-    // std::cout<<"BeliefPropagation::optimize"<<std::endl;
-    //  indicate the start of the optimization
-    reporter_callback.begin();
-
-    // start the timer
-    AutoStartedTimer timer;
-
     // shortcut to the model
     const auto &gm = this->model();
-
-    // report the current solution to callack
-    if (reporter_callback && !timer.paused_call([&]() { return reporter_callback.report(); }))
-    {
-        return OptimizationStatus::CALLBACK_EXIT;
-    }
 
     for (std::size_t i = 0; i < parameters_.max_iterations; ++i)
     {
@@ -189,23 +204,24 @@ OptimizationStatus BeliefPropagation::optimize(reporter_callback_wrapper_type &r
         auto delta = this->compute_convergence_delta();
         if (delta < parameters_.convergence_tolerance)
         {
-            reporter_callback.end();
             return OptimizationStatus::CONVERGED;
         }
 
         // copy the messages
         std::copy(message_storage_[0].begin(), message_storage_[0].end(), message_storage_[1].begin());
 
-        // check if the time limit is reached
-        if (timer.elapsed() > this->parameters_.time_limit)
+        // check if the callback wants to exit
+        if (!this->report(reporter_callback))
         {
-            reporter_callback.end();
+            return OptimizationStatus::CALLBACK_EXIT;
+        }
+        // check if the time limit is reached
+        if (this->time_limit_reached())
+        {
             return OptimizationStatus::TIME_LIMIT_REACHED;
         }
     }
 
-    // indicate the end of the optimization
-    reporter_callback.end();
     return OptimizationStatus::ITERATION_LIMIT_REACHED;
 }
 

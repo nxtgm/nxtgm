@@ -31,6 +31,9 @@ class DiscreteConstraintFunctionBase
 
     virtual void add_to_lp(IlpData &ilp_data, const std::size_t *indicator_variables_mapping) const;
     virtual nlohmann::json serialize_json() const = 0;
+
+    virtual std::unique_ptr<DiscreteConstraintFunctionBase> bind(
+        const span<std::size_t> &binded_vars, const span<discrete_label_type> &binded_vars_labels) const;
 };
 
 // helper class to have a shape object

@@ -2,38 +2,38 @@
 
 #include <chrono>
 #include <limits>
-#include <tuple>
-
 #include <nxtgm/optimizers/callback_base.hpp>
 #include <nxtgm/optimizers/optimizer_parameters.hpp>
-
-#define NXTGM_OPTIMIZER_DEFAULT_FACTORY(NAME)                                                                          \
-    class NAME##DiscreteGmOptimizerFactory : public DiscreteGmOptimizerFactoryBase                                     \
-    {                                                                                                                  \
-      public:                                                                                                          \
-        using factory_base_type = DiscreteGmOptimizerFactoryBase;                                                      \
-        virtual ~NAME##DiscreteGmOptimizerFactory() = default;                                                         \
-        std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,                                          \
-                                                        const OptimizerParameters &params) const override              \
-        {                                                                                                              \
-            return std::make_unique<NAME>(gm, params);                                                                 \
-        }                                                                                                              \
-        int priority() const override                                                                                  \
-        {                                                                                                              \
-            return 1;                                                                                                  \
-        }                                                                                                              \
-        std::string license() const override                                                                           \
-        {                                                                                                              \
-            return "Mit";                                                                                              \
-        }                                                                                                              \
-        std::string description() const override                                                                       \
-        {                                                                                                              \
-            return #NAME;                                                                                              \
-        }                                                                                                              \
-    };
+#include <nxtgm/utils/timer.hpp>
+#include <tuple>
 
 namespace nxtgm
 {
+
+enum class OptimizerFlags : uint64_t
+{
+    None = 0,
+    WarmStartable = 1 << 0,
+    Optimal = 1 << 1,
+    PartialOptimal = 1 << 2,
+    LocalOptimal = 1 << 3,
+    OptimalOnTrees = 1 << 4,
+    OptimalOnBinarySecondOrderSubmodular = 1 << 5,
+    MetaOptimizer = 1 << 6
+};
+
+inline OptimizerFlags operator|(OptimizerFlags lhs, OptimizerFlags rhs)
+{
+    return static_cast<OptimizerFlags>(static_cast<std::underlying_type<OptimizerFlags>::type>(lhs) |
+                                       static_cast<std::underlying_type<OptimizerFlags>::type>(rhs));
+}
+
+inline OptimizerFlags operator&(OptimizerFlags lhs, OptimizerFlags rhs)
+{
+    return static_cast<OptimizerFlags>(static_cast<std::underlying_type<OptimizerFlags>::type>(lhs) &
+                                       static_cast<std::underlying_type<OptimizerFlags>::type>(rhs));
+}
+
 enum class OptimizationStatus
 {
     OPTIMAL,
@@ -45,21 +45,6 @@ enum class OptimizationStatus
     ITERATION_LIMIT_REACHED,
     CONVERGED,
     CALLBACK_EXIT
-};
-
-class OptimizerParametersBase
-{
-  public:
-    inline OptimizerParametersBase(const OptimizerParameters &p)
-    {
-
-        if (auto it = p.int_parameters.find("time_limit_ms"); it != p.int_parameters.end())
-        {
-            time_limit = std::chrono::milliseconds(it->second);
-        }
-    }
-
-    std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
 };
 
 template <class MODEL_TYPE, class DERIVED_OPTIMIZER_BASE>
@@ -78,12 +63,25 @@ class OptimizerBase
     using repair_callback_base_type = RepairCallbackBase<self_type>;
     using repair_callback_wrapper_type = RepairCallbackWrapper<repair_callback_base_type>;
 
-    inline OptimizerBase(const model_type &model)
-        : model_(model)
+    inline OptimizerBase(const model_type &model, OptimizerParameters &parameters)
+        : model_(model),
+          timer_(),
+          time_limit_(std::chrono::duration<double>::max())
     {
+        if (auto it = parameters.int_parameters.find("time_limit_ms"); it != parameters.int_parameters.end())
+        {
+            time_limit_ = std::chrono::milliseconds(it->second);
+            parameters.int_parameters.erase(it);
+        }
     }
 
     virtual ~OptimizerBase() = default;
+
+    virtual bool is_warm_startable() const
+    {
+        return false;
+    }
+
     virtual energy_type lower_bound() const
     {
         return -std::numeric_limits<energy_type>::infinity();
@@ -99,19 +97,16 @@ class OptimizerBase
         return this->model().evaluate(this->best_solution(), false /* early exit when infeasible*/);
     }
 
-    virtual OptimizationStatus optimize(reporter_callback_base_type *reporter_callback = nullptr,
-                                        repair_callback_base_type *repair_callback = nullptr,
-                                        const_discrete_solution_span starting_point = const_discrete_solution_span())
+    OptimizationStatus optimize(reporter_callback_base_type *reporter_callback = nullptr,
+                                repair_callback_base_type *repair_callback = nullptr,
+                                const_discrete_solution_span starting_point = const_discrete_solution_span())
     {
+        // this calls begin / end in the constructor / destructor
         reporter_callback_wrapper_type reporter_callback_wrapper(reporter_callback);
         repair_callback_wrapper_type repair_callback_wrapper(repair_callback);
-
-        return this->optimize(reporter_callback_wrapper, repair_callback_wrapper, starting_point);
+        timer_.start();
+        return this->optimize_impl(reporter_callback_wrapper, repair_callback_wrapper, starting_point);
     }
-
-    virtual OptimizationStatus optimize(reporter_callback_wrapper_type &reporter_callback,
-                                        repair_callback_wrapper_type &repair_callback,
-                                        const_discrete_solution_span starting_point) = 0;
 
     virtual const model_type &model() const
     {
@@ -120,7 +115,41 @@ class OptimizerBase
     virtual const solution_type &best_solution() const = 0;
     virtual const solution_type &current_solution() const = 0;
 
+  protected:
+    virtual OptimizationStatus optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                             repair_callback_wrapper_type &repair_callback,
+                                             const_discrete_solution_span starting_point) = 0;
+
+  public:
+    std::chrono::duration<double> remaining_time() const
+    {
+        return time_limit_ - timer_.elapsed();
+    }
+
+    bool time_limit_reached() const
+    {
+        return timer_.elapsed() > time_limit_;
+    }
+    std::chrono::duration<double> get_time_limit() const
+    {
+        return time_limit_;
+    }
+    void set_time_limit(std::chrono::duration<double> time_limit)
+    {
+        time_limit_ = time_limit;
+    }
+
+    bool report(reporter_callback_wrapper_type &reporter_callback)
+    {
+        timer_.pause();
+        const auto ret = reporter_callback.report();
+        timer_.resume();
+        return ret;
+    }
+
   private:
     const model_type &model_;
+    Timer timer_;
+    std::chrono::duration<double> time_limit_;
 };
 } // namespace nxtgm

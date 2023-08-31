@@ -35,7 +35,7 @@ function(nxtgm_regiter_test target_name)
     endif()
 endfunction()
 
-
+nxtgm_regiter_test(discrete_gm                   models/gm/test_discrete_gm.cpp)
 nxtgm_regiter_test(sparse_array                  utils/test_sparse_array.cpp)
 nxtgm_regiter_test(solution_value                models/test_solution_value.cpp)
 nxtgm_regiter_test(discrete_constraints          constraint_functions/test_discrete_constraints.cpp)

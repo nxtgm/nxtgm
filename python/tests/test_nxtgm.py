@@ -187,7 +187,7 @@ class TestOptimizers:
         optimizer = nxtgm.discrete_gm_optimizer_factory(
             gm, 'chained_optimizers', OrderedDict(
                 belief_propagation=dict(time_limit_ms=1000),
-                icm=dict(time_limit_ms=1000000, num_iterations=10),
+                icm=dict(time_limit_ms=1000000),
             ),
         )
 

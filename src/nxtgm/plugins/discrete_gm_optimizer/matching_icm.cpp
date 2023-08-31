@@ -13,15 +13,15 @@ namespace nxtgm
 
 class MatchingIcm : public DiscreteGmOptimizerBase
 {
-    class parameters_type : public OptimizerParametersBase
+    class parameters_type
     {
       public:
-        inline parameters_type(const OptimizerParameters &parameters)
-            : OptimizerParametersBase(parameters)
+        inline parameters_type(OptimizerParameters &parameters)
         {
             if (auto it = parameters.int_parameters.find("subgraph_size"); it != parameters.int_parameters.end())
             {
                 subgraph_size = it->second;
+                parameters.int_parameters.erase(it);
             }
         }
         int subgraph_size = 3;
@@ -34,18 +34,16 @@ class MatchingIcm : public DiscreteGmOptimizerBase
     using reporter_callback_wrapper_type = typename base_type::reporter_callback_wrapper_type;
     using repair_callback_wrapper_type = typename base_type::repair_callback_wrapper_type;
 
-    using base_type::optimize;
-
     inline static std::string name()
     {
         return "MatchingIcm";
     }
     virtual ~MatchingIcm() = default;
 
-    MatchingIcm(const DiscreteGm &gm, const OptimizerParameters &parameters);
+    MatchingIcm(const DiscreteGm &gm, OptimizerParameters &&parameters);
 
-    OptimizationStatus optimize(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
-                                const_discrete_solution_span starting_point) override;
+    OptimizationStatus optimize_impl(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                     const_discrete_solution_span starting_point) override;
 
     SolutionValue best_solution_value() const override;
     SolutionValue current_solution_value() const override;
@@ -63,41 +61,60 @@ class MatchingIcm : public DiscreteGmOptimizerBase
     std::queue<std::size_t> queue_;
 };
 
-NXTGM_OPTIMIZER_DEFAULT_FACTORY(MatchingIcm);
+class MatchingIcmFactory : public DiscreteGmOptimizerFactoryBase
+{
+  public:
+    using factory_base_type = DiscreteGmOptimizerFactoryBase;
+    virtual ~MatchingIcmFactory() = default;
+    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
+    {
+        return std::make_unique<MatchingIcm>(gm, std::move(params));
+    }
+    int priority() const override
+    {
+        return plugin_priority(PluginPriority::LOW);
+    }
+    std::string license() const override
+    {
+        return "MIT";
+    }
+    std::string description() const override
+    {
+        return "Iterated conditional models optimizer for matching problems";
+    }
+    OptimizerFlags flags() const override
+    {
+        return OptimizerFlags::LocalOptimal;
+    }
+};
+
 } // namespace nxtgm
 
-XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::MatchingIcmDiscreteGmOptimizerFactory);
+XPLUGIN_CREATE_XPLUGIN_FACTORY(nxtgm::MatchingIcmFactory);
 
 namespace nxtgm
 {
-MatchingIcm::MatchingIcm(const DiscreteGm &gm, const OptimizerParameters &parameters)
-    : base_type(gm),
+MatchingIcm::MatchingIcm(const DiscreteGm &gm, OptimizerParameters &&parameters)
+    : base_type(gm, parameters),
       parameters_(parameters),
       movemaker_(gm),
       in_queue_(gm.num_variables(), 1)
 {
-    // std::cout<<"CONSTRUCTING ICM"<<std::endl;
-    //  put all variables on queue
+    ensure_all_handled(name(), parameters);
     for (std::size_t i = 0; i < gm.num_variables(); ++i)
     {
         queue_.push(i);
     }
 }
 
-OptimizationStatus MatchingIcm::optimize(reporter_callback_wrapper_type &reporter_callback,
-                                         repair_callback_wrapper_type & /*repair_callback not used*/,
-                                         const_discrete_solution_span starting_point)
+OptimizationStatus MatchingIcm::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
+                                              repair_callback_wrapper_type & /*repair_callback not used*/,
+                                              const_discrete_solution_span starting_point)
 {
     if (starting_point.size() > 0)
     {
         this->movemaker_.set_current_solution(starting_point);
     }
-
-    // indicate the start of the optimization
-    reporter_callback.begin();
-
-    // start the timer
-    AutoStartedTimer timer;
 
     // shortcut to the model
     const auto &gm = this->model();
@@ -117,13 +134,13 @@ OptimizationStatus MatchingIcm::optimize(reporter_callback_wrapper_type &reporte
                 {
                     did_improve = true;
 
-                    if (reporter_callback && !timer.paused_call([&]() { return reporter_callback.report(); }))
+                    if (!this->report(reporter_callback))
                     {
                         status = OptimizationStatus::CALLBACK_EXIT;
                         return false;
                     }
                     // check if the time limit is reached
-                    if (timer.elapsed() > this->parameters_.time_limit)
+                    if (this->time_limit_reached())
                     {
                         status = OptimizationStatus::TIME_LIMIT_REACHED;
                         return false;
@@ -132,9 +149,6 @@ OptimizationStatus MatchingIcm::optimize(reporter_callback_wrapper_type &reporte
                 return true;
             });
     }
-
-    // indicate the end of the optimization
-    reporter_callback.end();
 
     return OptimizationStatus::LOCAL_OPTIMAL;
 }

@@ -34,6 +34,45 @@ DiscreteSpace DiscreteSpace::deserialize_json(const nlohmann::json &json)
     }
 }
 
+// when is_include_mask is true,
+// the subspace is the one that is true in the mask
+// when is_include_mask is false,
+// the subspace is the one that is false in the mask
+std::pair<DiscreteSpace, std::unordered_map<std::size_t, std::size_t>> DiscreteSpace::subspace(
+    span<const std::uint8_t> mask, bool is_include_mask) const
+{
+    std::unordered_map<std::size_t, std::size_t> space_to_subspace;
+    std::size_t sub_space_vi = 0;
+
+    for (std::size_t space_vi = 0; space_vi < n_variables_; ++space_vi)
+    {
+        if (mask[space_vi] == is_include_mask)
+        {
+            space_to_subspace[space_vi] = sub_space_vi;
+            ++sub_space_vi;
+        }
+    }
+    const auto num_subspace_variables = sub_space_vi;
+    if (is_simple_)
+    {
+        return std::make_pair(DiscreteSpace(num_subspace_variables, n_labels_.front()), space_to_subspace);
+    }
+    else
+    {
+        std::vector<discrete_label_type> new_n_labels(num_subspace_variables);
+        sub_space_vi = 0;
+        for (std::size_t space_vi = 0; space_vi < n_variables_; ++space_vi)
+        {
+            if (mask[space_vi] == is_include_mask)
+            {
+                new_n_labels[sub_space_vi] = n_labels_[space_vi];
+                ++sub_space_vi;
+            }
+        }
+        return std::make_pair(DiscreteSpace(new_n_labels), space_to_subspace);
+    }
+}
+
 IndicatorVariableMapping::IndicatorVariableMapping(const DiscreteSpace &space)
     : space_(space),
       mapping_(space.is_simple() ? 1 : space.size())

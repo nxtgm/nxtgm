@@ -7,13 +7,16 @@
 
 #include <sstream>
 
+namespace nxtgm
+{
+
 TEST_CASE("discrete-space")
 {
     using solution_type = std::vector<nxtgm::discrete_label_type>;
 
     const std::size_t num_vars = 3;
-    nxtgm::DiscreteSpace space(std::vector<nxtgm::discrete_label_type>{
-        nxtgm::discrete_label_type(2), nxtgm::discrete_label_type(3), nxtgm::discrete_label_type(4)});
+    DiscreteSpace space(
+        std::vector<discrete_label_type>{discrete_label_type(2), discrete_label_type(3), discrete_label_type(4)});
 
     auto solution = solution_type(space.size());
 
@@ -40,18 +43,74 @@ TEST_CASE("discrete-space")
     }
 }
 
+TEST_CASE("discrete-space-bind")
+{
+    SUBCASE("non-simple")
+    {
+
+        DiscreteSpace space(std::vector<discrete_label_type>{2, 3, 8, 4});
+
+        std::vector<uint8_t> mask(space.size(), 0);
+
+        mask[1] = 1;
+        mask[3] = 1;
+
+        auto [binded_space_, space_to_subspace_] = space.subspace(span<uint8_t>(mask.data(), mask.size()), true);
+
+        DiscreteSpace binded_space = std::move(binded_space_);
+        std::unordered_map<std::size_t, std::size_t> space_to_subspace = std::move(space_to_subspace_);
+
+        // subspace has vi  [1 ,3]
+
+        CHECK_EQ(binded_space.size(), 2);
+        CHECK_EQ(binded_space[0], 3);
+        CHECK_EQ(binded_space[1], 4);
+        CHECK(!binded_space.is_simple());
+
+        CHECK_EQ(space_to_subspace.size(), 2);
+        CHECK(space_to_subspace.count(1));
+        CHECK(space_to_subspace.count(3));
+
+        CHECK(!space_to_subspace.count(0));
+        CHECK(!space_to_subspace.count(2));
+
+        CHECK_EQ(space_to_subspace[1], 0);
+        CHECK_EQ(space_to_subspace[3], 1);
+    }
+    SUBCASE("simple")
+    {
+        DiscreteSpace space(10, 3);
+        CHECK(space.is_simple());
+
+        std::vector<uint8_t> mask(space.size(), 0);
+
+        mask[1] = 1;
+        mask[3] = 1;
+
+        auto [binded_space_, space_to_subspace_] = space.subspace(span<uint8_t>(mask.data(), mask.size()), true);
+
+        DiscreteSpace binded_space = std::move(binded_space_);
+        std::unordered_map<std::size_t, std::size_t> space_to_subspace = std::move(space_to_subspace_);
+
+        CHECK_EQ(binded_space.size(), 2);
+        CHECK_EQ(binded_space[0], 3);
+        CHECK_EQ(binded_space[1], 3);
+        CHECK(binded_space.is_simple());
+    }
+}
+
 TEST_CASE("discrete-space-serialization")
 {
 
     SUBCASE("non-simple")
     {
         const std::size_t num_vars = 3;
-        nxtgm::DiscreteSpace space(std::vector<nxtgm::discrete_label_type>{
-            nxtgm::discrete_label_type(2), nxtgm::discrete_label_type(3), nxtgm::discrete_label_type(4)});
+        DiscreteSpace space(
+            std::vector<discrete_label_type>{discrete_label_type(2), discrete_label_type(3), discrete_label_type(4)});
 
         auto as_json = space.serialize_json();
 
-        auto jspace = nxtgm::DiscreteSpace::deserialize_json(as_json);
+        auto jspace = DiscreteSpace::deserialize_json(as_json);
 
         CHECK_EQ(space.is_simple(), jspace.is_simple());
         CHECK_EQ(space.size(), jspace.size());
@@ -62,10 +121,10 @@ TEST_CASE("discrete-space-serialization")
     }
     SUBCASE("simple")
     {
-        nxtgm::DiscreteSpace space(10, 3);
+        DiscreteSpace space(10, 3);
 
         auto as_json = space.serialize_json();
-        auto jspace = nxtgm::DiscreteSpace::deserialize_json(as_json);
+        auto jspace = DiscreteSpace::deserialize_json(as_json);
 
         CHECK_EQ(space.is_simple(), jspace.is_simple());
         CHECK_EQ(space.size(), jspace.size());
@@ -75,3 +134,5 @@ TEST_CASE("discrete-space-serialization")
         }
     }
 }
+
+} // namespace nxtgm
