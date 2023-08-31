@@ -4,7 +4,7 @@ channels:
 
 dependencies:
   # Build tools
-  - cmake
+  - cmake < 3.27.4
   - doctest
   - cxx-compiler
   - ninja
