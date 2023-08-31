@@ -29,7 +29,7 @@ dependencies:
   - scikit-image
   # documentation
   - doxygen
-  - sphinx
+  - sphinx < 7
   - sphinx_rtd_theme
   - breathe
   - sphinx-sitemap
