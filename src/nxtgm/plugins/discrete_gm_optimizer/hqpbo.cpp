@@ -39,34 +39,16 @@ class Hqpbo : public DiscreteGmOptimizerBase
                 parameters.string_parameters.erase(it);
             }
 
-            if (auto it = parameters.int_parameters.find("probing"); it != parameters.int_parameters.end())
-            {
-                probing = it->second;
-                parameters.int_parameters.erase(it);
-            }
             if (auto it = parameters.int_parameters.find("strong_persistencies"); it != parameters.int_parameters.end())
             {
                 strong_persistencies = it->second;
-                parameters.int_parameters.erase(it);
-            }
-            if (auto it = parameters.int_parameters.find("improving"); it != parameters.int_parameters.end())
-            {
-                improving = it->second;
-                parameters.int_parameters.erase(it);
-            }
-            if (auto it = parameters.int_parameters.find("seed"); it != parameters.int_parameters.end())
-            {
-                seed = it->second;
                 parameters.int_parameters.erase(it);
             }
         }
 
         std::string qpbo_plugin_name;
         std::string hocr_plugin_name;
-        bool probing = false;
         bool strong_persistencies = true;
-        bool improving = false;
-        unsigned seed = 0;
     };
 
   public:

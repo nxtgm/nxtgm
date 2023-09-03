@@ -56,7 +56,6 @@ add_library(nxtgm_shared SHARED
     src/nxtgm/spaces/discrete_space.cpp
     src/nxtgm/constraint_functions/discrete_constraint_function_base.cpp
     src/nxtgm/constraint_functions/discrete_constraints.cpp
-    src/nxtgm/models/pseudo_boolean_function/higher_order_pseudo_boolean_function.cpp
     src/nxtgm/models/solution_value.cpp
     src/nxtgm/models/gm/discrete_gm/discrete_gm.cpp
     src/nxtgm/optimizers/optimizer_parameters.cpp
