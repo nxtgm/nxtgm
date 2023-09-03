@@ -251,9 +251,9 @@ OptimizationStatus ReducedGmOptimizer::build_and_optimize_submodel(reporter_call
         const auto &sub_best_solution = sub_optimizer->best_solution();
 
         const auto solution_value = sub_best_solution_value + constant;
-        // if (solution_value < best_solution_value_)
+        if (solution_value < best_solution_value_)
         {
-            best_solution_value_ = solution_value;
+            best_solution_value_ = solution_value + constant;
             for (auto [gm_vi, sub_gm_vi] : gm_to_sub_gm)
             {
                 best_solution_[gm_vi] = sub_best_solution[sub_gm_vi];
