@@ -162,8 +162,8 @@ void Hqpbo::build_higher_order_energy(HocrBase *hocr)
         }
         else
         {
-            auto num_assigments = 1 << arity; // 2^arity
-            discrete_label_type clique_labels[arity];
+            unsigned int num_assigments = 1 << arity; // 2^arity
+            discrete_label_type clique_labels[max_arity];
             coeffs.resize(num_assigments);
 
             for (unsigned int subset = 1; subset < num_assigments; ++subset)

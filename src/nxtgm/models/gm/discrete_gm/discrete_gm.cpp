@@ -149,7 +149,7 @@ std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionVal
         {
             const auto vi = factor.variables()[v];
 
-            if (mask[vi] != is_include_mask)
+            if (static_cast<bool>(mask[vi]) != is_include_mask)
             {
                 // binded_gm_factor_variables.push_back(gm_to_binded_gm[vi]);
                 local_binded_vars.push_back(v);
@@ -201,7 +201,7 @@ std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionVal
         for (std::size_t v = 0; v < constraint.variables().size(); v++)
         {
             const auto vi = constraint.variables()[v];
-            if (mask[vi] != is_include_mask)
+            if (static_cast<bool>(mask[vi]) != is_include_mask)
             {
                 local_binded_vars.push_back(v);
                 local_binded_vars_labels.push_back(labels[vi]);
