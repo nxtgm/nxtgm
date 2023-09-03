@@ -62,6 +62,7 @@ add_library(nxtgm_shared SHARED
     src/nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.cpp
     src/nxtgm/optimizers/gm/discrete/movemaker.cpp
     src/nxtgm/optimizers/gm/discrete/optimizer_base.cpp
+    src/nxtgm/plugins/hocr/hocr_base.cpp
     # this testing needs to be partof the shared library
     # since plugin authors want to test their plugins
     # for emscripten, we might want to remove this (TODO)

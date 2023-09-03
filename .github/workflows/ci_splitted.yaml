@@ -84,10 +84,10 @@ jobs:
             make -j ${{ steps.cpu-cores.outputs.count }}
             make install
 
-      - name: Build&install higher_order_qobo fix
+      - name: Build&install hocr fix
         shell: bash -l {0}
         run: |
-            cd src/nxtgm/plugins/higher_order_qobo/fix
+            cd src/nxtgm/plugins/hocr/fix
             mkdir -p bld
             cd bld
             cmake .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
