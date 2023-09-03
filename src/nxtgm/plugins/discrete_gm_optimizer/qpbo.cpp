@@ -165,6 +165,7 @@ Qpbo::Qpbo(const DiscreteGm &gm, OptimizerParameters &&parameters)
     }
     auto factory = get_plugin_registry<QpboFactoryBase>().get_factory(parameters_.qpbo_plugin_name);
     qpbo_ = factory->create(gm.num_variables(), num_edges);
+    qpbo_->add_nodes(gm.num_variables());
 
     double energies[4] = {0, 0, 0, 0};
     for (size_t i = 0; i < gm.num_factors(); ++i)

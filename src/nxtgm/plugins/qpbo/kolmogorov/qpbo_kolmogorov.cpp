@@ -23,11 +23,14 @@ class QpboKolmogorov : public QpboBase
     ~QpboKolmogorov() = default;
     QpboKolmogorov(std::size_t num_nodes, std::size_t num_edges);
 
+    void set_max_edge_num(std::size_t num_edges) override;
     void add_unary_term(std::size_t node, const double *cost) override;
     void add_pairwise_term(std::size_t node1, std::size_t node2, const double *cost) override;
     void solve() override;
     void reset() override;
-    void add_nodes(std::size_t n) override;
+    std::size_t add_nodes(std::size_t n) override;
+    std::size_t add_node() override;
+    std::size_t num_nodes() const override;
     void stitch() override;
     int get_region(std::size_t node) override;
     void merge_parallel_edges() override;
@@ -35,7 +38,7 @@ class QpboKolmogorov : public QpboBase
     void compute_weak_persistencies() override;
     void improve(int N, int *order_array, int *fixed_nodes = nullptr) override;
     bool improve() override;
-    bool lower_bound() override;
+    double lower_bound() override;
     double compute_energy(int options) override;
     void probe(int *mapping, const BaseProbeOptions &options) override;
     int get_label(std::size_t node) const override;
@@ -63,13 +66,18 @@ class QpboKolmogorovFactory : public QpboFactoryBase
 };
 
 // implementation of the plugin
-QpboKolmogorov::QpboKolmogorov(std::size_t num_nodes, std::size_t num_edges)
-    : num_nodes_(num_nodes),
-      num_edges_(num_edges)
+QpboKolmogorov::QpboKolmogorov(std::size_t max_num_nodes, std::size_t num_edges)
+    : num_nodes_(0),
+      num_edges_(0)
 {
     qpbo_ = std::make_unique<QpboImpl>(num_nodes_, num_edges_);
-    qpbo_->AddNode(num_nodes_);
 }
+
+void QpboKolmogorov::set_max_edge_num(std::size_t num_edges)
+{
+    qpbo_->SetMaxEdgeNum(num_edges);
+}
+
 void QpboKolmogorov::add_unary_term(std::size_t node, const double *cost)
 {
     qpbo_->AddUnaryTerm(node, cost[0], cost[1]);
@@ -88,9 +96,21 @@ void QpboKolmogorov::reset()
     qpbo_->Reset();
 }
 
-void QpboKolmogorov::add_nodes(std::size_t n)
+std::size_t QpboKolmogorov::add_node()
 {
-    qpbo_->AddNode(n);
+    ++num_nodes_;
+    return std::size_t(qpbo_->AddNode());
+}
+
+std::size_t QpboKolmogorov::add_nodes(std::size_t n)
+{
+    num_nodes_ += n;
+    return std::size_t(qpbo_->AddNode(n));
+}
+
+std::size_t QpboKolmogorov::num_nodes() const
+{
+    return num_nodes_;
 }
 
 void QpboKolmogorov::stitch()
@@ -124,7 +144,7 @@ bool QpboKolmogorov::improve()
 {
     return qpbo_->Improve();
 }
-bool QpboKolmogorov::lower_bound()
+double QpboKolmogorov::lower_bound()
 {
     return qpbo_->ComputeTwiceLowerBound() / 2.0;
 }

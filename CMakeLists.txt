@@ -19,8 +19,11 @@ option(BUILD_PYTHON                     "Build python bindings" ON)
 option(BUILD_WITH_COVERAGE              "Build with coverage" OFF)
 # documentation related
 option(BUILD_DOCS                       "Build doxygen documentation" ON)
+
 # plugin related
-option(BUILD_PLUGIN_QPBO_KOLMOGOROV     "Build qpbo kolmogorov plugin" ON)
+option(BUILD_PLUGIN_QPBO_KOLMOGOROV                          "Build qpbo kolmogorov plugin" ON)
+option(BUILD_PLUGIN_HOCR_FIX                                 "Build fix higher order qpbo plugin" ON)
+option(BUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV                    "Build kolmogorov min st cut plugin" ON)
 
 ###############################################################
 # dependencies
@@ -53,6 +56,7 @@ add_library(nxtgm_shared SHARED
     src/nxtgm/spaces/discrete_space.cpp
     src/nxtgm/constraint_functions/discrete_constraint_function_base.cpp
     src/nxtgm/constraint_functions/discrete_constraints.cpp
+    src/nxtgm/models/pseudo_boolean_function/higher_order_pseudo_boolean_function.cpp
     src/nxtgm/models/solution_value.cpp
     src/nxtgm/models/gm/discrete_gm/discrete_gm.cpp
     src/nxtgm/optimizers/optimizer_parameters.cpp

@@ -9,7 +9,22 @@
 namespace nxtgm
 {
 
-class QpboBase
+// bare minimal to use higher order qpbo plugin
+// which will reduce the higher order problem to a
+// quadratic problem
+class QuadraticRepresentationBase
+{
+  public:
+    virtual ~QuadraticRepresentationBase() = default;
+    virtual void set_max_edge_num(std::size_t num_edges) = 0;
+    virtual std::size_t add_node() = 0;
+    virtual std::size_t add_nodes(std::size_t n) = 0;
+    virtual std::size_t num_nodes() const = 0;
+    virtual void add_unary_term(std::size_t node, const double *cost) = 0;
+    virtual void add_pairwise_term(std::size_t node1, std::size_t node2, const double *cost) = 0;
+};
+
+class QpboBase : public QuadraticRepresentationBase
 {
   public:
     enum class Persistencies
@@ -41,11 +56,12 @@ class QpboBase
 
     virtual ~QpboBase() = default;
 
-    virtual void add_unary_term(std::size_t node, const double *cost) = 0;
-    virtual void add_pairwise_term(std::size_t node1, std::size_t node2, const double *cost) = 0;
+    // virtual void add_nodes(std::size_t n) = 0;
+    // virtual void set_max_edge_num(std::size_t num_edges) = 0;
+    // virtual void add_unary_term(std::size_t node, const double *cost) = 0;
+    // virtual void add_pairwise_term(std::size_t node1, std::size_t node2, const double *cost) = 0;
     virtual void solve() = 0;
     virtual void reset() = 0;
-    virtual void add_nodes(std::size_t n) = 0;
     virtual void stitch() = 0;
     virtual int get_region(std::size_t node) = 0;
     virtual void merge_parallel_edges() = 0;
@@ -53,7 +69,7 @@ class QpboBase
     virtual void compute_weak_persistencies() = 0;
     virtual void improve(int N, int *order_array, int *fixed_nodes = nullptr) = 0;
     virtual bool improve() = 0;
-    virtual bool lower_bound() = 0;
+    virtual double lower_bound() = 0;
     virtual double compute_energy(int options) = 0;
     virtual void probe(int *mapping, const ProbeOptions &options) = 0;
     virtual int get_label(std::size_t node) const = 0;

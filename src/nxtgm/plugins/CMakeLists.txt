@@ -16,4 +16,5 @@ endfunction()
 
 add_subdirectory(min_st_cut)
 add_subdirectory(qpbo)
+add_subdirectory(hocr)
 add_subdirectory(discrete_gm_optimizer)

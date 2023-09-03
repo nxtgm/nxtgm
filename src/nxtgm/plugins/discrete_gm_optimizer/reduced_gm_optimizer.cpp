@@ -167,7 +167,9 @@ OptimizationStatus ReducedGmOptimizer::get_partial_optimality_via_qpbo(
     OptimizerParameters qpbo_parameters;
     qpbo_parameters["strong_persistencies"] = false;
 
-    auto optimizer = discrete_gm_optimizer_factory(this->model(), "qpbo", qpbo_parameters);
+    const auto qpbo_type = this->model().max_arity() > 2 ? std::string("hqpbo") : std::string("qpbo");
+
+    auto optimizer = discrete_gm_optimizer_factory(this->model(), qpbo_type, qpbo_parameters);
     optimizer->optimize();
     best_solution_ = optimizer->best_solution();
     best_solution_value_ = optimizer->best_solution_value();
