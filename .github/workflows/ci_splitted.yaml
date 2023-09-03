@@ -167,10 +167,10 @@ jobs:
             cmake --build . --config Release
             cmake --install . --config Release
 
-      - name: Build&install pseudo_boolean_function_reduction fix
+      - name: Build&install horc fix
         shell: cmd /C CALL {0}
         run: |
-            cd src\nxtgm\plugins\pseudo_boolean_function_reduction\fix
+            cd src\nxtgm\plugins\horc\fix
             mkdir bld
             cd bld
             cmake .. ^
