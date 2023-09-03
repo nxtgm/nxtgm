@@ -167,10 +167,10 @@ jobs:
             cmake --build . --config Release
             cmake --install . --config Release
 
-      - name: Build&install horc fix
+      - name: Build&install hocr fix
         shell: cmd /C CALL {0}
         run: |
-            cd src\nxtgm\plugins\horc\fix
+            cd src\nxtgm\plugins\hocr\fix
             mkdir bld
             cd bld
             cmake .. ^
