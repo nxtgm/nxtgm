@@ -119,7 +119,7 @@ class Block
         while (first)
         {
             block *next = first->next;
-            delete[]((char *)first);
+            delete[] ((char *)first);
             first = next;
         }
     }
@@ -279,7 +279,7 @@ class DBlock
         while (first)
         {
             block *next = first->next;
-            delete[]((char *)first);
+            delete[] ((char *)first);
             first = next;
         }
     }
