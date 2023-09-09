@@ -1,6 +1,4 @@
 set(PLUGIN_TYPE         discrete_gm_optimizer)
-SET(DISCRETE_GM_OPTIMIZER_INSTALL_PATH lib/nxtgm/plugins/${PLUGIN_TYPE})
-
 
 function(add_solver BASE_NAME)
     SET(PLUGIN_TARGET_NAME discrete_gm_optimizer_${BASE_NAME})
@@ -35,5 +33,6 @@ add_solver(icm)
 add_solver(ilp_highs)
 add_solver(matching_icm)
 add_solver(qpbo)
+add_solver(hqpbo)
 add_solver(chained_optimizers)
 add_solver(reduced_gm_optimizer)

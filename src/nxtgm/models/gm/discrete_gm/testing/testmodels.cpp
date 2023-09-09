@@ -434,7 +434,6 @@ std::pair<DiscreteGm, std::string> RandomModel::operator()(unsigned seed)
     const std::string name = fmt::format("RandomModel(n_variables={}, n_factors{}, max_factor_arity={}, "
                                          "n_labels_max={}, seed={})",
                                          n_variables, n_factors, max_factor_arity, n_labels_max, seed);
-    ++seed;
     return std::pair<DiscreteGm, std::string>(std::move(gm), name);
 }
 

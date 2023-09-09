@@ -353,6 +353,121 @@ TEST_CASE("qpbo")
     }
 }
 
+TEST_CASE("hqpbo")
+{
+    TestDiscreteGmOptimizerOptions test_options;
+    test_options.seed = 42;
+
+    SUBCASE("second_order")
+    {
+        SUBCASE("small")
+        {
+            OptimizerParameters parameters;
+            parameters["strong_persistencies"] = 0;
+            // parameters["probing"] = 1;
+
+            // clang-format off
+            test_discrete_gm_optimizer(
+                "hqpbo",
+                parameters,
+                {
+                    //random_sparse_model(3, 1, 3, 3, 2, 0.9)//,
+                    potts_grid(4,4,2,true),
+                    potts_grid(2,1,2,false),
+                    star(5,2),
+                    sparse_potts_chain(4, 2)
+                },
+
+                require_optimality(/*proven*/ true)
+            );
+            // clang-format on
+        }
+        SUBCASE("large")
+        {
+            OptimizerParameters parameters;
+            parameters["strong_persistencies"] = 0;
+
+            // clang-format off
+            test_discrete_gm_optimizer(
+                "hqpbo",
+                parameters,
+                {
+                    potts_grid(20,20,2,true),
+                    star(20,2)
+                },
+                {
+                    require_optimization_status(OptimizationStatus::OPTIMAL),
+                    require_local_n_optimality(1)
+                }
+            );
+            // clang-format on
+        }
+        SUBCASE("partial_optimality_black_box")
+        {
+            OptimizerParameters parameters;
+            parameters["strong_persistencies"] = 0;
+
+            // clang-format off
+            test_discrete_gm_optimizer(
+                "hqpbo",
+                parameters,
+                {
+                    potts_grid(3,4,2,false),
+                    potts_grid(12,1,2,false),
+                    star(11,2),
+                    sparse_potts_chain(12, 2)
+                },
+                require_correct_partial_optimality()
+            );
+            // clang-format on
+        }
+        SUBCASE("partial_optimality")
+        {
+            OptimizerParameters parameters;
+            parameters["strong_persistencies"] = 0;
+
+            for (unsigned seed = 0; seed < 42; ++seed)
+            {
+                auto [easy_gm, easy_gm_name] = potts_grid(100, 1, 2, true)->operator()(seed);
+                auto [hard_gm, hard_gm_name] = potts_grid(100, 100, 2, false)->operator()(seed);
+                std::vector<DiscreteGm> models;
+                models.push_back(std::move(easy_gm));
+                models.push_back(std::move(hard_gm));
+
+                auto concated_gm = concat_models(models);
+
+                auto optimizer = discrete_gm_optimizer_factory(concated_gm, "qpbo", parameters);
+                auto status = optimizer->optimize();
+
+                for (auto i = 0; i < models[0].num_variables(); ++i)
+                {
+                    CHECK(optimizer->is_partial_optimal(i));
+                }
+            }
+        }
+    }
+    SUBCASE("higher_order")
+    {
+        SUBCASE("partial_optimality_black_box")
+        {
+            OptimizerParameters parameters;
+            parameters["strong_persistencies"] = 0;
+
+            // clang-format off
+            test_discrete_gm_optimizer(
+                "hqpbo",
+                parameters,
+                {
+                    random_model(12, 5, 3,  2),
+                    random_model(12, 5, 10, 2)
+                },
+                require_correct_partial_optimality()
+            );
+            // clang-format on
+        }
+    }
+}
+
 TEST_CASE("matching_icm")
 {
 
@@ -410,38 +525,79 @@ TEST_CASE("ilp_highs" * SKIP_WIN)
 
 TEST_CASE("reduced_gm_optimizer")
 {
-    SUBCASE("brute_force_naive")
+    SUBCASE("second_order")
     {
-        OptimizerParameters parameters;
-        parameters["sub_optimizer"] = "brute_force_naive";
+        SUBCASE("brute_force_naive")
+        {
+            OptimizerParameters parameters;
+            parameters["sub_optimizer"] = "brute_force_naive";
 
-        // clang-format off
-        test_discrete_gm_optimizer(
-            "reduced_gm_optimizer",
-            parameters,
-            {
-                potts_grid(4,3,2,false)
-            },
-            require_optimality(/*proven*/ true, /*tolerance*/ 1e-3)
-        );
-        // clang-format on
+            // clang-format off
+            test_discrete_gm_optimizer(
+                "reduced_gm_optimizer",
+                parameters,
+                {
+                    potts_grid(4,3,2,false)
+                },
+                require_optimality(/*proven*/ true, /*tolerance*/ 1e-3)
+            );
+            // clang-format on
+        }
+        SUBCASE("icm")
+        {
+            OptimizerParameters parameters;
+            parameters["sub_optimizer"] = "icm";
+
+            // clang-format off
+            test_discrete_gm_optimizer(
+                "reduced_gm_optimizer",
+                parameters,
+                {
+                    potts_grid(10,10,2,false)
+                },
+                // return status needs to be local_optimal OR optimal
+                require_local_optimality(/*proven*/true)
+            );
+            // clang-format on
+        }
     }
-    SUBCASE("icm")
+    SUBCASE("higher_order")
     {
-        OptimizerParameters parameters;
-        parameters["sub_optimizer"] = "icm";
+        SUBCASE("brute_force_naive")
+        {
+            OptimizerParameters parameters;
+            parameters["sub_optimizer"] = "brute_force_naive";
 
-        // clang-format off
-        test_discrete_gm_optimizer(
-            "reduced_gm_optimizer",
-            parameters,
-            {
-                potts_grid(10,10,2,false)
-            },
-            // return status needs to be local_optimal OR optimal
-            require_local_optimality(/*proven*/true)
-        );
-        // clang-format on
+            // clang-format off
+            test_discrete_gm_optimizer(
+                "reduced_gm_optimizer",
+                parameters,
+                {
+                    random_model(12, 5, 3,  2),
+                    random_model(12, 5, 10, 2)
+                },
+                require_optimality(/*proven*/ true, /*tolerance*/ 1e-3)
+            );
+            // clang-format on
+        }
+        SUBCASE("icm")
+        {
+            OptimizerParameters parameters;
+            parameters["sub_optimizer"] = "icm";
+
+            // clang-format off
+            test_discrete_gm_optimizer(
+                "reduced_gm_optimizer",
+                parameters,
+                {
+                    random_model(24, 15, 3,  2),
+                    random_model(24, 10, 10, 2)
+                },
+                // return status needs to be local_optimal OR optimal
+                require_local_optimality(/*proven*/true)
+            );
+            // clang-format on
+        }
     }
 }
 

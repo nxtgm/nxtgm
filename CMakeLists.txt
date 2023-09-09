@@ -19,8 +19,11 @@ option(BUILD_PYTHON                     "Build python bindings" ON)
 option(BUILD_WITH_COVERAGE              "Build with coverage" OFF)
 # documentation related
 option(BUILD_DOCS                       "Build doxygen documentation" ON)
+
 # plugin related
-option(BUILD_PLUGIN_QPBO_KOLMOGOROV     "Build qpbo kolmogorov plugin" ON)
+option(BUILD_PLUGIN_QPBO_KOLMOGOROV                          "Build qpbo kolmogorov plugin" ON)
+option(BUILD_PLUGIN_HOCR_FIX                                 "Build fix higher order qpbo plugin" ON)
+option(BUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV                    "Build kolmogorov min st cut plugin" ON)
 
 ###############################################################
 # dependencies
@@ -59,6 +62,7 @@ add_library(nxtgm_shared SHARED
     src/nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.cpp
     src/nxtgm/optimizers/gm/discrete/movemaker.cpp
     src/nxtgm/optimizers/gm/discrete/optimizer_base.cpp
+    src/nxtgm/plugins/hocr/hocr_base.cpp
     # this testing needs to be partof the shared library
     # since plugin authors want to test their plugins
     # for emscripten, we might want to remove this (TODO)

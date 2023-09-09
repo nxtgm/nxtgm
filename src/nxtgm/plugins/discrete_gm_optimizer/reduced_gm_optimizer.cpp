@@ -60,7 +60,8 @@ class ReducedGmOptimizer : public DiscreteGmOptimizerBase
     OptimizationStatus get_partial_optimality_via_qpbo(reporter_callback_wrapper_type &,
                                                        repair_callback_wrapper_type &);
 
-    OptimizationStatus build_and_optimize_submodel(reporter_callback_wrapper_type &, repair_callback_wrapper_type &);
+    OptimizationStatus build_and_optimize_submodel(reporter_callback_wrapper_type &, repair_callback_wrapper_type &,
+                                                   const_discrete_solution_span);
 
     void compute_labels();
 
@@ -133,7 +134,7 @@ OptimizationStatus ReducedGmOptimizer::optimize_impl(reporter_callback_wrapper_t
     }
 
     // build and optimize the submodel (and map to the original model)
-    return this->build_and_optimize_submodel(reporter_callback, repair_callback);
+    return this->build_and_optimize_submodel(reporter_callback, repair_callback, starting_point);
 }
 
 SolutionValue ReducedGmOptimizer::best_solution_value() const
@@ -167,7 +168,9 @@ OptimizationStatus ReducedGmOptimizer::get_partial_optimality_via_qpbo(
     OptimizerParameters qpbo_parameters;
     qpbo_parameters["strong_persistencies"] = false;
 
-    auto optimizer = discrete_gm_optimizer_factory(this->model(), "qpbo", qpbo_parameters);
+    const auto qpbo_type = this->model().max_arity() > 2 ? std::string("hqpbo") : std::string("qpbo");
+
+    auto optimizer = discrete_gm_optimizer_factory(this->model(), qpbo_type, qpbo_parameters);
     optimizer->optimize();
     best_solution_ = optimizer->best_solution();
     best_solution_value_ = optimizer->best_solution_value();
@@ -199,10 +202,10 @@ OptimizationStatus ReducedGmOptimizer::get_partial_optimality_via_qpbo(
 // helper function to use strictest time limit
 
 OptimizationStatus ReducedGmOptimizer::build_and_optimize_submodel(reporter_callback_wrapper_type &,
-                                                                   repair_callback_wrapper_type &)
+                                                                   repair_callback_wrapper_type &,
+                                                                   const_discrete_solution_span starting_point)
 {
     const auto &gm = this->model();
-    // std::cout<<"n_partial_optimal_ "<<n_partial_optimal_<<std::endl;
 
     if (n_partial_optimal_ == 0)
     {
@@ -214,7 +217,7 @@ OptimizationStatus ReducedGmOptimizer::build_and_optimize_submodel(reporter_call
             optimizer->set_time_limit(this->remaining_time());
         }
 
-        auto status = optimizer->optimize();
+        auto status = optimizer->optimize(nullptr, nullptr, starting_point);
 
         if (auto solution_value = optimizer->best_solution_value(); solution_value < best_solution_value_)
         {
@@ -234,11 +237,25 @@ OptimizationStatus ReducedGmOptimizer::build_and_optimize_submodel(reporter_call
 
         auto [sub_gm, gm_to_sub_gm, constant] = gm.bind(mask, labels, false);
 
-        // std::cout<<"constant "<<constant<<std::endl;
-
         auto sub_optimizer =
             discrete_gm_optimizer_factory(sub_gm, parameters_.sub_optimizer, parameters_.sub_optimizer_parameters);
-        auto sub_status = sub_optimizer->optimize();
+
+        OptimizationStatus sub_status;
+        if (starting_point.empty())
+        {
+            sub_status = sub_optimizer->optimize();
+        }
+        else
+        {
+            // build starting point for submodel
+            std::vector<discrete_label_type> sub_starting_point(sub_gm.num_variables());
+            for (auto [gm_vi, sub_gm_vi] : gm_to_sub_gm)
+            {
+                sub_starting_point[sub_gm_vi] = starting_point[gm_vi];
+            }
+            const const_discrete_label_span sub_start_point_span(sub_starting_point.data(), sub_starting_point.size());
+            sub_status = sub_optimizer->optimize(nullptr, nullptr, sub_start_point_span);
+        }
 
         if (sub_status == OptimizationStatus::INFEASIBLE)
         {
@@ -249,9 +266,9 @@ OptimizationStatus ReducedGmOptimizer::build_and_optimize_submodel(reporter_call
         const auto &sub_best_solution = sub_optimizer->best_solution();
 
         const auto solution_value = sub_best_solution_value + constant;
-        // if (solution_value < best_solution_value_)
+        if (solution_value < best_solution_value_)
         {
-            best_solution_value_ = solution_value;
+            best_solution_value_ = solution_value + constant;
             for (auto [gm_vi, sub_gm_vi] : gm_to_sub_gm)
             {
                 best_solution_[gm_vi] = sub_best_solution[sub_gm_vi];

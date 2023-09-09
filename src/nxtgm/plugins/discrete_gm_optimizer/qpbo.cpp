@@ -20,40 +20,18 @@ class Qpbo : public DiscreteGmOptimizerBase
       public:
         inline parameters_type(OptimizerParameters &parameters)
         {
-            if (auto it = parameters.string_parameters.find("qpbo_plugin_name");
-                it != parameters.string_parameters.end())
-            {
-                qpbo_plugin_name = it->second;
-                parameters.string_parameters.erase(it);
-            }
-
-            if (auto it = parameters.int_parameters.find("probing"); it != parameters.int_parameters.end())
-            {
-                probing = it->second;
-                parameters.int_parameters.erase(it);
-            }
-            if (auto it = parameters.int_parameters.find("strong_persistencies"); it != parameters.int_parameters.end())
-            {
-                strong_persistencies = it->second;
-                parameters.int_parameters.erase(it);
-            }
-            if (auto it = parameters.int_parameters.find("improving"); it != parameters.int_parameters.end())
-            {
-                improving = it->second;
-                parameters.int_parameters.erase(it);
-            }
-            if (auto it = parameters.int_parameters.find("seed"); it != parameters.int_parameters.end())
-            {
-                seed = it->second;
-                parameters.int_parameters.erase(it);
-            }
+            parameters.assign_and_pop("qpbo_plugin_name", qpbo_plugin_name);
+            parameters.assign_and_pop("probing", probing, false);
+            parameters.assign_and_pop("strong_persistencies", strong_persistencies, false);
+            parameters.assign_and_pop("improving", improving, false);
+            parameters.assign_and_pop("seed", seed, 0);
         }
 
         std::string qpbo_plugin_name;
-        bool probing = false;
-        bool strong_persistencies = true;
-        bool improving = false;
-        unsigned seed = 0;
+        bool probing;
+        bool strong_persistencies;
+        bool improving;
+        unsigned seed;
     };
 
   public:
@@ -165,6 +143,7 @@ Qpbo::Qpbo(const DiscreteGm &gm, OptimizerParameters &&parameters)
     }
     auto factory = get_plugin_registry<QpboFactoryBase>().get_factory(parameters_.qpbo_plugin_name);
     qpbo_ = factory->create(gm.num_variables(), num_edges);
+    qpbo_->add_nodes(gm.num_variables());
 
     double energies[4] = {0, 0, 0, 0};
     for (size_t i = 0; i < gm.num_factors(); ++i)
@@ -212,7 +191,7 @@ OptimizationStatus Qpbo::optimize_impl(reporter_callback_wrapper_type &reporter_
         if (qpbo_labels_[vi] < 0)
         {
             ++num_unlabeled;
-            best_solution_[vi] = 0;
+            best_solution_[vi] = starting_point.empty() ? 0 : starting_point[vi];
         }
         else
         {

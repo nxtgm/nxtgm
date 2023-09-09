@@ -46,7 +46,7 @@ std::pair<DiscreteSpace, std::unordered_map<std::size_t, std::size_t>> DiscreteS
 
     for (std::size_t space_vi = 0; space_vi < n_variables_; ++space_vi)
     {
-        if (mask[space_vi] == is_include_mask)
+        if (static_cast<bool>(mask[space_vi]) == is_include_mask)
         {
             space_to_subspace[space_vi] = sub_space_vi;
             ++sub_space_vi;
@@ -63,7 +63,7 @@ std::pair<DiscreteSpace, std::unordered_map<std::size_t, std::size_t>> DiscreteS
         sub_space_vi = 0;
         for (std::size_t space_vi = 0; space_vi < n_variables_; ++space_vi)
         {
-            if (mask[space_vi] == is_include_mask)
+            if (static_cast<bool>(mask[space_vi]) == is_include_mask)
             {
                 new_n_labels[sub_space_vi] = n_labels_[space_vi];
                 ++sub_space_vi;
