@@ -758,8 +758,8 @@ struct List // contains LIST_NUM lists containing integers 0,1,...,num-1. In the
 
     ~List()
     {
-        delete[](prev - LIST_NUM);
-        delete[](next - LIST_NUM);
+        delete[] (prev - LIST_NUM);
+        delete[] (next - LIST_NUM);
     }
     // i must be in the list
     void Remove(int i)
