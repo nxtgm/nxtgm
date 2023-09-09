@@ -7,6 +7,8 @@
 #include <nxtgm/plugins/plugin.hpp>
 #include <nxtgm/plugins/qpbo/qpbo_base.hpp>
 
+#include <nxtgm/models/gm/discrete_gm/gm.hpp>
+
 namespace nxtgm
 {
 
@@ -53,6 +55,9 @@ class HocrFactoryBase
 
     // description of the plugin
     virtual std::string description() const = 0;
+
+    // with default implementation
+    virtual std::unique_ptr<HocrBase> create(const DiscreteGm &gm);
 };
 
 } // namespace nxtgm

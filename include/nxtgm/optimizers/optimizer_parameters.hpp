@@ -70,6 +70,54 @@ class OptimizerParameters
     tsl::ordered_map<std::string, std::any> any_parameters;
     detail::ordered_map_vec<std::string, OptimizerParameters> optimizer_parameters;
     bool empty() const;
+
+    template <class T>
+    void assign_and_pop(const std::string &key, T &value)
+    {
+        auto &map = get_map<T>();
+        if (auto it = map.find(key); it != map.end())
+        {
+            value = it->second;
+            map.erase(it);
+        }
+    }
+
+    template <class T, class U>
+    void assign_and_pop(const std::string &key, T &value, const U &default_value)
+    {
+        auto &map = get_map<T>();
+        if (auto it = map.find(key); it != map.end())
+        {
+            value = it->second;
+            map.erase(it);
+        }
+        else
+        {
+            value = default_value;
+        }
+    }
+
+  private:
+    template <class T, typename std::enable_if<std::is_same<T, std::string>::value, int>::type * = nullptr>
+    tsl::ordered_map<std::string, std::string> &get_map()
+    {
+        return string_parameters;
+    }
+    template <class T, typename std::enable_if<std::is_same<T, OptimizerParameters>::value, int>::type * = nullptr>
+    detail::ordered_map_vec<std::string, OptimizerParameters> &get_map()
+    {
+        return optimizer_parameters;
+    }
+    template <class T, typename std::enable_if<std::is_integral<T>::value, int>::type * = nullptr>
+    tsl::ordered_map<std::string, int64_t> &get_map()
+    {
+        return int_parameters;
+    }
+    template <class T, typename std::enable_if<std::is_floating_point<T>::value, int>::type * = nullptr>
+    tsl::ordered_map<std::string, double> &get_map()
+    {
+        return double_parameters;
+    }
 };
 
 void ensure_all_handled(const std::string &optimizer_name, const OptimizerParameters &parameters);

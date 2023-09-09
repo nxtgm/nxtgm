@@ -25,30 +25,14 @@ class Hqpbo : public DiscreteGmOptimizerBase
       public:
         inline parameters_type(OptimizerParameters &parameters)
         {
-            if (auto it = parameters.string_parameters.find("hocr_plugin_name");
-                it != parameters.string_parameters.end())
-            {
-                hocr_plugin_name = it->second;
-                parameters.string_parameters.erase(it);
-            }
-
-            if (auto it = parameters.string_parameters.find("qpbo_plugin_name");
-                it != parameters.string_parameters.end())
-            {
-                qpbo_plugin_name = it->second;
-                parameters.string_parameters.erase(it);
-            }
-
-            if (auto it = parameters.int_parameters.find("strong_persistencies"); it != parameters.int_parameters.end())
-            {
-                strong_persistencies = it->second;
-                parameters.int_parameters.erase(it);
-            }
+            parameters.assign_and_pop("qpbo_plugin_name", qpbo_plugin_name);
+            parameters.assign_and_pop("hocr_plugin_name", hocr_plugin_name);
+            parameters.assign_and_pop("strong_persistencies", strong_persistencies, false);
         }
 
         std::string qpbo_plugin_name;
         std::string hocr_plugin_name;
-        bool strong_persistencies = true;
+        bool strong_persistencies = false;
     };
 
   public:
@@ -81,7 +65,6 @@ class Hqpbo : public DiscreteGmOptimizerBase
 
   private:
     void ensure_model_compatibility();
-    void build_higher_order_energy(HocrBase *hocr);
     parameters_type parameters_;
     SolutionValue best_solution_value_;
     solution_type best_solution_;
@@ -141,87 +124,6 @@ Hqpbo::Hqpbo(const DiscreteGm &gm, OptimizerParameters &&parameters)
     best_solution_value_ = gm.evaluate(best_solution_, false /* early exit when infeasible*/);
 }
 
-void Hqpbo::build_higher_order_energy(HocrBase *hocr)
-{
-
-    const auto &gm = this->model();
-    hocr->add_variables(gm.num_variables());
-
-    std::vector<double> coeffs;
-    coeffs.reserve(1 << max_arity);
-
-    for (const auto &factor : gm.factors())
-    {
-
-        const unsigned int arity = factor.arity();
-        if (arity == 1)
-        {
-            double values[2];
-            factor.copy_energies(values);
-            hocr->add_unary_term(values[1] - values[0], factor.variables()[0]);
-        }
-        else
-        {
-            unsigned int num_assigments = 1 << arity; // 2^arity
-            discrete_label_type clique_labels[max_arity];
-            coeffs.resize(num_assigments);
-
-            for (unsigned int subset = 1; subset < num_assigments; ++subset)
-            {
-                coeffs[subset] = 0;
-            }
-
-            for (unsigned int assignment = 0; assignment < num_assigments; ++assignment)
-            {
-                for (unsigned int i = 0; i < arity; ++i)
-                {
-                    if (assignment & (1 << i))
-                    {
-                        clique_labels[i] = 1;
-                    }
-                    else
-                    {
-                        clique_labels[i] = 0;
-                    }
-                }
-                auto energy = factor(clique_labels);
-                for (unsigned int subset = 1; subset < num_assigments; ++subset)
-                {
-                    if (assignment & ~subset)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        int parity = 0;
-                        for (unsigned int b = 0; b < arity; ++b)
-                        {
-                            parity ^= (((assignment ^ subset) & (1 << b)) != 0);
-                        }
-                        coeffs[subset] += parity ? -energy : energy;
-                    }
-                }
-            }
-
-            std::size_t vars[10];
-            for (unsigned int subset = 1; subset < num_assigments; ++subset)
-            {
-                int degree = 0;
-                for (unsigned int b = 0; b < arity; ++b)
-                {
-                    if (subset & (1 << b))
-                    {
-                        vars[degree++] = factor.variables()[b];
-                    }
-                }
-
-                std::sort(vars, vars + degree);
-                hocr->add_term(coeffs[subset], span<const std::size_t>(vars, degree));
-            }
-        }
-    }
-}
-
 void Hqpbo::ensure_model_compatibility()
 {
     const auto &gm = this->model();
@@ -256,17 +158,15 @@ OptimizationStatus Hqpbo::optimize_impl(reporter_callback_wrapper_type &reporter
     // shortcut to the model
     const auto &gm = this->model();
 
-    // build higher order energy
-    auto reducer_factory = get_plugin_registry<HocrFactoryBase>().get_factory(parameters_.hocr_plugin_name);
-    auto reducer = reducer_factory->create();
-    build_higher_order_energy(reducer.get());
-
-    auto factory = get_plugin_registry<QpboFactoryBase>().get_factory(parameters_.qpbo_plugin_name);
-    // this will only reserve variables but not add any
-    auto qpbo = factory->create(gm.num_variables() * 2, 0);
+    // do the higher order clique reduction
+    auto reducer = get_plugin_registry<HocrFactoryBase>().get_factory(parameters_.hocr_plugin_name)->create(gm);
+    auto qpbo = get_plugin_registry<QpboFactoryBase>()
+                    .get_factory(parameters_.qpbo_plugin_name)
+                    ->create(gm.num_variables() * 2, 0);
     reducer->to_quadratic(qpbo.get());
 
-    qpbo->merge_parallel_edges();
+    // optimize the quadratic model
+    qpbo->merge_parallel_edges(); // <- might not be needed
     qpbo->solve();
 
     if (!parameters_.strong_persistencies)
