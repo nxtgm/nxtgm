@@ -1,5 +1,5 @@
-Note that we do **not** link libnxtgm to the plugins.
-The plugins can **optionally** be linked at runtime.
+Note that we do **not** link libnxtgm to individual plugins.
+The plugins can **optionally** be opened at runtime (via `dlopen`).
 
 LICENSE_PLUGINS:
 
