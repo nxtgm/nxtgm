@@ -517,8 +517,7 @@ std::chrono::duration<double> TestDiscreteGmOptimizerOptions::default_per_model_
     // NXTGM_TEST_PER_MODEL_TIME_LIMIT
     const double t = std::getenv("NXTGM_TEST_PER_MODEL_TIME_LIMIT") != nullptr
                          ? std::stod(std::getenv("NXTGM_TEST_PER_MODEL_TIME_LIMIT"))
-                         : 5.0;
-
+                         : 2.0;
     return std::chrono::duration<double>(t);
 };
 
@@ -527,12 +526,12 @@ void test_discrete_gm_optimizer(const std::string optimizer_name, const Optimize
                                 std::initializer_list<std::unique_ptr<DiscreteGmOptimizerRequireBase>> requirements,
                                 const TestDiscreteGmOptimizerOptions &options)
 {
-
+    //std::cout<<"testing optimizer "<<optimizer_name<<std::endl;
     for (const auto &model_gen : model_generators)
     {
 
         unsigned seed = options.seed;
-
+        bool first = true;
         auto run = [&]() {
             auto gm_and_name = model_gen->operator()(seed);
             auto gm = std::move(gm_and_name.first);
@@ -540,7 +539,10 @@ void test_discrete_gm_optimizer(const std::string optimizer_name, const Optimize
 
             auto optimizer = discrete_gm_optimizer_factory(gm, optimizer_name, parameters);
             // INFO("Testing model instance ", gm_name.second, " with ", optimizer_name);
-
+            if(first){
+               //std::cout<<"Testing model instance "<<gm_name<<" with "<<optimizer_name<<std::endl;
+                first = false;
+            }
             // eval trivial sol
             discrete_solution sol(gm.num_variables(), 0);
 

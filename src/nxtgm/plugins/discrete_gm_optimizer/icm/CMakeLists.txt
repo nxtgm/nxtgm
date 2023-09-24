@@ -1,5 +1,5 @@
-set(PLUGIN_TYPE         hocr)
-set(PLUGIN_NAME_CORE    fix)
+set(PLUGIN_TYPE         discrete_gm_optimizer)
+set(PLUGIN_NAME_CORE    icm)
 set(PLUGIN_TARGET_NAME  ${PLUGIN_TYPE}_${PLUGIN_NAME_CORE})
 
 if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
@@ -8,10 +8,9 @@ if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
     find_package(nxtgm REQUIRED)
 endif()
 
+add_xplugin(${PLUGIN_TARGET_NAME} ${PLUGIN_NAME_CORE}.cpp)
 
-add_xplugin(${PLUGIN_TARGET_NAME} ${PLUGIN_TARGET_NAME}.cpp)
-
-# plugin base class / interface headers
+# link dependencies
 target_link_libraries(${PLUGIN_TARGET_NAME}  ${NXTGM_SHARED_LIBRARY})
 
 # install plugin
