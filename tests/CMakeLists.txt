@@ -50,5 +50,7 @@ if(BUILD_SINGLE_BINARY_TESTS)
     add_nxtgm_test(all ${ALL_TEST_SOURCES})
 
     # install test binary
-    install(TARGETS nxtgm_test_all DESTINATION ${CMAKE_INSTALL_BINDIR})
+    if(INSTALL_DEV)
+        install(TARGETS nxtgm_test_all DESTINATION ${CMAKE_INSTALL_BINDIR})
+    endif()
 endif()
