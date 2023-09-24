@@ -49,7 +49,8 @@ jobs:
               -DBUILD_DOCS=ON \
               -DBUILD_PLUGIN_QPBO_KOLMOGOROV=OFF \
               -DBUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV=OFF \
-              -DBUILD_PLUGIN_HOCR_FIX=OFF \
+              -DBUILD_PLUGIN_HOCR_FIX=OFF \\
+              -DBUILD_PLUGINS_DISCRETE_GM_OPTIMIZER=OFF \
               -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
 
       - name: Build
@@ -63,6 +64,22 @@ jobs:
         run: |
             cd bld
             make install
+
+      - name: build solvers
+        shell: bash -l {0}
+        run: |
+          cd src/nxtgm/plugins/discrete_gm_optimizer
+          # loop over all subdirectories
+          for d in */ ; do
+            echo "building" $d
+            cd $d
+            mkdir -p bld
+            cd bld
+            cmake .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+            make -j ${{ steps.cpu-cores.outputs.count }}
+            make install
+            cd ../..
+          done
 
       - name: Build&install qpbo kolmogorov
         shell: bash -l {0}
@@ -136,10 +153,30 @@ jobs:
             -DBUILD_PLUGIN_QPBO_KOLMOGOROV=OFF ^
             -DBUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV=OFF ^
             -DBUILD_PLUGIN_HOCR_FIX=OFF ^
+            -DBUILD_PLUGINS_DISCRETE_GM_OPTIMIZER=OFF ^
             -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library" ^
             -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%
           cmake --build . --config Release
           cmake --install . --config Release
+
+      - name: build solvers
+        shell: cmd /C CALL {0}
+        run: |
+          cd src\nxtgm\plugins\discrete_gm_optimizer
+          # loop over all subdirectories
+          for /D %%d in (*) do (
+            echo "building" %%d
+            cd %%d
+            mkdir bld
+            cd bld
+            cmake .. ^
+              -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library" ^
+              -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%
+
+            cmake --build . --config Release
+            cmake --install . --config Release
+            cd ..\..
+          )
 
       - name: Build&install qpbo kolmogorov
         shell: cmd /C CALL {0}

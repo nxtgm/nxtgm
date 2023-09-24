@@ -21,6 +21,7 @@ option(BUILD_WITH_COVERAGE              "Build with coverage" OFF)
 option(BUILD_DOCS                       "Build doxygen documentation" ON)
 
 # plugin related
+option(BUILD_PLUGINS_DISCRETE_GM_OPTIMIZER                    "Build *ALL* discrete gm optimizer plugins" ON)
 option(BUILD_PLUGIN_QPBO_KOLMOGOROV                          "Build qpbo kolmogorov plugin" ON)
 option(BUILD_PLUGIN_HOCR_FIX                                 "Build fix higher order qpbo plugin" ON)
 option(BUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV                    "Build kolmogorov min st cut plugin" ON)
