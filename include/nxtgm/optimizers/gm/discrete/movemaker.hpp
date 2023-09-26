@@ -1,10 +1,8 @@
 #pragma once
-
 #include <nxtgm/constraint_functions/discrete_constraints.hpp>
 #include <nxtgm/models/gm/discrete_gm.hpp>
+#include <nxtgm/nxtgm.hpp>
 #include <nxtgm/optimizers/optimizer_base.hpp>
-
-#include <boost/container/flat_set.hpp>
 
 namespace nxtgm
 {
@@ -310,7 +308,7 @@ class MatchingMovemaker : public FilteredMovemaker<UseAll, UseNoGlobalUniqueCons
         }
 
         // available labels are all those of vars + unused labels
-        boost::container::flat_set<discrete_label_type> available_labels = unused_labels_;
+        flat_set<discrete_label_type> available_labels = unused_labels_;
         for (auto var : vars)
         {
             available_labels.insert(current_solution_[var]);
@@ -318,8 +316,8 @@ class MatchingMovemaker : public FilteredMovemaker<UseAll, UseNoGlobalUniqueCons
 
         // get a set of all factors and a set of all constraints
         // that are connected to any of the variables
-        boost::container::flat_set<std::size_t> factors;
-        boost::container::flat_set<std::size_t> constraints;
+        flat_set<std::size_t> factors;
+        flat_set<std::size_t> constraints;
 
         for (auto var : vars)
         {
@@ -489,7 +487,7 @@ class MatchingMovemaker : public FilteredMovemaker<UseAll, UseNoGlobalUniqueCons
 
   private:
     bool more_labels_as_variables_;
-    boost::container::flat_set<discrete_label_type> unused_labels_;
+    flat_set<discrete_label_type> unused_labels_;
 };
 
 } // namespace nxtgm

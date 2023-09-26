@@ -517,7 +517,7 @@ std::chrono::duration<double> TestDiscreteGmOptimizerOptions::default_per_model_
     // NXTGM_TEST_PER_MODEL_TIME_LIMIT
     const double t = std::getenv("NXTGM_TEST_PER_MODEL_TIME_LIMIT") != nullptr
                          ? std::stod(std::getenv("NXTGM_TEST_PER_MODEL_TIME_LIMIT"))
-                         : 2.0;
+                         : 0.1;
     return std::chrono::duration<double>(t);
 };
 

@@ -9,7 +9,6 @@ dependencies:
   - cxx-compiler
   - ninja
   # dependencies
-  - boost-cpp
   - nlohmann_json
   - xtensor
   - xplugin >= 0.2.0

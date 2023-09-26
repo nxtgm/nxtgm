@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-namespace nxtghm
+namespace nxtgm
 {
 
 /// \brief Vector that stores values on the stack if size is smaller than MAX_STACK
@@ -49,6 +49,15 @@ class SmallVector
     const T &back() const;
     T &front();
     T &back();
+
+    T *data()
+    {
+        return pointerToSequence_;
+    }
+    const T *data() const
+    {
+        return pointerToSequence_;
+    }
 
   private:
     size_t size_;
@@ -328,4 +337,4 @@ inline T &SmallVector<T, MAX_STACK>::front()
     return pointerToSequence_[0];
 }
 
-} // namespace nxtghm
+} // namespace nxtgm

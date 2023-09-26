@@ -34,7 +34,6 @@ option(BUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV                    "Build kolmogorov m
 # dependencies
 ###############################################################
 find_package(Threads REQUIRED)
-find_package(Boost REQUIRED)
 find_package(xtensor REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(xplugin REQUIRED)
@@ -105,7 +104,6 @@ endif()
 
 # public
 target_link_libraries(nxtgm_shared PUBLIC
-    Boost::boost
     xtensor
     nlohmann_json::nlohmann_json
 )
