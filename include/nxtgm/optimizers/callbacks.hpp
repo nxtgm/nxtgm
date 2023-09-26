@@ -9,8 +9,6 @@
 
 // visitor impl
 #include <chrono>
-#include <fmt/chrono.h>
-#include <fmt/core.h>
 #include <iostream>
 
 #include <nxtgm/optimizers/callback_base.hpp>
@@ -61,13 +59,12 @@ class ReporterCallback : public ReporterCallbackBase<OPTIMIZER_BASE_TYPE>
         const auto best = this->optimizer()->best_solution_value();
         const auto lower_bound = this->optimizer()->lower_bound();
 
-        std::cout << fmt::format("{:5} {:<10} {:<10}", iteration_, dt_last, dt_total);
-        std::cout << fmt::format("{:<12.3e} ", lower_bound);
-
-        // std::cout << fmt::format("{:<12.3e} {:<6} {:<12.3e}   ",
-        //                          current.energy(), current.is_feasible(),
-        //                          current.how_violated());
-        std::cout << fmt::format("{:<12.3e}  {:<12.3e}\n", best.energy(), best.how_violated());
+        std::cout << "iteration: " << iteration_ << " | "
+                  << "dt_total: " << std::chrono::duration_cast<std::chrono::milliseconds>(dt_total).count() << "ms | "
+                  << "dt_last: " << std::chrono::duration_cast<std::chrono::milliseconds>(dt_last).count() << "ms | "
+                  << "current: " << current << " | "
+                  << "best: " << best << " | "
+                  << "lower_bound: " << lower_bound << std::endl;
     }
 
     time_point_type t_begin_;

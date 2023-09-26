@@ -15,8 +15,6 @@
 #include <random>
 #include <vector>
 
-#include <fmt/core.h>
-
 #include <cmath>
 
 namespace nxtgm
