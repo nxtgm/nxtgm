@@ -9,14 +9,11 @@ dependencies:
   - cxx-compiler
   - ninja
   # dependencies
-  - boost-cpp
-  - fmt
   - nlohmann_json
-  - highs
   - xtensor
   - xplugin >= 0.2.0
   - tsl_ordered_map
-  # dependencies pythonbindings
+  # dependencies for python-bindings
   - python
   - pybind11
   - xtensor-python
@@ -33,3 +30,5 @@ dependencies:
   - sphinx_rtd_theme
   - breathe
   - sphinx-sitemap
+  # for specific solver
+  - highs

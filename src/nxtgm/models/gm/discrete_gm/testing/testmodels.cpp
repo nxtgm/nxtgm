@@ -1,5 +1,7 @@
 #include <nxtgm/models/gm/discrete_gm/testing/testmodels.hpp>
 
+#include <sstream>
+
 namespace nxtgm
 {
 
@@ -157,8 +159,11 @@ std::pair<DiscreteGm, std::string> Star::operator()(unsigned seed)
         auto fid = gm.add_energy_function(std::move(f));
         gm.add_factor({std::size_t(0), arm_index + 1}, fid);
     }
-    const std::string name = fmt::format("Star(n_arms={}, n_labels={}, seed={})", n_arms, n_labels, seed);
-    return std::pair<DiscreteGm, std::string>(std::move(gm), "Star");
+
+    std::stringstream ss;
+    ss << "Star(n_arms=" << n_arms << ", n_labels=" << n_labels << ", seed=" << seed << ")";
+    ++seed;
+    return std::pair<DiscreteGm, std::string>(std::move(gm), ss.str());
 }
 
 std::unique_ptr<DiscreteGmTestmodel> star(std::size_t n_arms, std::size_t n_labels)
@@ -219,10 +224,11 @@ std::pair<DiscreteGm, std::string> PottsGrid::operator()(unsigned seed)
         }
     }
 
-    const std::string name = fmt::format("PottsGrid(n_x={},n_y={}, n_labels={}, submodular={} seed={})", n_x, n_y,
-                                         n_labels, submodular, seed);
+    std::stringstream ss;
+    ss << "PottsGrid(n_x=" << n_x << ",n_y=" << n_y << ", n_labels=" << n_labels << ", submodular=" << submodular
+       << ", seed=" << seed << ")";
     ++seed;
-    return std::pair<DiscreteGm, std::string>(std::move(gm), name);
+    return std::pair<DiscreteGm, std::string>(std::move(gm), ss.str());
 }
 
 std::unique_ptr<DiscreteGmTestmodel> potts_grid(std::size_t n_x, std::size_t n_y, discrete_label_type n_labels,
@@ -268,10 +274,9 @@ std::pair<DiscreteGm, std::string> SparsePottsChain::operator()(unsigned seed)
         gm.add_factor({i, i + 1}, fid);
     }
 
-    const std::string name =
-        fmt::format("SparsePottsChain(n_variables={}, n_labels={}, seed={})", n_variables, n_labels, seed);
-    ++seed;
-    return std::pair<DiscreteGm, std::string>(std::move(gm), name);
+    std::stringstream ss;
+    ss << "SparsePottsChain(n_variables=" << n_variables << ", n_labels=" << n_labels << ", seed=" << seed << ")";
+    return std::pair<DiscreteGm, std::string>(std::move(gm), ss.str());
 }
 
 std::unique_ptr<DiscreteGmTestmodel> sparse_potts_chain(std::size_t n_variables, discrete_label_type n_labels)
@@ -318,10 +323,11 @@ std::pair<DiscreteGm, std::string> PottsChainWithLabelCosts::operator()(unsigned
     std::iota(std::begin(vars), std::end(vars), 0);
     gm.add_factor(vars, fid);
 
-    const std::string name =
-        fmt::format("PottsChainWithLabelCosts(n_variables={}, n_labels={}, seed={})", n_variables, n_labels, seed);
+    std::stringstream ss;
+    ss << "PottsChainWithLabelCosts(n_variables=" << n_variables << ", n_labels=" << n_labels << ", seed=" << seed
+       << ")";
     ++seed;
-    return std::pair<DiscreteGm, std::string>(std::move(gm), name);
+    return std::pair<DiscreteGm, std::string>(std::move(gm), ss.str());
 }
 
 std::unique_ptr<DiscreteGmTestmodel> potts_chain_with_label_costs(std::size_t n_variables, discrete_label_type n_labels)
@@ -387,10 +393,11 @@ std::pair<DiscreteGm, std::string> UniqueLabelChain::operator()(unsigned seed)
 
         gm.add_constraint(vars, fid);
     }
-    const std::string name =
-        fmt::format("UniqueLabelChain(n_variables={}, n_labels={}, seed={})", n_variables, n_labels, seed);
+    std::stringstream ss;
+    ss << "UniqueLabelChain(n_variables=" << n_variables << ", n_labels=" << n_labels << ", seed=" << seed << ")";
+
     ++seed;
-    return std::pair<DiscreteGm, std::string>(std::move(gm), name);
+    return std::pair<DiscreteGm, std::string>(std::move(gm), ss.str());
 }
 
 std::unique_ptr<DiscreteGmTestmodel> unique_label_chain(std::size_t n_variables, discrete_label_type n_labels,
@@ -431,10 +438,10 @@ std::pair<DiscreteGm, std::string> RandomModel::operator()(unsigned seed)
         gm.add_factor(vis, fid);
     }
 
-    const std::string name = fmt::format("RandomModel(n_variables={}, n_factors{}, max_factor_arity={}, "
-                                         "n_labels_max={}, seed={})",
-                                         n_variables, n_factors, max_factor_arity, n_labels_max, seed);
-    return std::pair<DiscreteGm, std::string>(std::move(gm), name);
+    std::stringstream ss;
+    ss << "RandomModel(n_variables=" << n_variables << ", n_factors=" << n_factors
+       << ", max_factor_arity=" << max_factor_arity << ", n_labels_max=" << n_labels_max << ", seed=" << seed << ")";
+    return std::pair<DiscreteGm, std::string>(std::move(gm), ss.str());
 }
 
 std::unique_ptr<DiscreteGmTestmodel> random_model(std::size_t n_variables, std::size_t n_factors,
@@ -494,14 +501,12 @@ std::pair<DiscreteGm, std::string> RandomSparseModel::operator()(unsigned seed)
         auto fid = gm.add_energy_function(std::move(f));
         gm.add_factor(vis, fid);
     }
-
-    const std::string name =
-        fmt::format("RandomSparseModel(n_variables={}, "
-                    "n_factors{},min_factor_arity={}, max_factor_arity={}, "
-                    "n_labels_max={}, seed={})",
-                    n_variables, n_factors, min_factor_arity, max_factor_arity, n_labels_max, seed);
+    std::stringstream ss;
+    ss << "RandomSparseModel(n_variables=" << n_variables << ", n_factors=" << n_factors
+       << ", min_factor_arity=" << min_factor_arity << ", max_factor_arity=" << max_factor_arity
+       << ", n_labels_max=" << n_labels_max << ", seed=" << seed << ")";
     ++seed;
-    return std::pair<DiscreteGm, std::string>(std::move(gm), name);
+    return std::pair<DiscreteGm, std::string>(std::move(gm), ss.str());
 }
 
 std::unique_ptr<DiscreteGmTestmodel> random_sparse_model(std::size_t n_variables, std::size_t n_factors,
@@ -560,10 +565,11 @@ std::pair<DiscreteGm, std::string> InfeasibleModel::operator()(unsigned seed)
         gm.add_constraint({i, i + 1}, fid_not_different);
     }
 
-    const std::string name =
-        fmt::format("InfesibleModel(n_variables={}, n_labels={}, seed={})", n_variables, n_labels, seed);
+    std::stringstream ss;
+    ss << "InfeasibleModel(n_variables=" << n_variables << ", n_labels=" << n_labels << ", seed=" << seed << ")";
+
     ++seed;
-    return std::pair<DiscreteGm, std::string>(std::move(gm), name);
+    return std::pair<DiscreteGm, std::string>(std::move(gm), ss.str());
 }
 
 std::unique_ptr<DiscreteGmTestmodel> infeasible_model(std::size_t n_variables, discrete_label_type n_labels)

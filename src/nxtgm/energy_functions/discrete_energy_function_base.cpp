@@ -110,7 +110,7 @@ void DiscreteEnergyFunctionBase::add_to_lp(IlpData &ilp_data, const std::size_t 
     const auto arity = this->arity();
     const auto factor_size = this->size();
 
-    boost::container::small_vector<energy_type, 1024> energy_buffer(factor_size);
+    small_vector<energy_type, 1024> energy_buffer(factor_size);
 
     auto energies = energy_buffer.data();
     this->copy_energies(energy_buffer.data());
