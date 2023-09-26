@@ -1,9 +1,5 @@
 #pragma once
 
-// #include <boost/container/small_vector.hpp>
-// #include <boost/core/span.hpp>
-// #include <boost/container/flat_set.hpp>
-
 #include <nxtgm/utils/random_access_set.hpp>
 #include <nxtgm/utils/small_vector.hpp>
 #include <xtl/xspan_impl.hpp>
@@ -43,7 +39,6 @@ template <typename T>
 using small_factor_size_vector = small_vector<T, 100>;
 
 template <typename T>
-// using flat_set = boost::container::flat_set<T>;
 using flat_set = RandomAccessSet<T>;
 
 constexpr energy_type constraint_feasiblility_limit = 1e-5;
