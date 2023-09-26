@@ -20,8 +20,12 @@ option(BUILD_WITH_COVERAGE              "Build with coverage" OFF)
 # documentation related
 option(BUILD_DOCS                       "Build doxygen documentation" ON)
 
+# install related
+option(INSTALL_DEV                      "Install dev files" ON)
+option(INSTALL_LIBRARY                 "Install library" ON)
+
 # plugin related
-option(BUILD_PLUGINS_DISCRETE_GM_OPTIMIZER                    "Build *ALL* discrete gm optimizer plugins" ON)
+option(BUILD_PLUGINS_DISCRETE_GM_OPTIMIZER                   "Build *ALL* discrete gm optimizer plugins" ON)
 option(BUILD_PLUGIN_QPBO_KOLMOGOROV                          "Build qpbo kolmogorov plugin" ON)
 option(BUILD_PLUGIN_HOCR_FIX                                 "Build fix higher order qpbo plugin" ON)
 option(BUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV                    "Build kolmogorov min st cut plugin" ON)
@@ -177,37 +181,41 @@ include(CMakePackageConfigHelpers)
 
 set(NXTGM_CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}" CACHE STRING "install path for nxtgmConfig.cmake")
 
+if(INSTALL_LIBRARY)
+    # install targets
+    install(TARGETS nxtgm_shared
+        EXPORT nxtgmTargets
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+    )
+endif()
 
-# install targets
-install(TARGETS nxtgm_shared
-    EXPORT nxtgmTargets
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
+if(INSTALL_DEV)
 
-# install the targets file
-INSTALL(
-    EXPORT nxtgmTargets
-    FILE nxtgmTargets.cmake
-    DESTINATION "${NXTGM_CMAKECONFIG_INSTALL_DIR}"
-    NAMESPACE nxtgm::
-)
+    # install the targets file
+    INSTALL(
+        EXPORT nxtgmTargets
+        FILE nxtgmTargets.cmake
+        DESTINATION "${NXTGM_CMAKECONFIG_INSTALL_DIR}"
+        NAMESPACE nxtgm::
+    )
 
-# configure the config file
-configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/nxtgmConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/nxtgmConfig.cmake
-    INSTALL_DESTINATION ${NXTGM_CMAKECONFIG_INSTALL_DIR}
-)
+    # configure the config file
+    configure_package_config_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/nxtgmConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/nxtgmConfig.cmake
+        INSTALL_DESTINATION ${NXTGM_CMAKECONFIG_INSTALL_DIR}
+    )
 
-# the config
-install(
-    FILES "${CMAKE_CURRENT_BINARY_DIR}/nxtgmConfig.cmake"
-    DESTINATION "${NXTGM_CMAKECONFIG_INSTALL_DIR}"
-)
+    # the config
+    install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/nxtgmConfig.cmake"
+        DESTINATION "${NXTGM_CMAKECONFIG_INSTALL_DIR}"
+    )
 
-# install headers
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/nxtgm
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
+    # install headers
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/nxtgm
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
+endif()
