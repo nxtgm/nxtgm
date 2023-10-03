@@ -8,7 +8,6 @@
 #include <xtensor/xview.hpp>
 
 #include <algorithm>
-#include <iostream>
 #include <iterator>
 #include <nxtgm/models/gm/discrete_gm.hpp>
 #include <nxtgm/spaces/discrete_space.hpp>

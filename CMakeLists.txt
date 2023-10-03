@@ -7,14 +7,21 @@ project(nxtgm VERSION 0.1.0)
 # include cmake folder
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+
+# helper function to add plugins
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/nxtgm_add_nxtgm_plugin.cmake)
+
 ###############################################################
 # options
 ###############################################################
 # test related
 option(BUILD_TESTS                      "Build tests" ON)
 option(BUILD_SINGLE_BINARY_TESTS        "Build tests as single binary" OFF)
-# python related
-option(BUILD_PYTHON                     "Build python bindings" ON)
+# python-bindings related
+option(BUILD_PYTHON_BINDINGS            "Build python bindings" ON)
+# python-bindings related
+option(BUILD_JAVASCRIPT_BINDINGS        "Build javascritp bindings" OFF)
+
 # coverage related
 option(BUILD_WITH_COVERAGE              "Build with coverage" OFF)
 # documentation related
@@ -46,13 +53,24 @@ if(BUILD_WITH_COVERAGE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate -fcoverage-mapping")
 endif()
 
+###############################################################
+# compile / platform settings
+###############################################################
+if(EMSCRIPTEN)
+    message(STATUS "Building for emscripten")
+    set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
+    set(CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS   "-s SIDE_MODULE=1 -s WASM_BIGINT")
+    set(CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS "-s SIDE_MODULE=1 -s WASM_BIGINT")
+    set(CMAKE_STRIP FALSE)  # used by default in pybind11 on .so modules
+endif()
 
 ###############################################################
 # library
 ###############################################################
 
-add_library(nxtgm_shared SHARED
+SET(NXTGM_LIBRARY_SOURCES
     src/nxtgm/utils/timer.cpp
+    # src/nxtgm/utils/serialize.cpp
     src/nxtgm/energy_functions/discrete_energy_function_base.cpp
     src/nxtgm/energy_functions/discrete_energy_functions.cpp
     src/nxtgm/spaces/discrete_space.cpp
@@ -65,12 +83,22 @@ add_library(nxtgm_shared SHARED
     src/nxtgm/optimizers/gm/discrete/movemaker.cpp
     src/nxtgm/optimizers/gm/discrete/optimizer_base.cpp
     src/nxtgm/plugins/hocr/hocr_base.cpp
-    # this testing needs to be partof the shared library
-    # since plugin authors want to test their plugins
-    # for emscripten, we might want to remove this (TODO)
-    src/nxtgm/models/gm/discrete_gm/testing/testmodels.cpp
-    src/nxtgm/models/gm/discrete_gm/testing/optimizer_tester.cpp
 )
+if(NOT EMSCRIPTEN)
+    SET(NXTGM_LIBRARY_SOURCES ${NXTGM_LIBRARY_SOURCES}
+        # this testing needs to be partof the shared library
+        # since plugin authors want to test their plugins
+        src/nxtgm/models/gm/discrete_gm/testing/testmodels.cpp
+        src/nxtgm/models/gm/discrete_gm/testing/optimizer_tester.cpp
+    )
+endif()
+add_library(nxtgm_shared SHARED
+    ${NXTGM_LIBRARY_SOURCES}
+)
+if(EMSCRIPTEN)
+    # add defintion NXTGM_NO_THREADS
+    target_compile_definitions(nxtgm_shared PUBLIC NXTGM_NO_THREADS)
+endif()
 SET(NXTGM_SHARED_LIBRARY nxtgm_shared)
 
 ###############################################################
@@ -124,7 +152,7 @@ enable_testing()
 
 
 ###############################################################
-# python
+# tests
 ###############################################################
 if(BUILD_TESTS)
     add_subdirectory(tests)
@@ -132,11 +160,22 @@ endif()
 
 
 ###############################################################
-# python
+# python-bindings
 ###############################################################
-if(BUILD_PYTHON)
+if(BUILD_PYTHON_BINDINGS)
     add_subdirectory(python)
 endif()
+
+###############################################################
+# javascript-bindings
+###############################################################
+if(BUILD_JAVASCRIPT_BINDINGS)
+    if(NOT EMSCRIPTEN)
+        message(FATAL_ERROR "Javascript bindings can only be built with emscripten")
+    endif()
+    add_subdirectory(javascript)
+endif()
+
 
 
 ###############################################################
@@ -214,4 +253,9 @@ if(INSTALL_DEV)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/nxtgm
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
+
+    # install cmake file
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/nxtgm_add_nxtgm_plugin.cmake
+        DESTINATION ${NXTGM_CMAKECONFIG_INSTALL_DIR})
+
 endif()

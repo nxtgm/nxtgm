@@ -236,11 +236,6 @@ struct Identity
 using AllInternalDiscreteEnergyFunctionTypes =
     std::tuple<Identity<XArray>, Identity<Potts>, Identity<LabelCosts>, Identity<SparseDiscreteEnergyFunction>>;
 
-// this function introduces a tight coupling between
-// the serialization and the concrete function types.
-// A "more generic" solution would be to have a
-// singleton with a map from type to factory function
-// but this makes linkage more complicated
 std::unique_ptr<DiscreteEnergyFunctionBase> discrete_energy_function_deserialize_json(
     const nlohmann::json &json, const DiscretEnergyFunctionSerializationFactory &user_factory)
 {
@@ -274,6 +269,34 @@ std::unique_ptr<DiscreteEnergyFunctionBase> discrete_energy_function_deserialize
         {
             return factory->second(json);
         }
+    }
+}
+
+std::unique_ptr<DiscreteEnergyFunctionBase> discrete_energy_function_deserialize(Deserializer &deserializer)
+{
+    std::string type;
+    deserializer(type);
+
+    std::unique_ptr<DiscreteEnergyFunctionBase> result;
+
+    AllInternalDiscreteEnergyFunctionTypes all_types;
+    tuple_breakable_for_each(all_types, [&](auto &&tuple_element) {
+        using function_type = typename std::decay_t<decltype(tuple_element)>::type;
+        const std::string name = function_type::serialization_key();
+        if (name == type)
+        {
+            result = std::move(function_type::deserialize(deserializer));
+            return false;
+        }
+        return true;
+    });
+    if (result)
+    {
+        return std::move(result);
+    }
+    else
+    {
+        throw std::runtime_error("Unknown type: `" + type + "`");
     }
 }
 

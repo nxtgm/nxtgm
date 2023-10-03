@@ -2,10 +2,10 @@
 #ifndef NXTGM_DISCRETE_SPACE_HPP
 #define NXTGM_DISCRETE_SPACE_HPP
 
-#include <iostream>
 #include <nlohmann/json.hpp>
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/utils/n_nested_loops.hpp>
+#include <nxtgm/utils/serialize.hpp>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -20,7 +20,7 @@ class DiscreteSpace
   public:
     nlohmann::json serialize_json() const;
     static DiscreteSpace deserialize_json(const nlohmann::json &json);
-
+    DiscreteSpace() = default;
     // simple space
     inline DiscreteSpace(std::size_t n_variables, std::size_t n_labels)
         : n_labels_(1, n_labels),
@@ -79,6 +79,9 @@ class DiscreteSpace
         return is_simple_;
     }
     discrete_label_type max_num_labels() const;
+
+    void serialize(Serializer &serializer) const;
+    static DiscreteSpace deserialize(Deserializer &deserializer);
 
   private:
     std::vector<nxtgm::discrete_label_type> n_labels_;

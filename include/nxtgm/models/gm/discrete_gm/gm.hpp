@@ -5,11 +5,10 @@
 #include <nxtgm/models/solution_value.hpp>
 #include <nxtgm/spaces/discrete_space.hpp>
 
-#include <nxtgm/nxtgm.hpp>
-
-#include <iostream>
 #include <nlohmann/json.hpp>
 #include <numeric>
+#include <nxtgm/nxtgm.hpp>
+#include <nxtgm/utils/serialize.hpp>
 #include <vector>
 
 namespace nxtgm
@@ -23,8 +22,9 @@ class DiscreteFactor
 {
   public:
     template <class VARIABLES>
-    DiscreteFactor(const VARIABLES &variables, const DiscreteEnergyFunctionBase *function)
-        : function_(function),
+    DiscreteFactor(const VARIABLES &variables, std::size_t function_index, const DiscreteEnergyFunctionBase *function)
+        : function_index_(function_index),
+          function_(function),
           variables_(variables.begin(), variables.end())
     {
     }
@@ -32,6 +32,10 @@ class DiscreteFactor
     inline const DiscreteEnergyFunctionBase *function() const
     {
         return function_;
+    }
+    inline std::size_t function_index() const
+    {
+        return function_index_;
     }
 
     inline const std::vector<std::size_t> &variables() const
@@ -85,6 +89,7 @@ class DiscreteFactor
     }
 
   private:
+    std::size_t function_index_; // for serialization
     const DiscreteEnergyFunctionBase *function_;
     std::vector<std::size_t> variables_;
 };
@@ -93,8 +98,10 @@ class DiscreteConstraint
 {
   public:
     template <class VARIABLES>
-    DiscreteConstraint(const VARIABLES &variables, const DiscreteConstraintFunctionBase *function)
-        : function_(function),
+    DiscreteConstraint(const VARIABLES &variables, const std::size_t function_index,
+                       const DiscreteConstraintFunctionBase *function)
+        : function_index_(function_index),
+          function_(function),
           variables_(variables.begin(), variables.end())
     {
     }
@@ -102,6 +109,11 @@ class DiscreteConstraint
     inline const DiscreteConstraintFunctionBase *function() const
     {
         return function_;
+    }
+
+    inline std::size_t function_index() const
+    {
+        return function_index_;
     }
 
     inline const std::vector<std::size_t> &variables() const
@@ -143,6 +155,7 @@ class DiscreteConstraint
     }
 
   private:
+    std::size_t function_index_; // for serialization
     const DiscreteConstraintFunctionBase *function_;
     std::vector<std::size_t> variables_;
 };
@@ -302,7 +315,7 @@ class DiscreteGm
         const auto size = shape_product(discrete_variables);
         max_factor_size_ = std::max(max_factor_size_, size);
 
-        factors_.emplace_back(std::forward<DISCRETE_VARIABLES>(discrete_variables),
+        factors_.emplace_back(std::forward<DISCRETE_VARIABLES>(discrete_variables), function_id,
                               energy_functions_[function_id].get());
         return factors_.size() - 1;
     }
@@ -316,7 +329,7 @@ class DiscreteGm
         const auto size = shape_product(discrete_variables);
         max_constraint_size_ = std::max(max_constraint_size_, size);
 
-        constraints_.emplace_back(std::forward<DISCRETE_VARIABLES>(discrete_variables),
+        constraints_.emplace_back(std::forward<DISCRETE_VARIABLES>(discrete_variables), function_id,
                                   constraint_functions_[function_id].get());
         return constraints_.size() - 1;
     }
@@ -331,7 +344,7 @@ class DiscreteGm
         const auto size = shape_product(discrete_variables);
         max_factor_size_ = std::max(max_factor_size_, size);
 
-        factors_.emplace_back(discrete_variables, energy_functions_[function_id].get());
+        factors_.emplace_back(discrete_variables, function_id, energy_functions_[function_id].get());
         return factors_.size() - 1;
     }
 
@@ -341,7 +354,7 @@ class DiscreteGm
     {
         const std::size_t arity = discrete_variables.size();
         max_constraint_arity_ = std::max(max_constraint_arity_, arity);
-        constraints_.emplace_back(discrete_variables, constraint_functions_[function_id].get());
+        constraints_.emplace_back(discrete_variables, function_id, constraint_functions_[function_id].get());
         return factors_.size() - 1;
     }
 
@@ -403,6 +416,12 @@ class DiscreteGm
 
     nlohmann::json serialize_json() const;
     static DiscreteGm deserialize_json(const nlohmann::json &json);
+
+    void save_binary(const std::string &path) const;
+    static DiscreteGm load_binary(const std::string &path);
+
+    void serialize(Serializer &serializer) const;
+    static DiscreteGm deserialize(Deserializer &deserializer);
 
     std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionValue> bind(
         span<const uint8_t>, span<const discrete_label_type> labeles, bool is_include_mask) const;

@@ -9,7 +9,7 @@ if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
 endif()
 
 
-add_xplugin(${PLUGIN_TARGET_NAME} ${PLUGIN_TARGET_NAME}.cpp)
+nxtgm_add_plugin(${PLUGIN_TARGET_NAME} ${PLUGIN_TARGET_NAME}.cpp)
 
 # plugin base class / interface headers
 target_link_libraries(${PLUGIN_TARGET_NAME}  ${NXTGM_SHARED_LIBRARY})

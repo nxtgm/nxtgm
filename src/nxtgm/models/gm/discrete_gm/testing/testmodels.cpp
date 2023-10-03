@@ -485,8 +485,6 @@ std::pair<DiscreteGm, std::string> RandomSparseModel::operator()(unsigned seed)
         auto size = f->size();
         const auto n_nonzero = std::max(std::size_t(1), std::size_t(std::ceil(density * size)));
 
-        // std::cout<<"adding "<<n_nonzero<<" non-zero entries to factor
-        // "<<fi<<std::endl;
         for (auto i = 0; i < n_nonzero; ++i)
         {
             std::vector<discrete_label_type> coordinates(arity);

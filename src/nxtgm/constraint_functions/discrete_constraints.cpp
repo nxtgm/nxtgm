@@ -9,7 +9,6 @@ UniqueLables::UniqueLables(std::size_t arity, discrete_label_type n_labels, ener
       n_labels_(n_labels),
       scale_(scale)
 {
-    // std::cout<<"wup"<<std::endl;
 }
 
 std::size_t UniqueLables::arity() const
@@ -66,6 +65,22 @@ nlohmann::json UniqueLables::serialize_json() const
 {
     return {
         {"type", UniqueLables::serialization_key()}, {"arity", arity_}, {"num_labels", n_labels_}, {"scale", scale_}};
+}
+
+void UniqueLables::serialize(Serializer &serializer) const
+{
+    serializer(UniqueLables::serialization_key());
+    serializer(arity_);
+    serializer(n_labels_);
+    serializer(scale_);
+}
+std::unique_ptr<DiscreteConstraintFunctionBase> UniqueLables::deserialize(Deserializer &deserializer)
+{
+    auto f = new UniqueLables();
+    deserializer(f->arity_);
+    deserializer(f->n_labels_);
+    deserializer(f->scale_);
+    return std::unique_ptr<DiscreteConstraintFunctionBase>(f);
 }
 
 std::unique_ptr<DiscreteConstraintFunctionBase> UniqueLables::deserialize_json(const nlohmann::json &json)
@@ -135,6 +150,19 @@ nlohmann::json ArrayDiscreteConstraintFunction::serialize_json() const
     }
 
     return {{"type", "array"}, {"dimensions", how_violated_.dimension()}, {"shape", shape}, {"values", values}};
+}
+
+void ArrayDiscreteConstraintFunction::serialize(Serializer &serializer) const
+{
+    serializer(ArrayDiscreteConstraintFunction::serialization_key());
+    serializer(how_violated_);
+}
+
+std::unique_ptr<DiscreteConstraintFunctionBase> ArrayDiscreteConstraintFunction::deserialize(Deserializer &deserializer)
+{
+    auto f = new ArrayDiscreteConstraintFunction();
+    deserializer(f->how_violated_);
+    return std::unique_ptr<DiscreteConstraintFunctionBase>(f);
 }
 
 std::unique_ptr<DiscreteConstraintFunctionBase> ArrayDiscreteConstraintFunction::deserialize_json(

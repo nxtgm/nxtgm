@@ -3,6 +3,8 @@
 #include <nlohmann/json.hpp>
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/utils/lp.hpp>
+#include <nxtgm/utils/serialize.hpp>
+
 namespace nxtgm
 {
 
@@ -34,6 +36,8 @@ class DiscreteConstraintFunctionBase
 
     virtual std::unique_ptr<DiscreteConstraintFunctionBase> bind(
         const span<std::size_t> &binded_vars, const span<discrete_label_type> &binded_vars_labels) const;
+
+    virtual void serialize(Serializer &serializer) const = 0;
 };
 
 // helper class to have a shape object
@@ -66,4 +70,6 @@ using DiscretConstraintFunctionSerializationFactory =
 std::unique_ptr<DiscreteConstraintFunctionBase> discrete_constraint_function_deserialize_json(
     const nlohmann::json &json, const DiscretConstraintFunctionSerializationFactory &user_factory =
                                     DiscretConstraintFunctionSerializationFactory());
+
+std::unique_ptr<DiscreteConstraintFunctionBase> discrete_constraint_function_deserialize(Deserializer &deserializer);
 } // namespace nxtgm

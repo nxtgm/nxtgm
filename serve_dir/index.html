@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>nxtgm - wasm</title>
+    <script src="nxtgm_javascript_runtime.js"></script>
+  </head>
+
+  <!-- inplace javascript here -->
+  <script>
+    async function main() {
+
+        console.log("initialize worker");
+        let worker = new Worker('worker.js');
+
+        worker.postMessage("hello from main");
+
+        const NXTGM_PLUGIN_PATH = '/plugins';
+        var options = {
+            env: {
+                NXTGM_PLUGIN_PATH: NXTGM_PLUGIN_PATH
+            }
+        };
+
+
+        let nxtgm = await nxtgm_create_module(options);
+
+        // download solvers
+        await Promise.all([
+            nxtgm._fecht_plugin("discrete_gm_optimizer","ilp_highs"),
+            nxtgm._fecht_plugin("discrete_gm_optimizer","belief_propagation"),
+            nxtgm._fecht_plugin("discrete_gm_optimizer","icm"),
+        ]);
+
+        // console.log("READY IN  MAIN");
+
+        try {
+
+        //console.log(nxtgm);
+
+        let shape = [2, 2]
+        let num_var = shape[0] * shape[1];
+        let num_labels = 2;
+        let space = new nxtgm.DiscreteSpace(num_var, num_labels);
+        let gm = new nxtgm.DiscreteGm(space);
+
+        for(let i=0; i<num_var; ++i) {
+
+            let data = new Float64Array(Array.from({ length: num_labels}, () => Math.random()));
+            let f = new nxtgm.XArray([num_labels], data);
+
+            let function_id = gm.add_energy_function(f);
+            let factor_id = gm.add_factor([i], function_id);
+            f.delete();
+        }
+
+
+
+        let r = 0.25;
+        for(let x=0; x<shape[0]; ++x)
+        {
+            for(let y=0; y<shape[1]; ++y)
+            {
+                let vi0 = x*shape[1] + y;
+                if( x + 1 < shape[0] ) {
+                    let vi1 = (x+1)*shape[1] + y;
+                    let f = new nxtgm.Potts(num_labels, r);
+                    let function_id = gm.add_energy_function(f);
+                    let factor_id = gm.add_factor([vi0, vi1], function_id);
+                    f.delete();
+                }
+                if( y + 1 < shape[1] ) {
+                    let vi1 = x*shape[1] + (y+1);
+                    let f = new nxtgm.Potts(num_labels, r);
+                    let function_id = gm.add_energy_function(f);
+                    let factor_id = gm.add_factor([vi0, vi1], function_id);
+                    f.delete();
+                }
+
+            }
+        }
+
+
+        // save gm
+        gm.save_binary("test.gm");
+
+        // load again
+        let gm2 = nxtgm.DiscreteGm.load_binary("test.gm");
+
+        // load as array
+        // let arr = nxtgm.FS.readFile("test.gm", {encoding: 'binary'});
+        // console.log("GM AS ARRAY", arr);
+
+
+        let optimizer_name = "ilp_highs";
+        let parameters = new nxtgm.OptimizerParameters();
+        //parameters.set_int("max_iterations", 100);
+
+        let optimizer = nxtgm.discrete_gm_optimizer_factory(gm2, optimizer_name, parameters);
+
+        console.log(optimizer_name);
+        let status = optimizer.optimize();
+        console.log("Status:",  nxtgm.status_name(status));
+
+        let best_solution = optimizer.best_solution();
+
+
+        // print best_solution as nice grid
+        let grid = [];
+        for(let x=0; x<shape[0]; ++x) {
+            let row = [];
+            for(let y=0; y<shape[1]; ++y) {
+                let vi = x*shape[1] + y;
+                row.push(best_solution[vi]);
+            }
+            grid.push(row);
+        }
+        console.log("BEST SOLUTION GRID", grid);
+        optimizer.delete();
+        gm.delete();
+        gm2.delete();
+
+        } catch(e) {
+            // if e is an integer
+            if( typeof e === 'number' ) {
+                console.log(nxtgm.get_exception_message(e));
+            }
+            else {
+                console.log("ERROR", e);
+            }
+        }
+
+
+    };
+    main();
+  </script>
+
+
+</html>

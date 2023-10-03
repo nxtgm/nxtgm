@@ -19,7 +19,7 @@ class UniqueLables : public DiscreteConstraintFunctionBase
     virtual ~UniqueLables()
     {
     }
-
+    UniqueLables() = default;
     UniqueLables(std::size_t arity, discrete_label_type n_labels, energy_type scale = 1.0);
 
     std::size_t arity() const override;
@@ -31,7 +31,8 @@ class UniqueLables : public DiscreteConstraintFunctionBase
     void add_to_lp(IlpData &ilp_data, const std::size_t *indicator_variables_mapping) const override;
 
     nlohmann::json serialize_json() const override;
-
+    void serialize(Serializer &serializer) const override;
+    static std::unique_ptr<DiscreteConstraintFunctionBase> deserialize(Deserializer &deserializer);
     static std::unique_ptr<DiscreteConstraintFunctionBase> deserialize_json(const nlohmann::json &json);
 
   private:
@@ -53,7 +54,7 @@ class ArrayDiscreteConstraintFunction : public DiscreteConstraintFunctionBase
     virtual ~ArrayDiscreteConstraintFunction()
     {
     }
-
+    ArrayDiscreteConstraintFunction() = default;
     template <class ARRAY>
     ArrayDiscreteConstraintFunction(ARRAY &&hw)
         : how_violated_(hw)
@@ -68,6 +69,9 @@ class ArrayDiscreteConstraintFunction : public DiscreteConstraintFunctionBase
     std::unique_ptr<DiscreteConstraintFunctionBase> clone() const override;
     void add_to_lp(IlpData &, const std::size_t *) const override;
     nlohmann::json serialize_json() const override;
+    void serialize(Serializer &serializer) const override;
+
+    static std::unique_ptr<DiscreteConstraintFunctionBase> deserialize(Deserializer &deserializer);
     static std::unique_ptr<DiscreteConstraintFunctionBase> deserialize_json(const nlohmann::json &json);
 
   private:

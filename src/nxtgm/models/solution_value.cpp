@@ -86,10 +86,4 @@ SolutionValue &SolutionValue::operator-=(const SolutionValue &other)
     return *this;
 }
 
-// print class
-std::ostream &operator<<(std::ostream &os, const SolutionValue &solution)
-{
-    os << "(" << solution.energy() << ", " << solution.how_violated() << ")";
-    return os;
-}
 } // namespace nxtgm

@@ -73,10 +73,23 @@ nlohmann::json Potts::serialize_json() const
 {
     return {{"type", Potts::serialization_key()}, {"num_labels", num_labels_}, {"beta", beta_}};
 }
+void Potts::serialize(Serializer &serializer) const
+{
+    serializer(Potts::serialization_key());
+    serializer(num_labels_);
+    serializer(beta_);
+}
 
 std::unique_ptr<DiscreteEnergyFunctionBase> Potts::deserialize_json(const nlohmann::json &json)
 {
     return std::make_unique<Potts>(json["num_labels"], json["beta"]);
+}
+std::unique_ptr<DiscreteEnergyFunctionBase> Potts::deserialize(Deserializer &deserializer)
+{
+    auto p = new Potts();
+    deserializer(p->num_labels_);
+    deserializer(p->beta_);
+    return std::unique_ptr<DiscreteEnergyFunctionBase>(p);
 }
 
 XArray::XArray(const xarray_type &values)
@@ -134,6 +147,18 @@ nlohmann::json XArray::serialize_json() const
     }
 
     return {{"type", XArray::serialization_key()}, {"shape", shape}, {"values", values}};
+}
+
+void XArray::serialize(Serializer &serializer) const
+{
+    serializer(XArray::serialization_key());
+    serializer(values_);
+}
+std::unique_ptr<DiscreteEnergyFunctionBase> XArray::deserialize(Deserializer &deserializer)
+{
+    auto f = new XArray();
+    deserializer(f->values_);
+    return std::unique_ptr<DiscreteEnergyFunctionBase>(f);
 }
 
 std::unique_ptr<DiscreteEnergyFunctionBase> XArray::deserialize_json(const nlohmann::json &json)
@@ -224,6 +249,20 @@ nlohmann::json LabelCosts::serialize_json() const
     return {{"type", LabelCosts::serialization_key()}, {"arity", arity_}, {"values", costs_}};
 }
 
+void LabelCosts::serialize(Serializer &serializer) const
+{
+    serializer(LabelCosts::serialization_key());
+    serializer(arity_);
+    serializer(costs_);
+}
+std::unique_ptr<DiscreteEnergyFunctionBase> LabelCosts::deserialize(Deserializer &deserializer)
+{
+    auto f = new LabelCosts();
+    deserializer(f->arity_);
+    deserializer(f->costs_);
+    return std::unique_ptr<DiscreteEnergyFunctionBase>(f);
+}
+
 std::unique_ptr<DiscreteEnergyFunctionBase> LabelCosts::deserialize_json(const nlohmann::json &json)
 {
     return std::make_unique<LabelCosts>(json["arity"], json["values"].begin(), json["values"].end());
@@ -278,6 +317,22 @@ std::unique_ptr<DiscreteEnergyFunctionBase> SparseDiscreteEnergyFunction::deseri
     auto f = std::make_unique<SparseDiscreteEnergyFunction>(shape);
     f.get()->data_.non_zero_entries() = non_zero_entries;
     return f;
+}
+
+std::unique_ptr<DiscreteEnergyFunctionBase> SparseDiscreteEnergyFunction::deserialize(Deserializer &deserializer)
+{
+    std::vector<std::size_t> shape;
+    deserializer(shape);
+    auto f = std::make_unique<SparseDiscreteEnergyFunction>(shape);
+    deserializer(f.get()->data_.non_zero_entries());
+    return f;
+}
+
+void SparseDiscreteEnergyFunction::serialize(Serializer &serializer) const
+{
+    serializer(SparseDiscreteEnergyFunction::serialization_key());
+    serializer(data_.shape());
+    serializer(data_.non_zero_entries());
 }
 
 nlohmann::json SparseDiscreteEnergyFunction::serialize_json() const

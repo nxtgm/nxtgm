@@ -29,7 +29,7 @@ class Potts : public DiscreteEnergyFunctionBase
     {
         return "potts";
     }
-
+    Potts() = default;
     Potts(std::size_t num_labels, energy_type beta);
 
     std::size_t arity() const override;
@@ -42,7 +42,9 @@ class Potts : public DiscreteEnergyFunctionBase
     void add_energies(energy_type *energies) const override;
 
     static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize_json(const nlohmann::json &json);
+    static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize(Deserializer &deserializer);
     nlohmann::json serialize_json() const override;
+    void serialize(Serializer &serializer) const override;
 
     std::unique_ptr<DiscreteEnergyFunctionBase> bind(span<const std::size_t> binded_vars,
                                                      span<const discrete_label_type> binded_vars_labels) const override;
@@ -64,6 +66,7 @@ class XTensor : public DiscreteEnergyFunctionBase
     {
         return "array";
     }
+    XTensor() = default;
     XTensor(const xtensor_type &values)
         : values_(values)
     {
@@ -115,6 +118,13 @@ class XTensor : public DiscreteEnergyFunctionBase
         auto values_span = xt::adapt(values, shape);
         return std::make_unique<XTensor<ARITY>>(values_span);
     }
+    static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize(Deserializer &deserializer)
+    {
+        auto f = new XTensor<ARITY>();
+        deserializer(f->values_);
+        return std::unique_ptr<DiscreteEnergyFunctionBase>(f);
+    }
+
     nlohmann::json serialize_json() const override
     {
 
@@ -132,6 +142,10 @@ class XTensor : public DiscreteEnergyFunctionBase
         }
 
         return {{"type", "array"}, {"dimensions", values_.dimension()}, {"shape", shape}, {"values", values}};
+    }
+    void serialize(Serializer &serializer) const override
+    {
+        serializer(values_);
     }
 
   private:
@@ -151,6 +165,7 @@ class XArray : public DiscreteEnergyFunctionBase
     {
         return "array";
     }
+    XArray() = default;
     template <class TENSOR>
     XArray(TENSOR &&values)
         : values_(std::forward<TENSOR>(values))
@@ -170,7 +185,9 @@ class XArray : public DiscreteEnergyFunctionBase
     void copy_energies(energy_type *energies) const override;
     void add_energies(energy_type *energies) const override;
     static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize_json(const nlohmann::json &json);
+    static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize(Deserializer &deserializer);
     nlohmann::json serialize_json() const override;
+    void serialize(Serializer &serializer) const override;
 
   private:
     xarray_type values_;
@@ -189,6 +206,8 @@ class LabelCosts : public DiscreteEnergyFunctionBase
 
     using base_type = DiscreteEnergyFunctionBase;
     using base_type::energy;
+
+    LabelCosts() = default;
 
     inline LabelCosts(std::size_t arity, std::initializer_list<energy_type> costs)
         : arity_(arity),
@@ -217,7 +236,9 @@ class LabelCosts : public DiscreteEnergyFunctionBase
     void add_to_lp(IlpData &ilp_data, const std::size_t *indicator_variables_mapping) const override;
 
     static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize_json(const nlohmann::json &json);
+    static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize(Deserializer &deserializer);
     nlohmann::json serialize_json() const override;
+    void serialize(Serializer &serializer) const override;
 
   private:
     std::size_t arity_;
@@ -256,8 +277,10 @@ class SparseDiscreteEnergyFunction : public DiscreteEnergyFunctionBase
     void add_energies(energy_type *energies) const override;
 
     static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize_json(const nlohmann::json &json);
-    nlohmann::json serialize_json() const override;
+    static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize(Deserializer &deserializer);
 
+    nlohmann::json serialize_json() const override;
+    void serialize(Serializer &serializer) const override;
     void add_to_lp(IlpData &ilp_data, const std::size_t *indicator_variables_mapping) const override;
 
     // not part of the general api

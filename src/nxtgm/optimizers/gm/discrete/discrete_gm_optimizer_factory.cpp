@@ -1,8 +1,6 @@
 #include <nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.hpp>
 #include <nxtgm/plugins/plugin_registry.hpp>
 
-#include <iostream>
-
 namespace nxtgm
 {
 

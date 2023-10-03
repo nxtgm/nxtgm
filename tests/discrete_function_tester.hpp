@@ -1,6 +1,11 @@
 #pragma once
 
+#ifndef EMSCRIPTEN
 #include <iostream>
+#else
+#include <emscripten.h>
+#endif
+
 #include <nxtgm/constraint_functions/discrete_constraint_function_base.hpp>
 #include <nxtgm/energy_functions/discrete_energy_function_base.hpp>
 #include <nxtgm/nxtgm.hpp>
@@ -226,14 +231,22 @@ inline void test_discrete_constraint_function(DiscreteConstraintFunctionBase *f)
             const auto should_value = f_j->how_violated(labels);
             if (!CHECK(is_value == doctest::Approx(should_value)))
             {
-                std::cout << "ERROR: how_violated() is consistent with json "
-                             "serialized+deserialized"
-                          << std::endl;
+
+                std::stringstream ss;
+                ss << "ERROR: how_violated() is consistent with json "
+                      "serialized+deserialized"
+                   << std::endl;
                 for (auto i = 0; i < arity; ++i)
                 {
-                    std::cout << labels[i] << " ";
+                    ss << labels[i] << " ";
                 }
-                std::cout << " -> IS " << is_value << " != SHOULD BE " << should_value << std::endl;
+                ss << " -> IS " << is_value << " != SHOULD BE " << should_value << std::endl;
+
+#ifdef EMSCRIPTEN
+                emscripten_log(EM_LOG_ERROR, ss.str().c_str()));
+#else
+                std::cout << ss.str() << std::endl;
+#endif
             }
             ++i;
         });

@@ -9,7 +9,12 @@
 
 // visitor impl
 #include <chrono>
+#include <sstream>
+#ifdef EMSCRIPTEN
+#include <emscripten.h>
+#else
 #include <iostream>
+#endif
 
 #include <nxtgm/optimizers/callback_base.hpp>
 
@@ -59,12 +64,22 @@ class ReporterCallback : public ReporterCallbackBase<OPTIMIZER_BASE_TYPE>
         const auto best = this->optimizer()->best_solution_value();
         const auto lower_bound = this->optimizer()->lower_bound();
 
-        std::cout << "iteration: " << iteration_ << " | "
-                  << "dt_total: " << std::chrono::duration_cast<std::chrono::milliseconds>(dt_total).count() << "ms | "
-                  << "dt_last: " << std::chrono::duration_cast<std::chrono::milliseconds>(dt_last).count() << "ms | "
-                  << "current: " << current << " | "
-                  << "best: " << best << " | "
-                  << "lower_bound: " << lower_bound << std::endl;
+#ifdef EMSCRIPTEN
+        std::stringstream ss;
+        ss
+#else
+        std::cout
+#endif
+            << "iteration: " << iteration_ << " | "
+            << "dt_total: " << std::chrono::duration_cast<std::chrono::milliseconds>(dt_total).count() << "ms | "
+            << "dt_last: " << std::chrono::duration_cast<std::chrono::milliseconds>(dt_last).count() << "ms | "
+            << "current: " << current.energy() << " " << current.how_violated() << " | "
+            << "best: " << best.energy() << " " << best.how_violated() << " | "
+            << "lower_bound: " << lower_bound << std::endl;
+
+#ifdef EMSCRIPTEN
+        emscripten_log(EM_LOG_CONSOLE, ss.str().c_str());
+#endif
     }
 
     time_point_type t_begin_;

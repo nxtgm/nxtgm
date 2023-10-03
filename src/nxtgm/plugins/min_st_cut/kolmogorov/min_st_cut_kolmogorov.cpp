@@ -8,8 +8,6 @@
 // xplugin
 #include <xplugin/xfactory.hpp>
 
-#include <iostream>
-
 namespace nxtgm
 {
 

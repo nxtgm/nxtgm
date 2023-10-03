@@ -45,7 +45,7 @@ jobs:
               -DCMAKE_BUILD_TYPE=Release \
               -DBUILD_TESTS=ON \
               -DBUILD_SINGLE_BINARY_TESTS=ON \
-              -DBUILD_PYTHON=ON \
+              -DBUILD_PYTHON_BINDINGS=ON \
               -DBUILD_DOCS=ON \
               -DBUILD_PLUGIN_QPBO_KOLMOGOROV=OFF \
               -DBUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV=OFF \
@@ -148,7 +148,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release ^
             -DBUILD_TESTS=ON ^
             -DBUILD_SINGLE_BINARY_TESTS=ON ^
-            -DBUILD_PYTHON=ON ^
+            -DBUILD_PYTHON_BINDINGS=ON ^
             -DBUILD_DOCS=OFF ^
             -DBUILD_PLUGIN_QPBO_KOLMOGOROV=OFF ^
             -DBUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV=OFF ^

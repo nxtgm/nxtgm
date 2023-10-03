@@ -1,4 +1,3 @@
-#include <iostream>
 #include <limits>
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/optimizers/gm/discrete/optimizer_base.hpp>

@@ -1,5 +1,4 @@
 #include <nxtgm/optimizers/optimizer_parameters.hpp>
-#include <ostream>
 #include <sstream>
 
 namespace nxtgm
@@ -32,8 +31,8 @@ bool OptimizerParameters::empty() const
     return string_parameters.empty() && int_parameters.empty() && double_parameters.empty() && any_parameters.empty() &&
            optimizer_parameters.empty();
 }
-
-std::ostream &operator<<(std::ostream &out, const OptimizerParameters &p)
+template <class STREAM>
+STREAM &to_stream(STREAM &out, const OptimizerParameters &p)
 {
     out << "OptimizerParameters(";
     bool first = true;
@@ -70,7 +69,8 @@ std::ostream &operator<<(std::ostream &out, const OptimizerParameters &p)
     {
         if (!first)
             out << ", ";
-        out << key << "=" << value;
+        out << key << "=";
+        to_stream(out, value);
         first = false;
     }
     out << ")";
@@ -82,7 +82,8 @@ void ensure_all_handled(const std::string &optimizer_name, const OptimizerParame
     if (!parameters.empty())
     {
         std::stringstream ss;
-        ss << "The following parameters are not supported by the optimizer '" << optimizer_name << "':\n" << parameters;
+        ss << "The following parameters are not supported by the optimizer '" << optimizer_name << "':\n";
+        to_stream(ss, parameters);
         throw std::runtime_error(ss.str());
     }
 }

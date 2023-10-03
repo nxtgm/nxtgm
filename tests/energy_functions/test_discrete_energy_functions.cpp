@@ -75,6 +75,11 @@ class DefaultTesterFunction : public DiscreteEnergyFunctionBase
                 {"shape", shape},
                 {"values", jsonvalues}};
     }
+    void serialize(Serializer &serializer) const override
+    {
+        serializer(DefaultTesterFunction::serialization_key());
+        serializer(values);
+    }
     xt::xarray<energy_type> values;
 };
 
