@@ -10,3 +10,4 @@ dependencies:
   - xplugin >= 0.2.0
   - tsl_ordered_map
   - highs
+  - zlib
