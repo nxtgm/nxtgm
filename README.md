@@ -43,6 +43,121 @@ Meta optimizers that use other optimizers
 `nxtgm` has language bindings for `python` and `javascript`.
 The `python` bindings are generated using `pybind11` and the `javascript` bindings are generated using `emscripten` / `embind`.
 
+### Example
+
+Below is an example of how to use `nxtgm` in C++, Python and Javascript.
+The example shows how to create a discrete graphical model with 4 variables and 2 labels per variable. The unary factors are random and the pairwise factors are all the same potts function.
+We optimize the graphical model using loopy belief propagation.
+This example should illustrate that `nxtgm` has a homogeneous interface for all languages.
+Note that this example is not meant to be a good example for discrete graphical models. It is just meant to illustrate the interface.
+
+#### C++
+```C++
+auto num_var = 4;
+auto num_labels = 2;
+auto gm = nxtgm::DiscreteGm(4, 2);
+
+// unary factors (with random values, just for the example)
+for(auto vi = 0; vi < num_var; ++vi) {
+    auto tensor = xt::random::rand<double>({n_labels}, 0.0, 1.0);
+    auto func = std::make_unique<nxtgm::XArray>(tensor);
+    auto func_index = gm.add_energy_function(std::move(f));
+    gm.add_factor({vi}, func_index);
+}
+
+// pairwise factors all with the same potts function
+auto potts_func = std::make_unique<nxtgm::Potts>(num_labels, 0.5);
+auto potts_func_index = gm.add_energy_function(std::move(potts_func));
+for(auto v0=0; v0 < num_var - 1; ++v0) {
+    for(auto v1 = v0 + 1; v1 < num_var; ++v1) {
+        gm.add_factor({v0, v1}, potts_func_index);
+    }
+}
+
+// optimizer
+auto optimizer_name = std::string("belief_propagation");
+auto parameters = nxtgm::OptimizerParameters();
+parameters["max_iterations"] = 10;
+parameters["damping"] = 0.9;
+parameters["convergence_tolerance"] = 1e-2;
+auto optimizer = nxtgm::discrete_gm_optimizer_factory(gm, optimizer_name, parameters);
+
+// optimize
+auto status = optimizer.optimize();
+auto solution = optimizer.best_solution();
+```
+
+#### Python
+```python
+num_var = 4
+num_labels = 2
+gm = nxtgm.DiscreteGm(num_var, num_labels)
+
+# unary factors (with random values, just for the example)
+for vi in range(num_var):
+    unaries = np.random.rand(num_labels)
+    func_index = gm.add_energy_function(func)
+    gm.add_factor([vi], func_index)
+
+# pairwise factors all with the same potts function
+potts_func = nxtgm.Potts(num_labels, 0.5)
+potts_func_index = gm.add_energy_function(potts_func)
+for v0 in range(num_var - 1):
+    for v1 in range(v0 + 1, num_var):
+        gm.add_factor([v0, v1], potts_func_index)
+
+# optimizer
+optimizer_name = "belief_propagation"
+parameters = dict(
+    max_iterations=10,
+    damping=0.9,
+    convergence_tolerance=1e-2
+)
+optimizer = nxtgm.discrete_gm_optimizer_factory(gm, optimizer_name, parameters)
+
+# optimize
+status = optimizer.optimize()
+solution = optimizer.best_solution()
+```
+
+#### Javascript
+```javascript
+let num_var = 4;
+let num_labels = 2;
+let gm = new nxtgm.DiscreteGm(num_var, num_labels);
+
+// unary factors (with random values, just for the example)
+for(let vi = 0; vi < num_var; ++vi) {
+    let unaries = new Float64Array([
+        Math.random(), Math.random()
+    ]);
+    let func = new nxtgm.XArray([num_labels], unaries);
+    let func_index = gm.add_energy_function(func);
+    gm.add_factor([vi], func_index);
+}
+
+// pairwise factors all with the same potts function
+let potts_func = new nxtgm.Potts(num_labels, 0.5);
+let potts_func_index = gm.add_energy_function(potts_func);
+for(let v0=0; v0 < num_var - 1; ++v0) {
+    for(let v1 = v0 + 1; v1 < num_var; ++v1) {
+        gm.add_factor([v0, v1], potts_func_index);
+    }
+}
+
+// optimizer
+let optimizer_name = "belief_propagation";
+let parameters = new nxtgm.OptimizerParameters();
+parameters.set_int("max_iterations", 10);
+parameters.set_double("damping", 0.9);
+parameters.set_double("convergence_tolerance", 1e-2);
+let optimizer = nxtgm.discrete_gm_optimizer_factory(gm, optimizer_name, parameters);
+
+// optimize
+let status = optimizer.optimize();
+let solution = optimizer.best_solution();
+```
+
 # Design
 
 ## Differences to OpenGM
@@ -73,6 +188,13 @@ We define multiple plugin interfaces:
 * **`min_st_cut`**: an interface for `maxflow`/`min-st-cut`-like optimizers. At the moment, there is only one implementation of this interface, which is `maxflow` from Vladimir Kolmogorov.
 
 * **`horc`**: is an interface for higher order clique reduction. At the moment, there is only one implementation of this interface, which is `horc` from  Alexander Fix.
+
+
+# Licencing
+The `nxtgm` library itself (ie the shared libraries and the header files) are licensed under the MIT license.
+See [LICENSE_LIBRARY](LICENSE_LIBRARY) for more details.
+The plugins are licensed under different licenses. See [LICENSE_PLUGINS](LICENSE_PLUGINS.md) for more details.
+
 
 # Why does nxtgm exist?
 
