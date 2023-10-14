@@ -276,15 +276,7 @@ OptimizationStatus IlpHighs::optimize_impl(reporter_callback_wrapper_type &repor
 
     // Get the solution information
     const HighsInfo &info = highs.getInfo();
-    // std::cout << "Simplex iteration count: " << info.simplex_iteration_count
-    // << std::endl; std::cout << "Objective function value: " <<
-    // info.objective_function_value << std::endl; std::cout << "Primal solution
-    // status: " << highs.solutionStatusToString(info.primal_solution_status) <<
-    // std::endl; std::cout << "Dual    solution status: " <<
-    // highs.solutionStatusToString(info.dual_solution_status) << std::endl;
-    // std::cout << "Basis: " <<
-    // highs.basisValidityToString(info.basis_validity)
-    // << std::endl;
+
     const bool has_values = info.primal_solution_status;
     const bool has_duals = info.dual_solution_status;
     const bool has_basis = info.basis_validity;

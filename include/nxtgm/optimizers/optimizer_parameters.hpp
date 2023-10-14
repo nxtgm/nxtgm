@@ -2,13 +2,13 @@
 
 #include <chrono>
 #include <map>
+#include <nxtgm/utils/serialize.hpp>
 #include <string>
 #include <tsl/ordered_map.h>
 #include <vector>
 
 // std::pair
 #include <any>
-#include <iostream>
 #include <utility>
 
 namespace nxtgm
@@ -97,6 +97,9 @@ class OptimizerParameters
         }
     }
 
+    void serialize(Serializer &serializer) const;
+    static OptimizerParameters deserialize(Deserializer &deserializer);
+
   private:
     template <class T, typename std::enable_if<std::is_same<T, std::string>::value, int>::type * = nullptr>
     tsl::ordered_map<std::string, std::string> &get_map()
@@ -122,7 +125,49 @@ class OptimizerParameters
 
 void ensure_all_handled(const std::string &optimizer_name, const OptimizerParameters &parameters);
 
-// Define the function outside the class definition.
-std::ostream &operator<<(std::ostream &out, const OptimizerParameters &p);
+// template<class OS_STREAM>
+// OS_STREAM &operator<<(OS_STREAM &out, const OptimizerParameters &p)
+// {
+//     out << "OptimizerParameters(";
+//     bool first = true;
+//     for (const auto &[key, value] : p.string_parameters)
+//     {
+//         if (!first)
+//             out << ", ";
+//         out << key << "=" << value;
+//         first = false;
+//     }
+//     for (const auto &[key, value] : p.int_parameters)
+//     {
+//         if (!first)
+//             out << ", ";
+//         out << key << "=" << value;
+//         first = false;
+//     }
+//     for (const auto &[key, value] : p.double_parameters)
+//     {
+//         if (!first)
+//             out << ", ";
+//         out << key << "=" << value;
+//         first = false;
+//     }
+//     for (const auto &[key, value] : p.any_parameters)
+//     {
+//         if (!first)
+//             out << ", ";
+//         out << key << "="
+//             << "<some any value>";
+//         first = false;
+//     }
+//     for (const auto &[key, value] : p.optimizer_parameters)
+//     {
+//         if (!first)
+//             out << ", ";
+//         out << key << "=" << value;
+//         first = false;
+//     }
+//     out << ")";
+//     return  out;
+// }
 
 } // namespace nxtgm

@@ -8,7 +8,7 @@ endif()
 set(PLUGIN_TYPE         min_st_cut)
 set(PLUGIN_TARGET_NAME  ${PLUGIN_TYPE}_kolmogorov)
 
-add_xplugin(${PLUGIN_TARGET_NAME} ${PLUGIN_TARGET_NAME}.cpp
+nxtgm_add_plugin(${PLUGIN_TARGET_NAME} ${PLUGIN_TARGET_NAME}.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/maxflow-v3.04/graph.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/maxflow-v3.04/maxflow.cpp
 )

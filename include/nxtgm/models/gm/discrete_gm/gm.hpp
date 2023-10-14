@@ -1,15 +1,14 @@
 #pragma once
 
-#include <nxtgm/constraint_functions/discrete_constraint_function_base.hpp>
-#include <nxtgm/energy_functions/discrete_energy_function_base.hpp>
+#include <nxtgm/functions/discrete_constraint_function_base.hpp>
+#include <nxtgm/functions/discrete_energy_function_base.hpp>
 #include <nxtgm/models/solution_value.hpp>
 #include <nxtgm/spaces/discrete_space.hpp>
 
-#include <nxtgm/nxtgm.hpp>
-
-#include <iostream>
 #include <nlohmann/json.hpp>
 #include <numeric>
+#include <nxtgm/nxtgm.hpp>
+#include <nxtgm/utils/serialize.hpp>
 #include <vector>
 
 namespace nxtgm
@@ -23,8 +22,9 @@ class DiscreteFactor
 {
   public:
     template <class VARIABLES>
-    DiscreteFactor(const VARIABLES &variables, const DiscreteEnergyFunctionBase *function)
-        : function_(function),
+    DiscreteFactor(const VARIABLES &variables, std::size_t function_index, const DiscreteEnergyFunctionBase *function)
+        : function_index_(function_index),
+          function_(function),
           variables_(variables.begin(), variables.end())
     {
     }
@@ -32,6 +32,10 @@ class DiscreteFactor
     inline const DiscreteEnergyFunctionBase *function() const
     {
         return function_;
+    }
+    inline std::size_t function_index() const
+    {
+        return function_index_;
     }
 
     inline const std::vector<std::size_t> &variables() const
@@ -59,19 +63,19 @@ class DiscreteFactor
 
     inline energy_type operator()(const discrete_label_type *labels) const
     {
-        return function_->energy(labels);
+        return function_->value(labels);
     }
     inline energy_type operator()(std::initializer_list<discrete_label_type> labels) const
     {
-        return function_->energy(labels.begin());
+        return function_->value(labels.begin());
     }
-    inline void add_energies(energy_type *energy) const
+    inline void add_values(energy_type *energy) const
     {
-        function_->add_energies(energy);
+        function_->add_values(energy);
     }
-    inline void copy_energies(energy_type *energy) const
+    inline void copy_values(energy_type *energy) const
     {
-        function_->copy_energies(energy);
+        function_->copy_values(energy);
     }
 
     std::size_t variable_position(std::size_t variable) const
@@ -85,6 +89,7 @@ class DiscreteFactor
     }
 
   private:
+    std::size_t function_index_; // for serialization
     const DiscreteEnergyFunctionBase *function_;
     std::vector<std::size_t> variables_;
 };
@@ -93,8 +98,10 @@ class DiscreteConstraint
 {
   public:
     template <class VARIABLES>
-    DiscreteConstraint(const VARIABLES &variables, const DiscreteConstraintFunctionBase *function)
-        : function_(function),
+    DiscreteConstraint(const VARIABLES &variables, const std::size_t function_index,
+                       const DiscreteConstraintFunctionBase *function)
+        : function_index_(function_index),
+          function_(function),
           variables_(variables.begin(), variables.end())
     {
     }
@@ -102,6 +109,11 @@ class DiscreteConstraint
     inline const DiscreteConstraintFunctionBase *function() const
     {
         return function_;
+    }
+
+    inline std::size_t function_index() const
+    {
+        return function_index_;
     }
 
     inline const std::vector<std::size_t> &variables() const
@@ -116,11 +128,11 @@ class DiscreteConstraint
 
     inline auto operator()(const discrete_label_type *labels) const
     {
-        return function_->how_violated(labels);
+        return function_->value(labels);
     }
     inline auto operator()(std::initializer_list<discrete_label_type> labels) const
     {
-        return function_->how_violated(labels.begin());
+        return function_->value(labels.begin());
     }
 
     template <class MODEL_DATA, class CONSTRAINT_DATA>
@@ -143,6 +155,7 @@ class DiscreteConstraint
     }
 
   private:
+    std::size_t function_index_; // for serialization
     const DiscreteConstraintFunctionBase *function_;
     std::vector<std::size_t> variables_;
 };
@@ -302,7 +315,7 @@ class DiscreteGm
         const auto size = shape_product(discrete_variables);
         max_factor_size_ = std::max(max_factor_size_, size);
 
-        factors_.emplace_back(std::forward<DISCRETE_VARIABLES>(discrete_variables),
+        factors_.emplace_back(std::forward<DISCRETE_VARIABLES>(discrete_variables), function_id,
                               energy_functions_[function_id].get());
         return factors_.size() - 1;
     }
@@ -316,7 +329,7 @@ class DiscreteGm
         const auto size = shape_product(discrete_variables);
         max_constraint_size_ = std::max(max_constraint_size_, size);
 
-        constraints_.emplace_back(std::forward<DISCRETE_VARIABLES>(discrete_variables),
+        constraints_.emplace_back(std::forward<DISCRETE_VARIABLES>(discrete_variables), function_id,
                                   constraint_functions_[function_id].get());
         return constraints_.size() - 1;
     }
@@ -331,7 +344,7 @@ class DiscreteGm
         const auto size = shape_product(discrete_variables);
         max_factor_size_ = std::max(max_factor_size_, size);
 
-        factors_.emplace_back(discrete_variables, energy_functions_[function_id].get());
+        factors_.emplace_back(discrete_variables, function_id, energy_functions_[function_id].get());
         return factors_.size() - 1;
     }
 
@@ -341,7 +354,7 @@ class DiscreteGm
     {
         const std::size_t arity = discrete_variables.size();
         max_constraint_arity_ = std::max(max_constraint_arity_, arity);
-        constraints_.emplace_back(discrete_variables, constraint_functions_[function_id].get());
+        constraints_.emplace_back(discrete_variables, function_id, constraint_functions_[function_id].get());
         return factors_.size() - 1;
     }
 
@@ -365,7 +378,7 @@ class DiscreteGm
             {
                 const const_discrete_label_span labels =
                     local_solution_from_model_solution(constraint.variables(), solution, local_labels_buffer);
-                const auto how_violated = constraint.function()->how_violated(labels.data());
+                const auto how_violated = constraint.function()->value(labels.data());
                 if (how_violated >= constraint_feasiblility_limit)
                 {
                     if (early_stop_infeasible)
@@ -393,7 +406,7 @@ class DiscreteGm
             {
                 const const_discrete_label_span labels =
                     local_solution_from_model_solution(factor.variables(), solution, local_labels_buffer);
-                total_energy += factor.function()->energy(labels.data());
+                total_energy += factor.function()->value(labels.data());
                 ++fi;
             }
         }
@@ -403,6 +416,12 @@ class DiscreteGm
 
     nlohmann::json serialize_json() const;
     static DiscreteGm deserialize_json(const nlohmann::json &json);
+
+    void save_binary(const std::string &path) const;
+    static DiscreteGm load_binary(const std::string &path);
+
+    void serialize(Serializer &serializer) const;
+    static DiscreteGm deserialize(Deserializer &deserializer);
 
     std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionValue> bind(
         span<const uint8_t>, span<const discrete_label_type> labeles, bool is_include_mask) const;

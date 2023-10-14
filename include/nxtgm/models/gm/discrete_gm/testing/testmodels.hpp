@@ -1,14 +1,13 @@
 #pragma once
 
-#include <nxtgm/constraint_functions/discrete_constraints.hpp>
-#include <nxtgm/energy_functions/discrete_energy_functions.hpp>
+#include <nxtgm/functions/discrete_constraints.hpp>
+#include <nxtgm/functions/discrete_energy_functions.hpp>
 
 #include <xtensor/xarray.hpp>
 #include <xtensor/xrandom.hpp>
 #include <xtensor/xview.hpp>
 
 #include <algorithm>
-#include <iostream>
 #include <iterator>
 #include <nxtgm/models/gm/discrete_gm.hpp>
 #include <nxtgm/spaces/discrete_space.hpp>

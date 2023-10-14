@@ -7,7 +7,11 @@ if(BUILD_PLUGINS_DISCRETE_GM_OPTIMIZER)
     add_subdirectory(hqpbo)
     add_subdirectory(chained_optimizers)
     add_subdirectory(reduced_gm_optimizer)
-    add_subdirectory(ilp_highs)
     add_subdirectory(brute_force_naive)
     add_subdirectory(belief_propagation)
+
+    # we need to skip this for win and emscripten
+    if(NOT WIN32)
+        add_subdirectory(ilp_highs)
+    endif()
 endif()

@@ -1,5 +1,4 @@
 #include <nxtgm/optimizers/optimizer_parameters.hpp>
-#include <ostream>
 #include <sstream>
 
 namespace nxtgm
@@ -33,7 +32,47 @@ bool OptimizerParameters::empty() const
            optimizer_parameters.empty();
 }
 
-std::ostream &operator<<(std::ostream &out, const OptimizerParameters &p)
+void OptimizerParameters::serialize(Serializer &serializer) const
+{
+    if (any_parameters.size() > 0)
+    {
+        throw std::runtime_error("any_parameters not supported in serialization");
+    }
+
+    serializer(string_parameters);
+    serializer(int_parameters);
+    serializer(double_parameters);
+    serializer(uint64_t(optimizer_parameters.size()));
+    for (const auto &[key, value] : optimizer_parameters)
+    {
+        serializer(key);
+        serializer(value);
+    }
+}
+
+OptimizerParameters OptimizerParameters::deserialize(Deserializer &deserializer)
+{
+
+    OptimizerParameters p;
+    deserializer(p.string_parameters);
+    deserializer(p.int_parameters);
+    deserializer(p.double_parameters);
+    uint64_t optimizer_parameters_size;
+    deserializer(optimizer_parameters_size);
+    for (uint64_t i = 0; i < optimizer_parameters_size; ++i)
+    {
+        std::string key;
+        deserializer(key);
+        OptimizerParameters value = OptimizerParameters::deserialize(deserializer);
+        p.optimizer_parameters[key] = value;
+    }
+
+    return p;
+}
+
+// TODO use fking iostream again
+template <class STREAM>
+STREAM &to_stream(STREAM &out, const OptimizerParameters &p)
 {
     out << "OptimizerParameters(";
     bool first = true;
@@ -70,7 +109,8 @@ std::ostream &operator<<(std::ostream &out, const OptimizerParameters &p)
     {
         if (!first)
             out << ", ";
-        out << key << "=" << value;
+        out << key << "=";
+        to_stream(out, value);
         first = false;
     }
     out << ")";
@@ -82,7 +122,8 @@ void ensure_all_handled(const std::string &optimizer_name, const OptimizerParame
     if (!parameters.empty())
     {
         std::stringstream ss;
-        ss << "The following parameters are not supported by the optimizer '" << optimizer_name << "':\n" << parameters;
+        ss << "The following parameters are not supported by the optimizer '" << optimizer_name << "':\n";
+        to_stream(ss, parameters);
         throw std::runtime_error(ss.str());
     }
 }

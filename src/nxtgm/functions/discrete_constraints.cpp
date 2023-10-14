@@ -1,4 +1,4 @@
-#include <nxtgm/constraint_functions/discrete_constraints.hpp>
+#include <nxtgm/functions/discrete_constraints.hpp>
 #include <nxtgm/utils/n_nested_loops.hpp>
 
 namespace nxtgm
@@ -9,7 +9,6 @@ UniqueLables::UniqueLables(std::size_t arity, discrete_label_type n_labels, ener
       n_labels_(n_labels),
       scale_(scale)
 {
-    // std::cout<<"wup"<<std::endl;
 }
 
 std::size_t UniqueLables::arity() const
@@ -27,7 +26,7 @@ std::size_t UniqueLables::size() const
     return std::pow(n_labels_, arity_);
 }
 
-energy_type UniqueLables::how_violated(const discrete_label_type *discrete_labels) const
+energy_type UniqueLables::value(const discrete_label_type *discrete_labels) const
 {
     auto n_duplicates = 0;
 
@@ -68,6 +67,22 @@ nlohmann::json UniqueLables::serialize_json() const
         {"type", UniqueLables::serialization_key()}, {"arity", arity_}, {"num_labels", n_labels_}, {"scale", scale_}};
 }
 
+void UniqueLables::serialize(Serializer &serializer) const
+{
+    serializer(UniqueLables::serialization_key());
+    serializer(arity_);
+    serializer(n_labels_);
+    serializer(scale_);
+}
+std::unique_ptr<DiscreteConstraintFunctionBase> UniqueLables::deserialize(Deserializer &deserializer)
+{
+    auto f = new UniqueLables();
+    deserializer(f->arity_);
+    deserializer(f->n_labels_);
+    deserializer(f->scale_);
+    return std::unique_ptr<DiscreteConstraintFunctionBase>(f);
+}
+
 std::unique_ptr<DiscreteConstraintFunctionBase> UniqueLables::deserialize_json(const nlohmann::json &json)
 {
     return std::make_unique<UniqueLables>(json["arity"].get<std::size_t>(),
@@ -88,7 +103,7 @@ std::size_t ArrayDiscreteConstraintFunction::size() const
     return how_violated_.size();
 }
 
-energy_type ArrayDiscreteConstraintFunction::how_violated(const discrete_label_type *discrete_labels) const
+energy_type ArrayDiscreteConstraintFunction::value(const discrete_label_type *discrete_labels) const
 {
     const_discrete_label_span labels(discrete_labels, how_violated_.dimension());
     return how_violated_[labels];
@@ -100,7 +115,7 @@ std::unique_ptr<DiscreteConstraintFunctionBase> ArrayDiscreteConstraintFunction:
 void ArrayDiscreteConstraintFunction::add_to_lp(IlpData &ilp_data, const std::size_t *indicator_variables_mapping) const
 {
     const auto arity = this->arity();
-    const auto shape = DiscreteConstraintFunctionShape(this);
+    const auto shape = DiscreteFunctionShape(this);
 
     auto flat_index = 0;
 
@@ -135,6 +150,19 @@ nlohmann::json ArrayDiscreteConstraintFunction::serialize_json() const
     }
 
     return {{"type", "array"}, {"dimensions", how_violated_.dimension()}, {"shape", shape}, {"values", values}};
+}
+
+void ArrayDiscreteConstraintFunction::serialize(Serializer &serializer) const
+{
+    serializer(ArrayDiscreteConstraintFunction::serialization_key());
+    serializer(how_violated_);
+}
+
+std::unique_ptr<DiscreteConstraintFunctionBase> ArrayDiscreteConstraintFunction::deserialize(Deserializer &deserializer)
+{
+    auto f = new ArrayDiscreteConstraintFunction();
+    deserializer(f->how_violated_);
+    return std::unique_ptr<DiscreteConstraintFunctionBase>(f);
 }
 
 std::unique_ptr<DiscreteConstraintFunctionBase> ArrayDiscreteConstraintFunction::deserialize_json(

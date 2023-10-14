@@ -7,7 +7,6 @@
 #include <nlohmann/json.hpp>
 #include <xplugin/xfactory.hpp>
 
-#include <iostream>
 #include <memory>
 #include <nxtgm/plugins/plugin_priority.hpp>
 #include <string>

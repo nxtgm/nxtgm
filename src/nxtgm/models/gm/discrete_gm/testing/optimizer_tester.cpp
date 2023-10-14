@@ -26,7 +26,6 @@ void run_time_limited(F &&f, std::chrono::duration<double, std::milli> time_limi
         auto time_elapsed = std::chrono::duration<double, std::milli>(now - start);
         auto mean_duration = std::chrono::duration<double, std::milli>(time_elapsed / count);
 
-        // std::cout<<"time elapsed: "<<time_elapsed.count()<<" ms"<<std::endl;
         if (time_elapsed + mean_duration > time_limit)
         {
             break;
@@ -286,7 +285,7 @@ void RequireLocalOptimality::require(DiscreteGmOptimizerBase *optimizer, Optimiz
             };
 
             // REQUIRE_MESSAGE(solution_value <= solution_copy_value, print());
-            NXTGM_TEST_OP(solution_value, <=, solution_copy_value, info + print());
+            NXTGM_TEST(solution_value <= solution_copy_value, info + print());
 
             // reset solution_copy
             solution_copy[vi] = l;
@@ -358,7 +357,7 @@ void RequireLocalNOptimality::require(DiscreteGmOptimizerBase *optimizer, Optimi
                             return ss.str();
                         };
 
-                        NXTGM_TEST_OP(solution_value, <=, solution_copy_value, info + print());
+                        NXTGM_TEST(solution_value <= solution_copy_value, info + print());
                     }
                 }
                 // reset solution_copy
@@ -408,7 +407,7 @@ void RequireLocalNOptimality::require(DiscreteGmOptimizerBase *optimizer, Optimi
                                     return ss.str();
                                 };
 
-                                NXTGM_TEST_OP(solution_value, <=, solution_copy_value, info + print());
+                                NXTGM_TEST(solution_value <= solution_copy_value, info + print());
                             }
                         }
                     }
@@ -526,7 +525,6 @@ void test_discrete_gm_optimizer(const std::string optimizer_name, const Optimize
                                 std::initializer_list<std::unique_ptr<DiscreteGmOptimizerRequireBase>> requirements,
                                 const TestDiscreteGmOptimizerOptions &options)
 {
-    //std::cout<<"testing optimizer "<<optimizer_name<<std::endl;
     for (const auto &model_gen : model_generators)
     {
 
@@ -540,7 +538,6 @@ void test_discrete_gm_optimizer(const std::string optimizer_name, const Optimize
             auto optimizer = discrete_gm_optimizer_factory(gm, optimizer_name, parameters);
             // INFO("Testing model instance ", gm_name.second, " with ", optimizer_name);
             if(first){
-               //std::cout<<"Testing model instance "<<gm_name<<" with "<<optimizer_name<<std::endl;
                 first = false;
             }
             // eval trivial sol

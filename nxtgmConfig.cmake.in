@@ -1,13 +1,19 @@
 @PACKAGE_INIT@
 
+if(EMSCRIPTEN)
+    message(STATUS "Building for emscripten")
+    set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
+    set(CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS   "-s SIDE_MODULE=1 -s WASM_BIGINT")
+    set(CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS "-s SIDE_MODULE=1 -s WASM_BIGINT")
+    set(CMAKE_STRIP FALSE)  # used by default in pybind11 on .so modules
+endif()
 include(CMakeFindDependencyMacro)
 include("${CMAKE_CURRENT_LIST_DIR}/nxtgmTargets.cmake")
-
+include("${CMAKE_CURRENT_LIST_DIR}/nxtgm_add_nxtgm_plugin.cmake")
 SET(NXTGM_SHARED_LIBRARY nxtgm::nxtgm_shared)
 
 find_package(Threads REQUIRED)
 find_package(xtensor REQUIRED)
-find_package(HIGHS REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(xplugin REQUIRED)
 

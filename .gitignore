@@ -7,6 +7,11 @@
 *.o
 *.obj
 
+
+# compiled wasm files
+*.wasm
+nxtgm_javascript_runtime.js
+
 # Precompiled Headers
 *.gch
 *.pch
@@ -47,6 +52,7 @@ __pycache__/
 
 # bld dir
 bld/
+build_wasm
 
 .vscode/
 
@@ -54,3 +60,8 @@ bld/
 build.sh
 coverage.sh
 nxtgm.code-workspace
+
+# javascript / node
+node_modules
+package-lock.json
+javascript/lib/

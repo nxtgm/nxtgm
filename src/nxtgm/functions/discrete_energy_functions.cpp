@@ -1,4 +1,4 @@
-#include <nxtgm/energy_functions/discrete_energy_functions.hpp>
+#include <nxtgm/functions/discrete_energy_functions.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -27,7 +27,7 @@ std::size_t Potts::size() const
     return num_labels_ * num_labels_;
 }
 
-energy_type Potts::energy(const discrete_label_type *discrete_labels) const
+energy_type Potts::value(const discrete_label_type *discrete_labels) const
 {
     return beta_ * (discrete_labels[0] != discrete_labels[1]);
 }
@@ -36,7 +36,7 @@ std::unique_ptr<DiscreteEnergyFunctionBase> Potts::clone() const
     return std::make_unique<Potts>(num_labels_, beta_);
 }
 
-void Potts::copy_energies(energy_type *energies) const
+void Potts::copy_values(energy_type *energies) const
 {
     for (std::size_t i = 0; i < num_labels_; ++i)
     {
@@ -46,7 +46,7 @@ void Potts::copy_energies(energy_type *energies) const
         }
     }
 }
-void Potts::add_energies(energy_type *energies) const
+void Potts::add_values(energy_type *energies) const
 {
     for (std::size_t i = 0; i < num_labels_; ++i)
     {
@@ -73,10 +73,23 @@ nlohmann::json Potts::serialize_json() const
 {
     return {{"type", Potts::serialization_key()}, {"num_labels", num_labels_}, {"beta", beta_}};
 }
+void Potts::serialize(Serializer &serializer) const
+{
+    serializer(Potts::serialization_key());
+    serializer(num_labels_);
+    serializer(beta_);
+}
 
 std::unique_ptr<DiscreteEnergyFunctionBase> Potts::deserialize_json(const nlohmann::json &json)
 {
     return std::make_unique<Potts>(json["num_labels"], json["beta"]);
+}
+std::unique_ptr<DiscreteEnergyFunctionBase> Potts::deserialize(Deserializer &deserializer)
+{
+    auto p = new Potts();
+    deserializer(p->num_labels_);
+    deserializer(p->beta_);
+    return std::unique_ptr<DiscreteEnergyFunctionBase>(p);
 }
 
 XArray::XArray(const xarray_type &values)
@@ -99,7 +112,7 @@ std::size_t XArray::size() const
     return values_.size();
 }
 
-energy_type XArray::energy(const discrete_label_type *discrete_labels) const
+energy_type XArray::value(const discrete_label_type *discrete_labels) const
 {
     const_discrete_label_span discrete_labels_span(discrete_labels, values_.dimension());
     return values_[discrete_labels_span];
@@ -109,11 +122,11 @@ std::unique_ptr<DiscreteEnergyFunctionBase> XArray::clone() const
     return std::make_unique<XArray>(values_);
 }
 
-void XArray::copy_energies(energy_type *energies) const
+void XArray::copy_values(energy_type *energies) const
 {
     std::copy(values_.begin(), values_.end(), energies);
 }
-void XArray::add_energies(energy_type *energies) const
+void XArray::add_values(energy_type *energies) const
 {
     std::transform(values_.data(), values_.data() + values_.size(), energies, energies, std::plus<energy_type>());
 }
@@ -134,6 +147,18 @@ nlohmann::json XArray::serialize_json() const
     }
 
     return {{"type", XArray::serialization_key()}, {"shape", shape}, {"values", values}};
+}
+
+void XArray::serialize(Serializer &serializer) const
+{
+    serializer(XArray::serialization_key());
+    serializer(values_);
+}
+std::unique_ptr<DiscreteEnergyFunctionBase> XArray::deserialize(Deserializer &deserializer)
+{
+    auto f = new XArray();
+    deserializer(f->values_);
+    return std::unique_ptr<DiscreteEnergyFunctionBase>(f);
 }
 
 std::unique_ptr<DiscreteEnergyFunctionBase> XArray::deserialize_json(const nlohmann::json &json)
@@ -163,7 +188,7 @@ std::size_t LabelCosts::size() const
     return std::pow(costs_.size(), arity_);
 }
 
-energy_type LabelCosts::energy(const discrete_label_type *discrete_labels) const
+energy_type LabelCosts::value(const discrete_label_type *discrete_labels) const
 {
 
 #ifndef NXTGM_NO_THREADS
@@ -224,6 +249,20 @@ nlohmann::json LabelCosts::serialize_json() const
     return {{"type", LabelCosts::serialization_key()}, {"arity", arity_}, {"values", costs_}};
 }
 
+void LabelCosts::serialize(Serializer &serializer) const
+{
+    serializer(LabelCosts::serialization_key());
+    serializer(arity_);
+    serializer(costs_);
+}
+std::unique_ptr<DiscreteEnergyFunctionBase> LabelCosts::deserialize(Deserializer &deserializer)
+{
+    auto f = new LabelCosts();
+    deserializer(f->arity_);
+    deserializer(f->costs_);
+    return std::unique_ptr<DiscreteEnergyFunctionBase>(f);
+}
+
 std::unique_ptr<DiscreteEnergyFunctionBase> LabelCosts::deserialize_json(const nlohmann::json &json)
 {
     return std::make_unique<LabelCosts>(json["arity"], json["values"].begin(), json["values"].end());
@@ -241,7 +280,7 @@ std::size_t SparseDiscreteEnergyFunction::size() const
 {
     return data_.size();
 }
-energy_type SparseDiscreteEnergyFunction::energy(const discrete_label_type *discrete_labels) const
+energy_type SparseDiscreteEnergyFunction::value(const discrete_label_type *discrete_labels) const
 {
     return data_[discrete_labels];
 }
@@ -253,7 +292,7 @@ std::unique_ptr<DiscreteEnergyFunctionBase> SparseDiscreteEnergyFunction::clone(
     return uptr;
 }
 
-void SparseDiscreteEnergyFunction::copy_energies(energy_type *energies) const
+void SparseDiscreteEnergyFunction::copy_values(energy_type *energies) const
 {
     std::fill(energies, energies + data_.size(), 0);
 
@@ -262,7 +301,7 @@ void SparseDiscreteEnergyFunction::copy_energies(energy_type *energies) const
         energies[item.first] = item.second;
     }
 }
-void SparseDiscreteEnergyFunction::add_energies(energy_type *energies) const
+void SparseDiscreteEnergyFunction::add_values(energy_type *energies) const
 {
     for (const auto &item : data_.non_zero_entries())
     {
@@ -278,6 +317,22 @@ std::unique_ptr<DiscreteEnergyFunctionBase> SparseDiscreteEnergyFunction::deseri
     auto f = std::make_unique<SparseDiscreteEnergyFunction>(shape);
     f.get()->data_.non_zero_entries() = non_zero_entries;
     return f;
+}
+
+std::unique_ptr<DiscreteEnergyFunctionBase> SparseDiscreteEnergyFunction::deserialize(Deserializer &deserializer)
+{
+    std::vector<std::size_t> shape;
+    deserializer(shape);
+    auto f = std::make_unique<SparseDiscreteEnergyFunction>(shape);
+    deserializer(f.get()->data_.non_zero_entries());
+    return f;
+}
+
+void SparseDiscreteEnergyFunction::serialize(Serializer &serializer) const
+{
+    serializer(SparseDiscreteEnergyFunction::serialization_key());
+    serializer(data_.shape());
+    serializer(data_.non_zero_entries());
 }
 
 nlohmann::json SparseDiscreteEnergyFunction::serialize_json() const

@@ -188,7 +188,6 @@ inline typename HigherOrderEnergy<R, D>::VarId HigherOrderEnergy<R, D>::AddVars(
 template <typename R, int D>
 inline void HigherOrderEnergy<R, D>::AddTerm(R coeff, int d, const VarId vars[])
 {
-    // std::cout<<"ADD TERM : "<<coeff<<" "<<d<<" ";
     if (coeff == 0)
     {
         return;
@@ -269,7 +268,6 @@ void HigherOrderEnergy<R, D>::_EliminatePositiveTerms()
         while (termIt != vr._terms.end())
         {
             Term &t = *termIt;
-            // std::cout << "\t" << t.ToString() << std::endl;
             typename std::list<Term>::iterator currIt = termIt;
             ++termIt;
 
@@ -317,8 +315,6 @@ void HigherOrderEnergy<R, D>::_ReduceNegativeTerms(QR &qr)
         expectedEdges += vr._quadraticTerms;
         expectedEdges += vr._sumDegrees;
     }
-
-    // std::cout << "\tExpected Vars: " << expectedVars << "\tExpected Edges: " << expectedEdges << std::endl;
 
     qr.SetMaxEdgeNum(expectedEdges);
     qr.AddNode(_varCounter);

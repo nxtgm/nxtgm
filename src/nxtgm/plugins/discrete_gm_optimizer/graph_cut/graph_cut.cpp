@@ -1,4 +1,3 @@
-#include <iostream>
 #include <limits>
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/optimizers/gm/discrete/optimizer_base.hpp>
@@ -141,7 +140,7 @@ GraphCut::GraphCut(const DiscreteGm &gm, OptimizerParameters &&parameters)
         if (const auto arity = factor.arity(); arity == 1)
         {
             const auto var0 = factor.variable(0);
-            factor.copy_energies(energies);
+            factor.copy_values(energies);
             if (energies[0] <= energies[1])
             {
                 min_st_cut_->add_terminal_weights(var0, energies[1] - energies[0], 0);
@@ -153,7 +152,7 @@ GraphCut::GraphCut(const DiscreteGm &gm, OptimizerParameters &&parameters)
         }
         else if (arity == 2)
         {
-            factor.copy_energies(energies);
+            factor.copy_values(energies);
             const auto A = energies[0]; // 00
             const auto B = energies[1]; // 01
             const auto C = energies[2]; // 10

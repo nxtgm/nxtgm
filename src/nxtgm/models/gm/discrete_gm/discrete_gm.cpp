@@ -1,5 +1,5 @@
-#include <nxtgm/models/gm/discrete_gm.hpp>
-
+#include <fstream>
+#include <iostream>
 #include <nxtgm/models/gm/discrete_gm.hpp>
 #include <nxtgm/nxtgm.hpp>
 
@@ -87,33 +87,15 @@ nlohmann::json DiscreteGm::serialize_json() const
         jconstraint_functions.push_back(constraint_function->serialize_json());
     }
 
-    // for the factors we need to figure out the index of the function in the
-    // factor wrt the vector (extra scope to delete energy_function_index_map
-    // early)
+    for (const auto &factor : factors_)
     {
-        std::unordered_map<const DiscreteEnergyFunctionBase *, std::size_t> energy_function_index_map;
-        for (std::size_t i = 0; i < energy_functions_.size(); i++)
-        {
-            energy_function_index_map[energy_functions_[i].get()] = i;
-        }
-        for (const auto &factor : factors_)
-        {
-            jfactors.push_back({{{"functuin_index", energy_function_index_map[factor.function()]},
-                                 {"variables", factor.variables()}}});
-        }
+        jfactors.push_back({{{"function_index", factor.function_index()}, {"variables", factor.variables()}}});
     }
 
-    // for the constraints we need to figure out the index of the function in
-    // the constrain wrt the vector
-    std::unordered_map<const DiscreteConstraintFunctionBase *, std::size_t> constraint_function_index_map;
-    for (std::size_t i = 0; i < constraint_functions_.size(); i++)
+    for (const auto &constraint : constraints_)
     {
-        constraint_function_index_map[constraint_functions_[i].get()] = i;
-    }
-    for (const auto &factor : constraints_)
-    {
-        jconstraints.push_back({{{"functuin_index", constraint_function_index_map[factor.function()]},
-                                 {"variables", factor.variables()}}});
+        jconstraints.push_back(
+            {{{"function_index", constraint.function_index()}, {"variables", constraint.variables()}}});
     }
 
     jgm["energy_functions"] = jenergy_functions;
@@ -176,7 +158,7 @@ std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionVal
         else if (local_binded_vars.size() == factor.variables().size())
         {
             // all variables are binded
-            constant_part.energy() += factor.function()->energy(local_binded_vars_labels.data());
+            constant_part.energy() += factor.function()->value(local_binded_vars_labels.data());
         }
         else
         {
@@ -186,11 +168,9 @@ std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionVal
             binded_gm.add_factor(binded_gm_factor_variables, fid);
         }
     }
-
     // constraints
     for (const auto &constraint : constraints_)
     {
-
         // binded variables wrt to the constraint
         std::vector<std::size_t> local_binded_vars;
         std::vector<discrete_label_type> local_binded_vars_labels;
@@ -222,7 +202,7 @@ std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionVal
         else if (local_binded_vars.size() == constraint.variables().size())
         {
             // all variables are binded
-            constant_part.how_violated() += constraint.function()->how_violated(local_binded_vars_labels.data());
+            constant_part.how_violated() += constraint.function()->value(local_binded_vars_labels.data());
         }
         else
         {
@@ -235,6 +215,114 @@ std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionVal
 
     return std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionValue>(
         std::move(binded_gm), std::move(gm_to_binded_gm), constant_part);
+}
+
+void DiscreteGm::serialize(Serializer &serializer) const
+{
+    // Serialize the space
+    space_.serialize(serializer);
+
+    serializer(energy_functions_.size());
+    serializer(constraint_functions_.size());
+    serializer(factors_.size());
+    serializer(constraints_.size());
+
+    // Serialize the energy functions
+    for (const auto &energy_function : energy_functions_)
+    {
+        energy_function->serialize(serializer);
+    }
+    // Serialize the constraint functions
+    for (const auto &constraint_function : constraint_functions_)
+    {
+        constraint_function->serialize(serializer);
+    }
+
+    // Serialize the factors
+    for (const auto &factor : factors_)
+    {
+        serializer(factor.function_index());
+        serializer(factor.variables());
+    }
+    // Serialize the constraints
+    for (const auto &constraint : constraints_)
+    {
+        serializer(constraint.function_index());
+        serializer(constraint.variables());
+    }
+}
+
+DiscreteGm DiscreteGm::deserialize(Deserializer &deserializer)
+{
+    // Deserialize the space
+    auto space = DiscreteSpace::deserialize(deserializer);
+
+    std::size_t n_energy_functions;
+    std::size_t n_constraint_functions;
+    std::size_t n_factors;
+    std::size_t n_constraints;
+
+    deserializer(n_energy_functions);
+    deserializer(n_constraint_functions);
+    deserializer(n_factors);
+    deserializer(n_constraints);
+
+    // construct gm itself
+    DiscreteGm gm(space);
+
+    // energy functions
+    for (std::size_t i = 0; i < n_energy_functions; ++i)
+    {
+        auto energy_function = discrete_energy_function_deserialize(deserializer);
+        gm.add_energy_function(std::move(energy_function));
+    }
+
+    // constraint functions
+    for (std::size_t i = 0; i < n_constraint_functions; ++i)
+    {
+        auto constraint_function = discrete_constraint_function_deserialize(deserializer);
+        gm.add_constraint_function(std::move(constraint_function));
+    }
+
+    // factors
+    for (std::size_t i = 0; i < n_factors; ++i)
+    {
+        std::size_t function_index;
+        deserializer(function_index);
+
+        std::vector<std::size_t> variables;
+        deserializer(variables);
+        gm.add_factor(variables, function_index);
+    }
+    // constraints
+    for (std::size_t i = 0; i < n_constraints; ++i)
+    {
+        std::size_t function_index;
+        deserializer(function_index);
+        std::vector<std::size_t> variables;
+        deserializer(variables);
+        gm.add_constraint(variables, function_index);
+    }
+
+    return std::move(gm);
+}
+
+void DiscreteGm::save_binary(const std::string &path) const
+{
+    // create some filestream
+    std::ofstream os(path, std::ios::binary);
+    Serializer serializer(os);
+
+    // serialize
+    this->serialize(serializer);
+    // close the filestream
+    os.close();
+}
+DiscreteGm DiscreteGm::load_binary(const std::string &path)
+{
+    std::ifstream is(path, std::ios::binary);
+    Deserializer deserializer(is);
+    return DiscreteGm::deserialize(deserializer);
 }
 
 DiscreteGm DiscreteGm::deserialize_json(const nlohmann::json &json)

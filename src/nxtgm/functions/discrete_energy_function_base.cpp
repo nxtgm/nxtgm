@@ -1,6 +1,6 @@
 
 
-#include <nxtgm/energy_functions/discrete_energy_function_base.hpp>
+#include <nxtgm/functions/discrete_energy_function_base.hpp>
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/utils/n_nested_loops.hpp>
 #include <nxtgm/utils/tuple_for_each.hpp>
@@ -9,7 +9,7 @@
 // xtensor adapt
 #include <xtensor/xadapt.hpp>
 
-#include <nxtgm/energy_functions/discrete_energy_functions.hpp>
+#include <nxtgm/functions/discrete_energy_functions.hpp>
 #include <nxtgm/utils/n_nested_loops.hpp>
 
 // bitset
@@ -39,71 +39,10 @@ auto bind_many(const XTENSOR &xtensor, AXES &&axes, LABELS &&labels)
     return xt::strided_view(xtensor, sv);
 }
 
-void IlpFactorBuilderBuffer::ensure_size(std::size_t max_factor_size, std::size_t max_factor_arity)
-{
-    if (energy_buffer.size() < max_factor_size)
-    {
-        energy_buffer.resize(max_factor_size * 2);
-    }
-    if (label_buffer.size() < max_factor_arity)
-    {
-        label_buffer.resize(max_factor_arity * 2);
-    }
-    if (shape_buffer.size() < max_factor_arity)
-    {
-        shape_buffer.resize(max_factor_arity * 2);
-    }
-}
-
-energy_type DiscreteEnergyFunctionBase::energy(std::initializer_list<discrete_label_type> discrete_labels) const
-{
-    return this->energy(discrete_labels.begin());
-}
-
-std::size_t DiscreteEnergyFunctionBase::size() const
-{
-    std::size_t result = 1;
-    for (std::size_t i = 0; i < arity(); ++i)
-    {
-        result *= static_cast<std::size_t>(shape(i));
-    }
-    return result;
-}
-
-void DiscreteEnergyFunctionBase::copy_energies(energy_type *energies) const
-{
-
-    const auto arity = this->arity();
-    small_arity_vector<discrete_label_type> discrete_labels_buffer(arity);
-
-    auto flat_index = 0;
-    n_nested_loops<discrete_label_type>(arity, DiscreteEnergyFunctionShape(this), discrete_labels_buffer,
-                                        [&](auto &&_) {
-                                            energies[flat_index] = this->energy(discrete_labels_buffer.data());
-                                            ++flat_index;
-                                        });
-}
-
-void DiscreteEnergyFunctionBase::add_energies(energy_type *energies) const
-{
-    const auto arity = this->arity();
-
-    small_arity_vector<discrete_label_type> labels(arity);
-
-    auto flat_index = 0;
-    n_nested_loops<discrete_label_type>(arity, DiscreteEnergyFunctionShape(this), labels, [&](auto &&_) {
-        energies[flat_index] += this->energy(labels.data());
-        ++flat_index;
-    });
-}
-
-void DiscreteEnergyFunctionBase::copy_shape(discrete_label_type *shape) const
-{
-    for (std::size_t i = 0; i < arity(); ++i)
-    {
-        shape[i] = this->shape(i);
-    }
-}
+// energy_type DiscreteEnergyFunctionBase::value(std::initializer_list<discrete_label_type> discrete_labels) const
+// {
+//     return this->value(discrete_labels.begin());
+// }
 
 void DiscreteEnergyFunctionBase::add_to_lp(IlpData &ilp_data, const std::size_t *indicator_variables_mapping) const
 {
@@ -113,7 +52,7 @@ void DiscreteEnergyFunctionBase::add_to_lp(IlpData &ilp_data, const std::size_t 
     small_vector<energy_type, 1024> energy_buffer(factor_size);
 
     auto energies = energy_buffer.data();
-    this->copy_energies(energy_buffer.data());
+    this->copy_values(energy_buffer.data());
 
     if (arity == 1)
     {
@@ -165,12 +104,12 @@ void DiscreteEnergyFunctionBase::compute_factor_to_variable_messages(const energ
     {
         // in case of a unary, the outmessage is just
         // the energy of the unary
-        this->copy_energies(out_messages[0]);
+        this->copy_values(out_messages[0]);
     }
     else
     {
         small_arity_vector<discrete_label_type> labels(arity);
-        DiscreteEnergyFunctionShape shape(this);
+        DiscreteFunctionShape shape(this);
 
         // initialize
         for (std::size_t ai = 0; ai < arity; ++ai)
@@ -181,7 +120,7 @@ void DiscreteEnergyFunctionBase::compute_factor_to_variable_messages(const energ
         n_nested_loops<discrete_label_type>(arity, shape, labels, [&](auto &&_) {
             // compute the energy of the factor
             // with the current label
-            const auto energy = this->energy(labels.data());
+            const auto energy = this->value(labels.data());
 
             // sum the incoming messages for that labels / config
             energy_type sum_of_incoming_messages = 0.0;
@@ -207,7 +146,7 @@ std::unique_ptr<DiscreteEnergyFunctionBase> DiscreteEnergyFunctionBase::bind(
 {
     // copy the energy
     small_factor_size_vector<energy_type> energies(this->size());
-    this->copy_energies(energies.data());
+    this->copy_values(energies.data());
 
     const std::size_t arity = this->arity();
 
@@ -236,11 +175,6 @@ struct Identity
 using AllInternalDiscreteEnergyFunctionTypes =
     std::tuple<Identity<XArray>, Identity<Potts>, Identity<LabelCosts>, Identity<SparseDiscreteEnergyFunction>>;
 
-// this function introduces a tight coupling between
-// the serialization and the concrete function types.
-// A "more generic" solution would be to have a
-// singleton with a map from type to factory function
-// but this makes linkage more complicated
 std::unique_ptr<DiscreteEnergyFunctionBase> discrete_energy_function_deserialize_json(
     const nlohmann::json &json, const DiscretEnergyFunctionSerializationFactory &user_factory)
 {
@@ -274,6 +208,34 @@ std::unique_ptr<DiscreteEnergyFunctionBase> discrete_energy_function_deserialize
         {
             return factory->second(json);
         }
+    }
+}
+
+std::unique_ptr<DiscreteEnergyFunctionBase> discrete_energy_function_deserialize(Deserializer &deserializer)
+{
+    std::string type;
+    deserializer(type);
+
+    std::unique_ptr<DiscreteEnergyFunctionBase> result;
+
+    AllInternalDiscreteEnergyFunctionTypes all_types;
+    tuple_breakable_for_each(all_types, [&](auto &&tuple_element) {
+        using function_type = typename std::decay_t<decltype(tuple_element)>::type;
+        const std::string name = function_type::serialization_key();
+        if (name == type)
+        {
+            result = std::move(function_type::deserialize(deserializer));
+            return false;
+        }
+        return true;
+    });
+    if (result)
+    {
+        return std::move(result);
+    }
+    else
+    {
+        throw std::runtime_error("Unknown type: `" + type + "`");
     }
 }
 

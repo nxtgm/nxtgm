@@ -7,8 +7,6 @@
 #include "higher_order_energy/higher-order-energy.hpp"
 #include <xplugin/xfactory.hpp>
 
-#include <iostream>
-
 namespace nxtgm
 {
 

@@ -1,5 +1,5 @@
 #pragma once
-#include <nxtgm/constraint_functions/discrete_constraints.hpp>
+#include <nxtgm/functions/discrete_constraints.hpp>
 #include <nxtgm/models/gm/discrete_gm.hpp>
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/optimizers/optimizer_base.hpp>

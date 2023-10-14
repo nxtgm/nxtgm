@@ -10,7 +10,7 @@ endif()
 
 find_package(HIGHS REQUIRED)
 
-add_xplugin(${PLUGIN_TARGET_NAME} ${PLUGIN_NAME_CORE}.cpp)
+nxtgm_add_plugin(${PLUGIN_TARGET_NAME} ${PLUGIN_NAME_CORE}.cpp)
 
 # link dependencies
 target_link_libraries(${PLUGIN_TARGET_NAME}

@@ -8,7 +8,7 @@ if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
     find_package(nxtgm REQUIRED)
 endif()
 
-add_xplugin(${PLUGIN_TARGET_NAME} ${PLUGIN_NAME_CORE}.cpp)
+nxtgm_add_plugin(${PLUGIN_TARGET_NAME} ${PLUGIN_NAME_CORE}.cpp)
 
 # link dependencies
 target_link_libraries(${PLUGIN_TARGET_NAME}  ${NXTGM_SHARED_LIBRARY})

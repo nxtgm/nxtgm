@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iostream>
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/spaces/discrete_space.hpp>
 
@@ -71,6 +72,21 @@ std::pair<DiscreteSpace, std::unordered_map<std::size_t, std::size_t>> DiscreteS
         }
         return std::make_pair(DiscreteSpace(new_n_labels), space_to_subspace);
     }
+}
+
+void DiscreteSpace::serialize(Serializer &serializer) const
+{
+    serializer(is_simple_);
+    serializer(n_variables_);
+    serializer(n_labels_);
+}
+DiscreteSpace DiscreteSpace::deserialize(Deserializer &deserializer)
+{
+    DiscreteSpace space;
+    deserializer(space.is_simple_);
+    deserializer(space.n_variables_);
+    deserializer(space.n_labels_);
+    return space;
 }
 
 IndicatorVariableMapping::IndicatorVariableMapping(const DiscreteSpace &space)

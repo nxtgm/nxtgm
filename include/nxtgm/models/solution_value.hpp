@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <nxtgm/nxtgm.hpp>
 
 namespace nxtgm
@@ -50,8 +49,5 @@ class SolutionValue
 
 // free operator
 SolutionValue operator+(const SolutionValue &lhs, const SolutionValue &rhs);
-
-// print class
-std::ostream &operator<<(std::ostream &os, const SolutionValue &solution);
 
 } // namespace nxtgm

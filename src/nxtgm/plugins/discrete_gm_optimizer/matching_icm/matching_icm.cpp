@@ -155,9 +155,6 @@ OptimizationStatus MatchingIcm::optimize_impl(reporter_callback_wrapper_type &re
 
 SolutionValue MatchingIcm::best_solution_value() const
 {
-    // std::cout<<"claimed "<<this->movemaker_.solution_value()<<" ";
-    // std::cout<<"actual
-    // "<<this->model().evaluate(this->movemaker_.solution())<<std::endl;
     return this->movemaker_.solution_value();
 }
 SolutionValue MatchingIcm::current_solution_value() const
