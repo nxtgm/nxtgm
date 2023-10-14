@@ -68,6 +68,8 @@ if true; then
         -DBUILD_PLUGIN_HOCR_FIX=ON \
         -DBUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV=ON \
         -DBUILD_DOCS=OFF \
+        -DZLIB_INCLUDE_DIR=$PREFIX/include \
+        -DZLIB_LIBRARY=$PREFIX/lib/libz.a \
         ..
     popd
 
