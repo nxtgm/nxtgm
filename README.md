@@ -4,9 +4,9 @@
 Is the inofficial successor of [OpenGM](https://github.com/opengm/opengm)
 
 ## Build Status
-[![build](https://github.com/DerThorsten/nxtgm/actions/workflows/ci_splitted.yaml/badge.svg)](https://github.com/DerThorsten/nxtgm/actions/workflows/ci_splitted.yaml)
-[![dev-build](https://github.com/DerThorsten/nxtgm/actions/workflows/ci.yaml/badge.svg)](https://github.com/DerThorsten/nxtgm/actions/workflows/ci.yaml)
-[![emscripten](https://github.com/DerThorsten/nxtgm/actions/workflows/emscripten.yaml/badge.svg)](https://github.com/DerThorsten/nxtgm/actions/workflows/emscripten.yaml)
+[![build](https://github.com/nxtgm/nxtgm/actions/workflows/ci_splitted.yaml/badge.svg)](https://github.com/nxtgm/nxtgm/actions/workflows/ci_splitted.yaml)
+[![dev-build](https://github.com/nxtgm/nxtgm/actions/workflows/ci.yaml/badge.svg)](https://github.com/nxtgm/nxtgm/actions/workflows/ci.yaml)
+[![emscripten](https://github.com/nxtgm/nxtgm/actions/workflows/emscripten.yaml/badge.svg)](https://github.com/nxtgm/nxtgm/actions/workflows/emscripten.yaml)
 
 
 # Features
@@ -65,13 +65,11 @@ for(auto vi = 0; vi < num_var; ++vi) {
     gm.add_factor({vi}, func_index);
 }
 
-// pairwise factors all with the same potts function
+// pairwise factors along a chain, all with the same potts function
 auto potts_func = std::make_unique<nxtgm::Potts>(num_labels, 0.5);
 auto potts_func_index = gm.add_energy_function(std::move(potts_func));
-for(auto v0=0; v0 < num_var - 1; ++v0) {
-    for(auto v1 = v0 + 1; v1 < num_var; ++v1) {
-        gm.add_factor({v0, v1}, potts_func_index);
-    }
+for(auto vi0=0; vi0 < num_var - 1; ++vi0) {
+    gm.add_factor({vi0, vi0+1}, potts_func_index);
 }
 
 // optimizer
@@ -99,12 +97,11 @@ for vi in range(num_var):
     func_index = gm.add_energy_function(func)
     gm.add_factor([vi], func_index)
 
-# pairwise factors all with the same potts function
+# pairwise factors along a chain, all with the same potts function
 potts_func = nxtgm.Potts(num_labels, 0.5)
 potts_func_index = gm.add_energy_function(potts_func)
-for v0 in range(num_var - 1):
-    for v1 in range(v0 + 1, num_var):
-        gm.add_factor([v0, v1], potts_func_index)
+for vi0 in range(num_var - 1):
+    gm.add_factor([vi0, vi0+1], potts_func_index)
 
 # optimizer
 optimizer_name = "belief_propagation"
@@ -136,13 +133,11 @@ for(let vi = 0; vi < num_var; ++vi) {
     gm.add_factor([vi], func_index);
 }
 
-// pairwise factors all with the same potts function
+// pairwise factors along a chain, all with the same potts function
 let potts_func = new nxtgm.Potts(num_labels, 0.5);
 let potts_func_index = gm.add_energy_function(potts_func);
 for(let v0=0; v0 < num_var - 1; ++v0) {
-    for(let v1 = v0 + 1; v1 < num_var; ++v1) {
-        gm.add_factor([v0, v1], potts_func_index);
-    }
+    gm.add_factor([v0, v0+1], potts_func_index);
 }
 
 // optimizer
