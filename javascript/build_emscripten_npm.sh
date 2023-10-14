@@ -33,7 +33,6 @@ if true; then
         --platform=emscripten-wasm32 \
         -c https://repo.mamba.pm/emscripten-forge \
         -c https://repo.mamba.pm/conda-forge \
-        -c ~/micromamba/envs/emf/conda-bld \
         --yes \
         -f $SCRIPT_DIR/environment.yml
 
