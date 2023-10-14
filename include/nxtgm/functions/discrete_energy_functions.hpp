@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nxtgm/energy_functions/discrete_energy_function_base.hpp>
+#include <nxtgm/functions/discrete_energy_function_base.hpp>
 #include <nxtgm/nxtgm.hpp>
 #include <vector>
 #include <xtensor/xarray.hpp>
@@ -23,7 +23,7 @@ class Potts : public DiscreteEnergyFunctionBase
 {
   public:
     using base_type = DiscreteEnergyFunctionBase;
-    using base_type::energy;
+    using base_type::value;
 
     inline static std::string serialization_key()
     {
@@ -35,11 +35,11 @@ class Potts : public DiscreteEnergyFunctionBase
     std::size_t arity() const override;
     discrete_label_type shape(std::size_t) const override;
     std::size_t size() const override;
-    energy_type energy(const discrete_label_type *discrete_labels) const override;
+    energy_type value(const discrete_label_type *discrete_labels) const override;
     std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override;
 
-    void copy_energies(energy_type *energies) const override;
-    void add_energies(energy_type *energies) const override;
+    void copy_values(energy_type *energies) const override;
+    void add_values(energy_type *energies) const override;
 
     static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize_json(const nlohmann::json &json);
     static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize(Deserializer &deserializer);
@@ -59,7 +59,7 @@ class XTensor : public DiscreteEnergyFunctionBase
 {
   public:
     using base_type = DiscreteEnergyFunctionBase;
-    using base_type::energy;
+    using base_type::value;
 
     using xtensor_type = xt::xtensor<energy_type, ARITY>;
     inline static std::string serialization_key()
@@ -92,7 +92,7 @@ class XTensor : public DiscreteEnergyFunctionBase
         return values_.size();
     }
 
-    energy_type energy(const discrete_label_type *discrete_labels) const override
+    energy_type value(const discrete_label_type *discrete_labels) const override
     {
         const_discrete_label_span l(discrete_labels, ARITY);
         return values_[l];
@@ -102,11 +102,11 @@ class XTensor : public DiscreteEnergyFunctionBase
         return std::make_unique<XTensor<ARITY>>(values_);
     }
 
-    void copy_energies(energy_type *energies) const override
+    void copy_values(energy_type *energies) const override
     {
         std::copy(values_.data(), values_.data() + values_.size(), energies);
     }
-    void add_energies(energy_type *energies) const override
+    void add_values(energy_type *energies) const override
     {
         std::transform(values_.data(), values_.data() + values_.size(), energies, energies, std::plus<energy_type>());
     }
@@ -158,7 +158,7 @@ class XArray : public DiscreteEnergyFunctionBase
 {
   public:
     using base_type = DiscreteEnergyFunctionBase;
-    using base_type::energy;
+    using base_type::value;
 
     using xarray_type = xt::xarray<energy_type>;
     inline static std::string serialization_key()
@@ -179,11 +179,11 @@ class XArray : public DiscreteEnergyFunctionBase
 
     std::size_t size() const override;
 
-    energy_type energy(const discrete_label_type *discrete_labels) const override;
+    energy_type value(const discrete_label_type *discrete_labels) const override;
     std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override;
 
-    void copy_energies(energy_type *energies) const override;
-    void add_energies(energy_type *energies) const override;
+    void copy_values(energy_type *energies) const override;
+    void add_values(energy_type *energies) const override;
     static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize_json(const nlohmann::json &json);
     static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize(Deserializer &deserializer);
     nlohmann::json serialize_json() const override;
@@ -205,7 +205,7 @@ class LabelCosts : public DiscreteEnergyFunctionBase
     }
 
     using base_type = DiscreteEnergyFunctionBase;
-    using base_type::energy;
+    using base_type::value;
 
     LabelCosts() = default;
 
@@ -230,7 +230,7 @@ class LabelCosts : public DiscreteEnergyFunctionBase
 
     std::size_t size() const override;
 
-    energy_type energy(const discrete_label_type *discrete_labels) const override;
+    energy_type value(const discrete_label_type *discrete_labels) const override;
 
     std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override;
     void add_to_lp(IlpData &ilp_data, const std::size_t *indicator_variables_mapping) const override;
@@ -254,7 +254,7 @@ class SparseDiscreteEnergyFunction : public DiscreteEnergyFunctionBase
 {
   public:
     using base_type = DiscreteEnergyFunctionBase;
-    using base_type::energy;
+    using base_type::value;
 
     inline static std::string serialization_key()
     {
@@ -270,11 +270,11 @@ class SparseDiscreteEnergyFunction : public DiscreteEnergyFunctionBase
     std::size_t arity() const override;
     discrete_label_type shape(std::size_t) const override;
     std::size_t size() const override;
-    energy_type energy(const discrete_label_type *discrete_labels) const override;
+    energy_type value(const discrete_label_type *discrete_labels) const override;
     std::unique_ptr<DiscreteEnergyFunctionBase> clone() const override;
 
-    void copy_energies(energy_type *energies) const override;
-    void add_energies(energy_type *energies) const override;
+    void copy_values(energy_type *energies) const override;
+    void add_values(energy_type *energies) const override;
 
     static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize_json(const nlohmann::json &json);
     static std::unique_ptr<DiscreteEnergyFunctionBase> deserialize(Deserializer &deserializer);

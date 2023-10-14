@@ -71,11 +71,12 @@ endif()
 SET(NXTGM_LIBRARY_SOURCES
     src/nxtgm/utils/timer.cpp
     # src/nxtgm/utils/serialize.cpp
-    src/nxtgm/energy_functions/discrete_energy_function_base.cpp
-    src/nxtgm/energy_functions/discrete_energy_functions.cpp
+    src/nxtgm/functions/discrete_function_base.cpp
+    src/nxtgm/functions/discrete_energy_function_base.cpp
+    src/nxtgm/functions/discrete_energy_functions.cpp
+    src/nxtgm/functions/discrete_constraint_function_base.cpp
+    src/nxtgm/functions/discrete_constraints.cpp
     src/nxtgm/spaces/discrete_space.cpp
-    src/nxtgm/constraint_functions/discrete_constraint_function_base.cpp
-    src/nxtgm/constraint_functions/discrete_constraints.cpp
     src/nxtgm/models/solution_value.cpp
     src/nxtgm/models/gm/discrete_gm/discrete_gm.cpp
     src/nxtgm/optimizers/optimizer_parameters.cpp

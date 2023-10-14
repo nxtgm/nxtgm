@@ -17,8 +17,8 @@ execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import numpy; print(numpy.get_i
 pybind11_add_module(_nxtgm
     ${PY_SRC_DIR}/nxtgm/models/export_solution_value.cpp
     ${PY_SRC_DIR}/nxtgm/export_nxtgm.cpp
-    ${PY_SRC_DIR}/nxtgm/energy_functions/export_discrete_energy_functions.cpp
-    ${PY_SRC_DIR}/nxtgm/constraint_functions/export_discrete_constraint_functions.cpp
+    ${PY_SRC_DIR}/nxtgm/functions/export_discrete_energy_functions.cpp
+    ${PY_SRC_DIR}/nxtgm/functions/export_discrete_constraint_functions.cpp
     ${PY_SRC_DIR}/nxtgm/spaces/export_discrete_space.cpp
     ${PY_SRC_DIR}/nxtgm/models/gm/export_discrete_gm.cpp
     ${PY_SRC_DIR}/nxtgm/optimizers/gm/discrete/export_discrete_gm_optimizers.cpp

@@ -9,6 +9,17 @@ else()
     set(EXCEPTION_FLAG "-fexceptions")
 endif()
 
+
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/js_files.cpp
+    COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_BINARY_DIR}/js_files.cpp
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/post_js.js)
+
+add_library(js_files_lib STATIC  ${CMAKE_CURRENT_BINARY_DIR}/js_files.cpp)
+
+
+
+
+
 add_executable(
     nxtgm_javascript_runtime
     ${CMAKE_CURRENT_SOURCE_DIR}/src/export_nxtgm.cpp
@@ -17,6 +28,7 @@ add_executable(
 # link dependencies
 target_link_libraries(nxtgm_javascript_runtime PRIVATE
     nxtgm_shared
+    js_files_lib
 )
 
 target_include_directories(nxtgm_javascript_runtime PRIVATE
@@ -31,7 +43,7 @@ target_compile_options(nxtgm_javascript_runtime
         PUBLIC "SHELL: ${EXCEPTION_FLAG}"
     )
 
-SET(ENVIRONMENT "web,worker")
+SET(ENVIRONMENT "web,worker,node")
 
 
 target_link_options(nxtgm_javascript_runtime
@@ -40,8 +52,8 @@ target_link_options(nxtgm_javascript_runtime
     PUBLIC "SHELL: --bind"
     PUBLIC "SHELL: -s MODULARIZE=1"
     PUBLIC "SHELL: -s EXPORT_NAME=\"nxtgm_create_module\""
-    PUBLIC "SHELL: -s EXPORT_ES6=0"
-    PUBLIC "SHELL: -s USE_ES6_IMPORT_META=0"
+    PUBLIC "SHELL: -s EXPORT_ES6=1"
+    PUBLIC "SHELL: -s USE_ES6_IMPORT_META=1"
     PUBLIC "SHELL: -s DEMANGLE_SUPPORT=0"
     PUBLIC "SHELL: -s ASSERTIONS=0"
     PUBLIC "SHELL: -s ALLOW_MEMORY_GROWTH=1"
@@ -60,6 +72,8 @@ target_link_options(nxtgm_javascript_runtime
     #PUBLIC "SHELL: -s --preload-file  ${CMAKE_BINARY_DIR}/libnxtgm_shared.so@/libnxtgm_shared.so"
     #PUBLIC "SHELL: -s --preload-file ../src/nxtgm/plugins/@/plugins"
     PUBLIC "SHELL: --post-js ${CMAKE_CURRENT_SOURCE_DIR}/src/post_js.js"
+    #PUBLIC "SHELL: --embind-emit-tsd nxtgm_interface.d.ts"
+
 )
 
 # install

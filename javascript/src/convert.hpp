@@ -3,6 +3,8 @@
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 
+#include <iostream>
+
 namespace nxtgm
 {
 
@@ -10,7 +12,6 @@ namespace nxtgm
 template <typename T>
 struct type_to_string;
 
-// macro for that
 #define TYPE_TO_STRING(TYPE, NAME)                                                                                     \
     template <>                                                                                                        \
     struct type_to_string<TYPE>                                                                                        \
@@ -21,7 +22,6 @@ struct type_to_string;
         }                                                                                                              \
     }
 
-// specializations for all types
 TYPE_TO_STRING(int8_t, Int8Array);
 TYPE_TO_STRING(int16_t, Int16Array);
 TYPE_TO_STRING(int32_t, Int32Array);
@@ -34,7 +34,7 @@ TYPE_TO_STRING(float, Float32Array);
 TYPE_TO_STRING(double, Float64Array);
 
 template <class T>
-emscripten::val ptr_range_to_typed_array(const T *begin, std::size_t size)
+emscripten::val ptr_range_to_typed_array_copy(const T *begin, std::size_t size)
 {
     emscripten::val mem_view = emscripten::val(emscripten::typed_memory_view(size, begin));
     emscripten::val mem_copy = emscripten::val::global(type_to_string<T>::name().c_str()).new_(mem_view);
@@ -79,6 +79,37 @@ std::vector<T> as_vector_of_numbers_checked(const emscripten::val &value)
         result.push_back(as_number_checked<T>(value[i]));
     }
     return result;
+}
+
+template <typename T>
+std::vector<T> vec_from_typed_array(const emscripten::val &v)
+{
+    std::vector<T> rv;
+
+    const auto l = v["length"].as<unsigned>();
+    rv.resize(l);
+
+    emscripten::val memoryView{emscripten::typed_memory_view(l, rv.data())};
+    memoryView.call<void>("set", v);
+
+    return rv;
+}
+
+template <class T>
+auto copy_from_ndarray(emscripten::val &value)
+{
+    // val is ndarray
+    auto js_array = value["data"];
+    auto shape = value["shape"];
+    auto strides = value["strides"];
+
+    std::vector<std::size_t> shape_vec = em::vecFromJSArray<std::size_t>(shape);
+    std::vector<std::size_t> strides_vec = em::convertJSArrayToNumberVector<std::size_t>(strides);
+
+    unsigned int length = js_array["length"].as<unsigned int>();
+    std::vector<T> vec = vec_from_typed_array<T>(js_array);
+
+    return xt::adapt(std::move(vec), shape_vec, strides_vec);
 }
 
 } // namespace nxtgm

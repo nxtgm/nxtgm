@@ -27,7 +27,7 @@ std::unique_ptr<HocrBase> HocrFactoryBase::create(const DiscreteGm &gm)
         if (arity == 1)
         {
             double values[2];
-            factor.copy_energies(values);
+            factor.copy_values(values);
             hocr->add_unary_term(values[1] - values[0], factor.variables()[0]);
         }
         else

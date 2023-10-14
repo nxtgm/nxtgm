@@ -2,10 +2,22 @@
 set -e
 
 
-BUILD_DIR=build_wasm
-mkdir -p $BUILD_DIR
+if [ $# -eq 0 ]
+  then
+    echo "No arguments supplied"
+    exit 1
+fi
 
-SERVER_DIR=serve_dir
+# dir of this script itself
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+BUILD_DIR=$1
+JS_SRC_DIR=$2
+JS_DIST_DIR=$3
+EMSCRIPTEN_FORGE_EMSDK_DIR=$4
+
+mkdir -p $BUILD_DIR
+mkdir -p $JS_DIST_DIR
 
 # abs path to build dir
 BUILD_DIR=$(cd $BUILD_DIR && pwd)
@@ -13,10 +25,7 @@ NUM_CORES=8
 
 ENV_NAME=nxtgm-emscripten
 
-
-EMSCRIPTEN_FORGE_EMSDK_DIR=/Users/thorstenbeier/src/emsdk_custom2
-
-if false; then
+if true; then
 
     # install wasm env
     rm -rf $MAMBA_ROOT_PREFIX/envs/$ENV_NAME
@@ -26,7 +35,7 @@ if false; then
         -c https://repo.mamba.pm/conda-forge \
         -c ~/micromamba/envs/emf/conda-bld \
         --yes \
-        xtensor xplugin  nlohmann_json xtl tsl_ordered_map
+        -f $SCRIPT_DIR/environment.yml
 
 fi
 
@@ -65,18 +74,15 @@ if true; then
 
     pushd $BUILD_DIR
 
-    emmake make -j$NUM_CORES install
+    emmake make -j$NUM_CORES #install
     popd
 
 fi
 
 
 
-# copy  files to server dir
-cp -r $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/nxtgm/plugins $SERVER_DIR/plugins
 
-# copy shared libs to server dir
-cp $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/libnxtgm_shared.so $SERVER_DIR/libnxtgm_shared.so
-
-# copy wasm files to server dir
-cp $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/bin/nxtgm_javascript_runtime.* $SERVER_DIR
+cp -r $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/nxtgm/plugins   $JS_DIST_DIR/plugins
+cp $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/libnxtgm_shared.so $JS_DIST_DIR/libnxtgm_shared.so
+cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_DIST_DIR
+cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_SRC_DIR

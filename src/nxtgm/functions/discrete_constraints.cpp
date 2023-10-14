@@ -1,4 +1,4 @@
-#include <nxtgm/constraint_functions/discrete_constraints.hpp>
+#include <nxtgm/functions/discrete_constraints.hpp>
 #include <nxtgm/utils/n_nested_loops.hpp>
 
 namespace nxtgm
@@ -26,7 +26,7 @@ std::size_t UniqueLables::size() const
     return std::pow(n_labels_, arity_);
 }
 
-energy_type UniqueLables::how_violated(const discrete_label_type *discrete_labels) const
+energy_type UniqueLables::value(const discrete_label_type *discrete_labels) const
 {
     auto n_duplicates = 0;
 
@@ -103,7 +103,7 @@ std::size_t ArrayDiscreteConstraintFunction::size() const
     return how_violated_.size();
 }
 
-energy_type ArrayDiscreteConstraintFunction::how_violated(const discrete_label_type *discrete_labels) const
+energy_type ArrayDiscreteConstraintFunction::value(const discrete_label_type *discrete_labels) const
 {
     const_discrete_label_span labels(discrete_labels, how_violated_.dimension());
     return how_violated_[labels];
@@ -115,7 +115,7 @@ std::unique_ptr<DiscreteConstraintFunctionBase> ArrayDiscreteConstraintFunction:
 void ArrayDiscreteConstraintFunction::add_to_lp(IlpData &ilp_data, const std::size_t *indicator_variables_mapping) const
 {
     const auto arity = this->arity();
-    const auto shape = DiscreteConstraintFunctionShape(this);
+    const auto shape = DiscreteFunctionShape(this);
 
     auto flat_index = 0;
 

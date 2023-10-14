@@ -8,18 +8,19 @@
 namespace nxtgm
 {
 namespace em = emscripten;
-class ReporterCallback : public ReporterCallbackBase<DiscreteGmOptimizerBase>
+
+class JsReporterCallback : public ReporterCallbackBase<DiscreteGmOptimizerBase>
 {
   public:
     using base_type = ReporterCallbackBase<DiscreteGmOptimizerBase>;
 
-    ReporterCallback(const DiscreteGmOptimizerBase *optimizer, em::val callback)
+    JsReporterCallback(const DiscreteGmOptimizerBase *optimizer, em::val callback)
         : base_type(optimizer),
           callback_(callback)
     {
     }
 
-    virtual ~ReporterCallback() = default;
+    virtual ~JsReporterCallback() = default;
 
     void begin() override
     {
@@ -46,7 +47,7 @@ void export_callbacks()
         .function("report", &reporter_callback_base::report)
         .function("end", &reporter_callback_base::end);
 
-    em::class_<ReporterCallback, em::base<reporter_callback_base>>("ReporterCallback")
+    em::class_<JsReporterCallback, em::base<reporter_callback_base>>("JsReporterCallback")
         .constructor<DiscreteGmOptimizerBase *, em::val>();
 };
 

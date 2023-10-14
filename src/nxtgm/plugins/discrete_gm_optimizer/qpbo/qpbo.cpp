@@ -150,12 +150,12 @@ Qpbo::Qpbo(const DiscreteGm &gm, OptimizerParameters &&parameters)
         const auto &factor = gm.factor(i);
         if (const auto arity = factor.arity(); arity == 1)
         {
-            factor.copy_energies(energies);
+            factor.copy_values(energies);
             qpbo_->add_unary_term(factor.variables()[0], energies);
         }
         else if (arity == 2)
         {
-            factor.copy_energies(energies);
+            factor.copy_values(energies);
             qpbo_->add_pairwise_term(factor.variables()[0], factor.variables()[1], energies);
         }
     }

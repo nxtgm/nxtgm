@@ -28,6 +28,8 @@ class SmallVector
     SmallVector(const size_t);
     SmallVector(const size_t, const T &);
     SmallVector(const SmallVector<T, MAX_STACK> &);
+    template <class ITER>
+    SmallVector(ITER, ITER);
     ~SmallVector();
     SmallVector<T, MAX_STACK> &operator=(const SmallVector<T, MAX_STACK> &);
     template <class ITERATOR>
@@ -127,6 +129,25 @@ SmallVector<T, MAX_STACK>::SmallVector(const SmallVector<T, MAX_STACK> &other)
         pointerToSequence_ = stackSequence_;
     }
     std::copy(other.pointerToSequence_, other.pointerToSequence_ + size_, pointerToSequence_);
+}
+
+template <class T, size_t MAX_STACK>
+template <class ITER>
+SmallVector<T, MAX_STACK>::SmallVector(ITER begin, ITER end)
+    : size_(std::distance(begin, end)),
+      capacity_(MAX_STACK),
+      pointerToSequence_(stackSequence_)
+{
+    if (size_ > MAX_STACK)
+    {
+        capacity_ = size_;
+        pointerToSequence_ = new T[size_];
+    }
+    else
+    {
+        pointerToSequence_ = stackSequence_;
+    }
+    std::copy(begin, end, pointerToSequence_);
 }
 
 /// destructor

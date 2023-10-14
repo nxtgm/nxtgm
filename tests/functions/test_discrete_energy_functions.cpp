@@ -1,5 +1,5 @@
 #include <discrete_function_tester.hpp>
-#include <nxtgm/energy_functions/discrete_energy_functions.hpp>
+#include <nxtgm/functions/discrete_energy_functions.hpp>
 
 // this function is used to check if the default implementation of
 // DiscreteEnergyFunctionBase are correct. Therefore we only implement the pure
@@ -28,7 +28,7 @@ class DefaultTesterFunction : public DiscreteEnergyFunctionBase
         return values.shape()[index];
     }
 
-    energy_type energy(const discrete_label_type *discrete_labels) const override
+    energy_type value(const discrete_label_type *discrete_labels) const override
     {
         const_discrete_label_span l(discrete_labels, values.dimension());
         return values[l];
@@ -110,7 +110,7 @@ TEST_CASE("xtensor")
             // {
             //     for (discrete_label_type l1 = 0; l1 < binded->shape(0); ++l1)
             //     {
-            //         CHECK(binded->energy({l0, l1}) == doctest::Approx(function.energy({1, l0, l1})));
+            //         CHECK(binded->value({l0, l1}) == doctest::Approx(function.value({1, l0, l1})));
             //     }
             // }
         }
@@ -141,14 +141,14 @@ TEST_CASE("label-costs")
         CHECK(function.shape(0) == 4);
         CHECK(function.shape(1) == 4);
         CHECK(function.shape(2) == 4);
-        CHECK(function.energy({0, 0, 0}) == doctest::Approx(1.0));
-        CHECK(function.energy({1, 1, 1}) == doctest::Approx(2.0));
-        CHECK(function.energy({2, 2, 2}) == doctest::Approx(3.0));
-        CHECK(function.energy({3, 3, 3}) == doctest::Approx(4.0));
+        CHECK(function.value({0, 0, 0}) == doctest::Approx(1.0));
+        CHECK(function.value({1, 1, 1}) == doctest::Approx(2.0));
+        CHECK(function.value({2, 2, 2}) == doctest::Approx(3.0));
+        CHECK(function.value({3, 3, 3}) == doctest::Approx(4.0));
 
-        CHECK(function.energy({0, 1, 0}) == doctest::Approx(1.0 + 2.0));
-        CHECK(function.energy({0, 0, 2}) == doctest::Approx(1.0 + 3.0));
-        CHECK(function.energy({1, 2, 3}) == doctest::Approx(2.0 + 3.0 + 4.0));
+        CHECK(function.value({0, 1, 0}) == doctest::Approx(1.0 + 2.0));
+        CHECK(function.value({0, 0, 2}) == doctest::Approx(1.0 + 3.0));
+        CHECK(function.value({1, 2, 3}) == doctest::Approx(2.0 + 3.0 + 4.0));
     }
 
     SUBCASE("less-labels")
@@ -193,13 +193,13 @@ TEST_CASE("sparse")
         CHECK(function.shape(1) == 5);
         CHECK(function.shape(2) == 6);
 
-        CHECK(function.energy({0, 0, 0}) == doctest::Approx(0.0));
-        CHECK(function.energy({1, 1, 1}) == doctest::Approx(0.0));
-        CHECK(function.energy({2, 2, 2}) == doctest::Approx(0.0));
-        CHECK(function.energy({1, 2, 3}) == doctest::Approx(0.0));
+        CHECK(function.value({0, 0, 0}) == doctest::Approx(0.0));
+        CHECK(function.value({1, 1, 1}) == doctest::Approx(0.0));
+        CHECK(function.value({2, 2, 2}) == doctest::Approx(0.0));
+        CHECK(function.value({1, 2, 3}) == doctest::Approx(0.0));
 
-        CHECK(function.energy({1, 0, 1}) == doctest::Approx(1.0));
-        CHECK(function.energy({3, 1, 2}) == doctest::Approx(5.0));
+        CHECK(function.value({1, 0, 1}) == doctest::Approx(1.0));
+        CHECK(function.value({3, 1, 2}) == doctest::Approx(5.0));
 
         tests::test_discrete_energy_function<SparseDiscreteEnergyFunction>(&function);
     }

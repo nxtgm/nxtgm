@@ -1,7 +1,7 @@
 #pragma once
 
-#include <nxtgm/constraint_functions/discrete_constraint_function_base.hpp>
-#include <nxtgm/energy_functions/discrete_energy_function_base.hpp>
+#include <nxtgm/functions/discrete_constraint_function_base.hpp>
+#include <nxtgm/functions/discrete_energy_function_base.hpp>
 #include <nxtgm/models/solution_value.hpp>
 #include <nxtgm/spaces/discrete_space.hpp>
 
@@ -63,19 +63,19 @@ class DiscreteFactor
 
     inline energy_type operator()(const discrete_label_type *labels) const
     {
-        return function_->energy(labels);
+        return function_->value(labels);
     }
     inline energy_type operator()(std::initializer_list<discrete_label_type> labels) const
     {
-        return function_->energy(labels.begin());
+        return function_->value(labels.begin());
     }
-    inline void add_energies(energy_type *energy) const
+    inline void add_values(energy_type *energy) const
     {
-        function_->add_energies(energy);
+        function_->add_values(energy);
     }
-    inline void copy_energies(energy_type *energy) const
+    inline void copy_values(energy_type *energy) const
     {
-        function_->copy_energies(energy);
+        function_->copy_values(energy);
     }
 
     std::size_t variable_position(std::size_t variable) const
@@ -128,11 +128,11 @@ class DiscreteConstraint
 
     inline auto operator()(const discrete_label_type *labels) const
     {
-        return function_->how_violated(labels);
+        return function_->value(labels);
     }
     inline auto operator()(std::initializer_list<discrete_label_type> labels) const
     {
-        return function_->how_violated(labels.begin());
+        return function_->value(labels.begin());
     }
 
     template <class MODEL_DATA, class CONSTRAINT_DATA>
@@ -378,7 +378,7 @@ class DiscreteGm
             {
                 const const_discrete_label_span labels =
                     local_solution_from_model_solution(constraint.variables(), solution, local_labels_buffer);
-                const auto how_violated = constraint.function()->how_violated(labels.data());
+                const auto how_violated = constraint.function()->value(labels.data());
                 if (how_violated >= constraint_feasiblility_limit)
                 {
                     if (early_stop_infeasible)
@@ -406,7 +406,7 @@ class DiscreteGm
             {
                 const const_discrete_label_span labels =
                     local_solution_from_model_solution(factor.variables(), solution, local_labels_buffer);
-                total_energy += factor.function()->energy(labels.data());
+                total_energy += factor.function()->value(labels.data());
                 ++fi;
             }
         }

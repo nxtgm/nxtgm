@@ -158,7 +158,7 @@ std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionVal
         else if (local_binded_vars.size() == factor.variables().size())
         {
             // all variables are binded
-            constant_part.energy() += factor.function()->energy(local_binded_vars_labels.data());
+            constant_part.energy() += factor.function()->value(local_binded_vars_labels.data());
         }
         else
         {
@@ -202,7 +202,7 @@ std::tuple<DiscreteGm, std::unordered_map<std::size_t, std::size_t>, SolutionVal
         else if (local_binded_vars.size() == constraint.variables().size())
         {
             // all variables are binded
-            constant_part.how_violated() += constraint.function()->how_violated(local_binded_vars_labels.data());
+            constant_part.how_violated() += constraint.function()->value(local_binded_vars_labels.data());
         }
         else
         {

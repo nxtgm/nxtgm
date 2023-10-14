@@ -52,7 +52,17 @@ class Serializer
     template <class K, class V>
     void operator()(const std::unordered_map<K, V> &value)
     {
-        op_map_like(value);
+        map_like(value);
+    }
+    template <class MAP>
+    void map_like(const MAP &value)
+    {
+        this->operator()(value.size());
+        for (const auto &[key, val] : value)
+        {
+            this->operator()(key);
+            this->operator()(val);
+        }
     }
 
   private:
@@ -62,16 +72,6 @@ class Serializer
         const auto &shape = value.shape();
         this->operator()(shape.data(), shape.size());
         this->operator()(value.data(), value.size());
-    }
-    template <class MAP>
-    void op_map_like(const MAP &value)
-    {
-        this->operator()(value.size());
-        for (const auto &[key, val] : value)
-        {
-            this->operator()(key);
-            this->operator()(val);
-        }
     }
 
     std::ostream &os_;
@@ -135,12 +135,11 @@ class Deserializer
     template <class K, class V>
     void operator()(std::unordered_map<K, V> &value)
     {
-        op_map_like(value);
+        map_like(value);
     }
 
-  private:
     template <class MAP>
-    void op_map_like(MAP &value)
+    void map_like(MAP &value)
     {
         using key_type = typename MAP::key_type;
         using mapped_type = typename MAP::mapped_type;
@@ -158,6 +157,7 @@ class Deserializer
         }
     }
 
+  private:
     std::istream &is_;
 };
 } // namespace nxtgm

@@ -3,9 +3,10 @@
 #include <nxtgm/nxtgm.hpp>
 #include <string>
 #include <xtensor/xarray.hpp>
+#include <xtensor/xview.hpp>
 
-#include <nxtgm/constraint_functions/discrete_constraints.hpp>
-#include <nxtgm/energy_functions/discrete_energy_functions.hpp>
+#include <nxtgm/functions/discrete_constraints.hpp>
+#include <nxtgm/functions/discrete_energy_functions.hpp>
 #include <nxtgm/models/gm/discrete_gm/gm.hpp>
 #include <nxtgm/spaces/discrete_space.hpp>
 
@@ -75,6 +76,14 @@ void export_space()
 
 void export_gm()
 {
+    em::class_<SolutionValue>("SolutionValue")
+        .constructor<energy_type, energy_type>()
+        .function("energy",
+                  em::select_overload<energy_type(SolutionValue &)>([](SolutionValue &self) { return self.energy(); }))
+        .function("how_violated", em::select_overload<energy_type(SolutionValue &)>(
+                                      [](SolutionValue &self) { return self.how_violated(); }))
+        // .function("how_violated", &SolutionValue::how_violated)
+        ;
     em::class_<DiscreteGm>("DiscreteGm")
 
         .constructor<const DiscreteSpace &>()
@@ -91,6 +100,27 @@ void export_gm()
                                              [](DiscreteGm &self, DiscreteEnergyFunctionBase &f) {
                                                  return self.add_energy_function(std::move(f.clone()));
                                              }))
+        // batch api to add functions
+        .function("add_xarray_energy_functions",
+                  em::select_overload<em::val(DiscreteGm &, em::val)>([](DiscreteGm &gm, em::val ndarray) {
+                      std::vector<uint64_t> fids;
+                      auto batch_array = copy_from_ndarray<double>(ndarray);
+
+                      const std::size_t n_functions = batch_array.shape()[0];
+
+                      for (std::size_t i = 0; i < n_functions; i++)
+                      {
+                          auto arr = xt::view(batch_array, i);
+
+                          auto arr_function = std::make_unique<XArray>(std::move(arr));
+                          fids.push_back(gm.add_energy_function(std::move(arr_function)));
+                      }
+                      return ptr_range_to_typed_array_copy(fids.data(), fids.size());
+                  }))
+
+        // // batch api to add factors
+        // .function("add_factors", em::select_overload< em::val(DiscreteGm &, std::size_t,em::val, em::val)>(
+
         .function("add_factor", em::select_overload<std::size_t(DiscreteGm &, em::val, std::size_t)>(
                                     [](DiscreteGm &self, em::val variables, std::size_t fid) {
                                         // check that value is list
@@ -112,6 +142,32 @@ void export_gm()
 
                                         return self.add_factor(vars, fid);
                                     }))
+
+        // batch api to add functions
+        .function(
+            "add_factors",
+            em::select_overload<em::val(DiscreteGm &, em::val, em::val)>([](DiscreteGm &gm, em::val vis, em::val fids) {
+                // this is a copy, todo: avoid copy
+                auto fids_vector = em::convertJSArrayToNumberVector<uint64_t>(fids);
+                auto vis_array = copy_from_ndarray<uint32_t>(vis);
+                const std::size_t n_factors = vis_array.shape()[0];
+                auto factor_indices = std::vector<uint64_t>(n_factors);
+
+                if (n_factors != fids_vector.size() && fids_vector.size() != 1)
+                {
+                    throw std::runtime_error("vis and fids must have the same length, or fids must have length 1");
+                }
+
+                for (std::size_t i = 0; i < n_factors; i++)
+                {
+                    const auto fid_index = i >= fids_vector.size() ? 0 : i;
+
+                    auto vis = xt::view(vis_array, i);
+                    auto fi = gm.add_factor(vis, fids_vector[fid_index]);
+                    factor_indices[i] = fi;
+                }
+                return ptr_range_to_typed_array_copy(factor_indices.data(), factor_indices.size());
+            }))
 
         // readonly properties
         .property("num_variables", &DiscreteGm::num_variables)
@@ -182,15 +238,34 @@ void export_optimizer()
         .value("CONVERGED", OptimizationStatus::CONVERGED)
         .value("CALLBACK_EXIT", OptimizationStatus::CALLBACK_EXIT);
 
+    using reporter_callback_base = ReporterCallbackBase<DiscreteGmOptimizerBase>;
     em::class_<DiscreteGmOptimizerBase>("DiscreteGmOptimizerBase")
         .function("optimize", em::select_overload<OptimizationStatus(DiscreteGmOptimizerBase &)>(
                                   [](DiscreteGmOptimizerBase &self) { return self.optimize(); }))
 
+        .function("optimize",
+                  em::select_overload<OptimizationStatus(DiscreteGmOptimizerBase &, reporter_callback_base *)>(
+                      [](DiscreteGmOptimizerBase &self, reporter_callback_base *callback) {
+                          return self.optimize(callback);
+                      }),
+                  em::allow_raw_pointers())
+
         .function("best_solution",
                   em::select_overload<em::val(DiscreteGmOptimizerBase &)>([](DiscreteGmOptimizerBase &self) {
                       const auto &sol = self.best_solution();
-                      return ptr_range_to_typed_array(sol.data(), sol.size());
-                  }));
+                      return ptr_range_to_typed_array_copy(sol.data(), sol.size());
+                  }))
+        .function("current_solution",
+                  em::select_overload<em::val(DiscreteGmOptimizerBase &)>([](DiscreteGmOptimizerBase &self) {
+                      const auto &sol = self.best_solution();
+                      return ptr_range_to_typed_array_copy(sol.data(), sol.size());
+                  }))
+
+        .function("best_solution_value", em::select_overload<SolutionValue(DiscreteGmOptimizerBase &)>(
+                                             [](DiscreteGmOptimizerBase &self) { return self.best_solution_value(); }))
+        .function("current_solution_value",
+                  em::select_overload<SolutionValue(DiscreteGmOptimizerBase &)>(
+                      [](DiscreteGmOptimizerBase &self) { return self.current_solution_value(); }));
 
     em::function(
         "discrete_gm_optimizer_factory",

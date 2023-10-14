@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <map>
+#include <nxtgm/utils/serialize.hpp>
 #include <string>
 #include <tsl/ordered_map.h>
 #include <vector>
@@ -95,6 +96,9 @@ class OptimizerParameters
             value = default_value;
         }
     }
+
+    void serialize(Serializer &serializer) const;
+    static OptimizerParameters deserialize(Deserializer &deserializer);
 
   private:
     template <class T, typename std::enable_if<std::is_same<T, std::string>::value, int>::type * = nullptr>

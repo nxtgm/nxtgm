@@ -204,6 +204,111 @@ Module['status_name'] =
     return status.constructor.name.slice(19);
 }
 
-    Module.FS = FS;
+// map string like "float32" to Float32Array
+const dtype_to_array = {
+    "float32" : Float32Array,
+    "float64" : Float64Array,
+    "int8" : Int8Array,
+    "int16" : Int16Array,
+    "int32" : Int32Array,
+    "int64" : BigInt64Array,
+    "uint8" : Uint8Array,
+    "uint16" : Uint16Array,
+    "uint32" : Uint32Array,
+    "uint64" : BigUint64Array,
+}
+
+// reverse map
+var array_to_dtype = {};
+for (const [dtype, array] of Object.entries(dtype_to_array))
+{
+    array_to_dtype[array] = dtype;
+}
+
+class ndarray
+{
+    constructor(shape, dtype = null, data = null)
+    {
+        if (dtype === null && data === null)
+        {
+            dtype = "float32";
+        }
+        else if (dtype === null)
+        {
+            dtype = array_to_dtype[data.constructor];
+        }
+        this.shape = shape;
+        this.dtype = dtype;
+        this.size = shape.reduce((a, b) => a * b);
+        this.strides = new Array(shape.length);
+        this.strides[shape.length - 1] = 1;
+        this.is_contiguous = true;
+        for (let i = shape.length - 2; i >= 0; i--)
+        {
+            this.strides[i] = this.strides[i + 1] * shape[i + 1];
+        }
+
+        if (data === null)
+        {
+            const cls = dtype_to_array[dtype];
+
+            this.data = new cls(this.size);
+        }
+        else
+        {
+            // check class with array_to_dtype
+            if (data.constructor !== dtype_to_array[dtype])
+            {
+                throw new Error("data type mismatch");
+            }
+            this.data = data;
+        }
+    }
+    fill(value)
+    {
+        if (this.is_contiguous)
+        {
+            this.data.fill(value);
+        }
+        else
+        {
+            throw new Error("not implemented");
+        }
+    }
+
+    // get value from ndarray
+    get(args)
+    {
+        let offset = 0;
+        for (let i = 0; i < args.length; i++)
+        {
+            offset += args[i] * this.strides[i];
+        }
+        return this.data[offset];
+    }
+    // set value to ndarray
+    set(args, value)
+    {
+        let offset = 0;
+        for (let i = 0; i < args.length; i++)
+        {
+            offset += args[i] * this.strides[i];
+        }
+        this.data[offset] = value;
+    }
+    reshape(shape)
+    {
+        let size = shape.reduce((a, b) => a * b);
+        if (size !== this.size)
+        {
+            throw new Error("reshape size mismatch");
+        }
+        return new ndarray(shape, this.dtype, this.data);
+    }
+}
+
+Module["ndarray"] = ndarray;
+
+Module.FS = FS;
 Module.PATH = PATH;
 Module.LDSO = LDSO;

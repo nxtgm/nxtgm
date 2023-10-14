@@ -6,8 +6,8 @@
 #include <emscripten.h>
 #endif
 
-#include <nxtgm/constraint_functions/discrete_constraint_function_base.hpp>
-#include <nxtgm/energy_functions/discrete_energy_function_base.hpp>
+#include <nxtgm/functions/discrete_constraint_function_base.hpp>
+#include <nxtgm/functions/discrete_energy_function_base.hpp>
 #include <nxtgm/nxtgm.hpp>
 #include <test.hpp>
 
@@ -227,13 +227,13 @@ inline void test_discrete_constraint_function(DiscreteConstraintFunctionBase *f)
 
         auto i = 0;
         for_each(shape, [&](auto labels) {
-            const auto is_value = f->how_violated(labels);
-            const auto should_value = f_j->how_violated(labels);
+            const auto is_value = f->value(labels);
+            const auto should_value = f_j->value(labels);
             if (!CHECK(is_value == doctest::Approx(should_value)))
             {
 
                 std::stringstream ss;
-                ss << "ERROR: how_violated() is consistent with json "
+                ss << "ERROR:>value() is consistent with json "
                       "serialized+deserialized"
                    << std::endl;
                 for (auto i = 0; i < arity; ++i)
@@ -274,11 +274,11 @@ inline void test_discrete_energy_function(DiscreteEnergyFunctionBase *f)
     // copy energies
     std::vector<energy_type> energies_copy(size, 0);
     std::vector<energy_type> energies_copy_should(size, 0);
-    f->copy_energies(energies_copy.data());
+    f->copy_values(energies_copy.data());
 
     // add energies
     std::vector<energy_type> energies_sum(size, 1.0);
-    f->add_energies(energies_sum.data());
+    f->add_values(energies_sum.data());
 
     // check that copy_energies and add_energies are consistent
     for (std::size_t i = 0; i < size; ++i)
@@ -288,7 +288,7 @@ inline void test_discrete_energy_function(DiscreteEnergyFunctionBase *f)
 
     auto i = 0;
     for_each(shape, [&](auto labels) {
-        const auto is_value = f->energy(labels);
+        const auto is_value = f->value(labels);
         if (!CHECK(is_value == doctest::Approx(energies_copy[i])))
         {
             std::cout << "ERROR: energies() ... consistent with copy_energies" << std::endl;
@@ -330,7 +330,7 @@ inline void test_discrete_energy_function(DiscreteEnergyFunctionBase *f)
         std::vector<energy_type> energies_copy_from_json(size, 0);
         std::vector<energy_type> energies_copy_should_from_json(size, 0);
 
-        f_j->copy_energies(energies_copy_from_json.data());
+        f_j->copy_values(energies_copy_from_json.data());
 
         // check that copy_energies and energies_copy_from_json are consistent
         for (std::size_t i = 0; i < size; ++i)
@@ -353,7 +353,7 @@ inline void test_discrete_energy_function(DiscreteEnergyFunctionBase *f)
         std::vector<energy_type> energies_copy_from_json(size, 0);
         std::vector<energy_type> energies_copy_should_from_json(size, 0);
 
-        f_j->copy_energies(energies_copy_from_json.data());
+        f_j->copy_values(energies_copy_from_json.data());
 
         // check that copy_energies and energies_copy_from_json are consistent
         for (std::size_t i = 0; i < size; ++i)
@@ -376,7 +376,7 @@ inline void test_discrete_energy_function(DiscreteEnergyFunctionBase *f)
         std::vector<energy_type> energies_copy_from_json(size, 0);
         std::vector<energy_type> energies_copy_should_from_json(size, 0);
 
-        f_j->copy_energies(energies_copy_from_json.data());
+        f_j->copy_values(energies_copy_from_json.data());
 
         // check that copy_energies and energies_copy_from_json are consistent
         for (std::size_t i = 0; i < size; ++i)

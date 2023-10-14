@@ -230,7 +230,7 @@ OptimizationStatus DynamicProgramming::optimize_impl(reporter_callback_wrapper_t
             // unary
             if (factor.arity() == 1)
             {
-                factor.add_energies(value_buffers_[node]);
+                factor.add_values(value_buffers_[node]);
             }
             // pairwise
             if (factor.arity() == 2)

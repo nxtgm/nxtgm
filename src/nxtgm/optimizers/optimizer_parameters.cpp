@@ -31,6 +31,46 @@ bool OptimizerParameters::empty() const
     return string_parameters.empty() && int_parameters.empty() && double_parameters.empty() && any_parameters.empty() &&
            optimizer_parameters.empty();
 }
+
+void OptimizerParameters::serialize(Serializer &serializer) const
+{
+    if (any_parameters.size() > 0)
+    {
+        throw std::runtime_error("any_parameters not supported in serialization");
+    }
+
+    serializer(string_parameters);
+    serializer(int_parameters);
+    serializer(double_parameters);
+    serializer(uint64_t(optimizer_parameters.size()));
+    for (const auto &[key, value] : optimizer_parameters)
+    {
+        serializer(key);
+        serializer(value);
+    }
+}
+
+OptimizerParameters OptimizerParameters::deserialize(Deserializer &deserializer)
+{
+
+    OptimizerParameters p;
+    deserializer(p.string_parameters);
+    deserializer(p.int_parameters);
+    deserializer(p.double_parameters);
+    uint64_t optimizer_parameters_size;
+    deserializer(optimizer_parameters_size);
+    for (uint64_t i = 0; i < optimizer_parameters_size; ++i)
+    {
+        std::string key;
+        deserializer(key);
+        OptimizerParameters value = OptimizerParameters::deserialize(deserializer);
+        p.optimizer_parameters[key] = value;
+    }
+
+    return p;
+}
+
+// TODO use fking iostream again
 template <class STREAM>
 STREAM &to_stream(STREAM &out, const OptimizerParameters &p)
 {

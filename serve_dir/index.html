@@ -8,6 +8,10 @@
 
   <!-- inplace javascript here -->
   <script>
+
+
+
+
     async function main() {
 
         console.log("initialize worker");
@@ -25,6 +29,12 @@
 
         let nxtgm = await nxtgm_create_module(options);
 
+
+
+
+
+
+
         // download solvers
         await Promise.all([
             nxtgm._fecht_plugin("discrete_gm_optimizer","ilp_highs"),
@@ -38,9 +48,9 @@
 
         //console.log(nxtgm);
 
-        let shape = [2, 2]
+        let shape = [20, 20]
         let num_var = shape[0] * shape[1];
-        let num_labels = 2;
+        let num_labels = 5;
         let space = new nxtgm.DiscreteSpace(num_var, num_labels);
         let gm = new nxtgm.DiscreteGm(space);
 
@@ -56,7 +66,7 @@
 
 
 
-        let r = 0.25;
+        let r = 0.1;
         for(let x=0; x<shape[0]; ++x)
         {
             for(let y=0; y<shape[1]; ++y)
@@ -92,14 +102,31 @@
         // console.log("GM AS ARRAY", arr);
 
 
-        let optimizer_name = "ilp_highs";
+        let optimizer_name = "belief_propagation";
         let parameters = new nxtgm.OptimizerParameters();
         //parameters.set_int("max_iterations", 100);
 
         let optimizer = nxtgm.discrete_gm_optimizer_factory(gm2, optimizer_name, parameters);
 
+
+        const reporter_callback = new nxtgm.JsReporterCallback(optimizer, {
+            begin : function() {
+                console.log("begin");
+            },
+            end : function() {
+                const val = optimizer.best_solution_value()
+                console.log("end", val.energy(), val.how_violated());
+            },
+            report : function() {
+                const val = optimizer.best_solution_value()
+                console.log("report", val.energy(), val.how_violated());
+                return true;
+            }
+        });
+
+
         console.log(optimizer_name);
-        let status = optimizer.optimize();
+        let status = optimizer.optimize(reporter_callback);
         console.log("Status:",  nxtgm.status_name(status));
 
         let best_solution = optimizer.best_solution();

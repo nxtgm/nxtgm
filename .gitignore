@@ -60,3 +60,8 @@ build_wasm
 build.sh
 coverage.sh
 nxtgm.code-workspace
+
+# javascript / node
+node_modules
+package-lock.json
+javascript/lib/
