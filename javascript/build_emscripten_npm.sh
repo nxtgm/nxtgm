@@ -70,6 +70,8 @@ if true; then
         -DBUILD_DOCS=OFF \
         -DZLIB_INCLUDE_DIR=$PREFIX/include \
         -DZLIB_LIBRARY=$PREFIX/lib/libz.a \
+        -DZLIB_ROOT=$PREFIX \
+        -DZLIB_USE_STATIC_LIBS=ON \
         ..
     popd
 
@@ -83,7 +85,7 @@ fi
 
 
 
-cp -r $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/nxtgm/plugins   $JS_DIST_DIR/plugins
-cp $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/libnxtgm_shared.so $JS_DIST_DIR/libnxtgm_shared.so
-cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_DIST_DIR
-cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_SRC_DIR
+# cp -r $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/nxtgm/plugins   $JS_DIST_DIR/plugins
+# cp $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/libnxtgm_shared.so $JS_DIST_DIR/libnxtgm_shared.so
+# cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_DIST_DIR
+# cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_SRC_DIR
