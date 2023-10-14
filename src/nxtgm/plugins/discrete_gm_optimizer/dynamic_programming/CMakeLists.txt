@@ -2,11 +2,11 @@ set(PLUGIN_TYPE         discrete_gm_optimizer)
 set(PLUGIN_NAME_CORE    dynamic_programming)
 set(PLUGIN_TARGET_NAME  ${PLUGIN_TYPE}_${PLUGIN_NAME_CORE})
 
-# if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
-#     cmake_minimum_required(VERSION 3.12)
-#     project(nxtgm_${PLUGIN_TYPE}_${PLUGIN_NAME_CORE})
-#     find_package(nxtgm REQUIRED)
-# endif()
+if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
+    cmake_minimum_required(VERSION 3.12)
+    project(nxtgm_${PLUGIN_TYPE}_${PLUGIN_NAME_CORE})
+    find_package(nxtgm REQUIRED)
+endif()
 
 nxtgm_add_plugin(${PLUGIN_TARGET_NAME} ${PLUGIN_NAME_CORE}.cpp)
 
