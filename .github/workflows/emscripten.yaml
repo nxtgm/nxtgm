@@ -38,4 +38,6 @@ jobs:
       - name: Build via npm
         shell: bash -el {0}
         run: |
-            npm
+            npm run build_wasm
+            npm run prepare
+            npm run build
