@@ -4,9 +4,9 @@
 Is the inofficial successor of [OpenGM](https://github.com/opengm/opengm)
 
 ## Build Status
-[![build](https://github.com/DerThorsten/nxtgm/actions/workflows/ci_splitted.yaml/badge.svg)](https://github.com/DerThorsten/nxtgm/actions/workflows/ci_splitted.yaml)
-[![dev-build](https://github.com/DerThorsten/nxtgm/actions/workflows/ci.yaml/badge.svg)](https://github.com/DerThorsten/nxtgm/actions/workflows/ci.yaml)
-[![emscripten](https://github.com/DerThorsten/nxtgm/actions/workflows/emscripten.yaml/badge.svg)](https://github.com/DerThorsten/nxtgm/actions/workflows/emscripten.yaml)
+[![build](https://github.com/nxtgm/nxtgm/actions/workflows/ci_splitted.yaml/badge.svg)](https://github.com/nxtgm/nxtgm/actions/workflows/ci_splitted.yaml)
+[![dev-build](https://github.com/nxtgm/nxtgm/actions/workflows/ci.yaml/badge.svg)](https://github.com/nxtgm/nxtgm/actions/workflows/ci.yaml)
+[![emscripten](https://github.com/nxtgm/nxtgm/actions/workflows/emscripten.yaml/badge.svg)](https://github.com/nxtgm/nxtgm/actions/workflows/emscripten.yaml)
 
 
 # Features
