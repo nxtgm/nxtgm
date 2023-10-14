@@ -1,4 +1,4 @@
-name: Emscripten build
+name: emscripten-build
 on:
     push:
     pull_request:

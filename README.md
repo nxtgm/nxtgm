@@ -1,6 +1,13 @@
 # nxtgm
+
 `nxtgm` next graphical models -- a library for optimization of discrete graphical models.
 Is the inofficial successor of [OpenGM](https://github.com/opengm/opengm)
+
+## Build Status
+[![dev-build](https://github.com/DerThorsten/nxtgm/actions/workflows/ci.yaml/badge.svg)](https://github.com/DerThorsten/nxtgm/actions/workflows/ci.yaml)
+[![build](https://github.com/DerThorsten/nxtgm/actions/workflows/ci_splitted.yaml/badge.svg)](https://github.com/DerThorsten/nxtgm/actions/workflows/ci_splitted.yaml)
+[![emscripten](https://github.com/DerThorsten/nxtgm/actions/workflows/emscripten.yaml/badge.svg)](https://github.com/DerThorsten/nxtgm/actions/workflows/emscripten.yaml)
+
 
 # Features
 

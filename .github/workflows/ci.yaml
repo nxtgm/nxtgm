@@ -1,4 +1,4 @@
-name: Build with conda
+name: dev-build
 on:
   push:
   pull_request:
@@ -6,8 +6,6 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
   cancel-in-progress: true
-
-
 
 jobs:
   unix:
@@ -21,7 +19,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-
 
       - uses: actions/checkout@v3
 
