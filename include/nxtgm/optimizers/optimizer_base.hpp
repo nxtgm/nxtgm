@@ -19,7 +19,8 @@ enum class OptimizerFlags : uint64_t
     LocalOptimal = 1 << 3,
     OptimalOnTrees = 1 << 4,
     OptimalOnBinarySecondOrderSubmodular = 1 << 5,
-    MetaOptimizer = 1 << 6
+    OptimalForFirstOrderMatching = 1 << 6,
+    MetaOptimizer = 1 << 7
 };
 
 inline OptimizerFlags operator|(OptimizerFlags lhs, OptimizerFlags rhs)

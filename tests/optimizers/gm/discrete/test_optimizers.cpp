@@ -601,4 +601,25 @@ TEST_CASE("reduced_gm_optimizer")
     }
 }
 
+TEST_CASE("hungarian_matching")
+{
+
+    // clang-format off
+        test_discrete_gm_optimizer(
+            "hungarian_matching",
+            OptimizerParameters(),
+            {
+                hungarian_matching_model(/*n_var*/ 3, /*n_labels*/ 3),
+                hungarian_matching_model(/*n_var*/ 5, /*n_labels*/ 5),
+                hungarian_matching_model(/*n_var*/ 4, /*n_labels*/ 6),
+                hungarian_matching_model(/*n_var*/ 6, /*n_labels*/ 4),
+                hungarian_matching_model(/*n_var*/ 8, /*n_labels*/ 3)
+            },
+            {
+                require_optimality(/*proven*/ true)
+            }
+        );
+    // clang-format on
+}
+
 } // namespace nxtgm

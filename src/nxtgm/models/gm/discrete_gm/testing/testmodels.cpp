@@ -575,4 +575,45 @@ std::unique_ptr<DiscreteGmTestmodel> infeasible_model(std::size_t n_variables, d
     return std::make_unique<InfeasibleModel>(n_variables, n_labels);
 }
 
+HungarianMatchingModel::HungarianMatchingModel(std::size_t n_variables, discrete_label_type n_labels)
+    : n_variables(n_variables),
+      n_labels(n_labels)
+{
+}
+std::pair<DiscreteGm, std::string> HungarianMatchingModel::operator()(unsigned seed)
+{
+    xt::random::seed(seed);
+
+    auto space = DiscreteSpace(n_variables, n_labels);
+    DiscreteGm gm(space);
+
+    // unary factors
+    for (std::size_t vi = 0; vi < n_variables; vi++)
+    {
+        auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
+        auto f = std::make_unique<nxtgm::Unary>(tensor);
+        auto fid = gm.add_energy_function(std::move(f));
+        gm.add_factor({vi}, fid);
+    }
+
+    auto f = std::make_unique<UniqueLables>(n_variables, n_labels);
+    auto fid = gm.add_constraint_function(std::move(f));
+
+    std::vector<std::size_t> vars(n_variables);
+    std::iota(std::begin(vars), std::end(vars), 0);
+
+    gm.add_constraint(vars, fid);
+
+    std::stringstream ss;
+    ss << "HungarianMatchingModel(n_variables=" << n_variables << ", n_labels=" << n_labels << ", seed=" << seed << ")";
+
+    ++seed;
+    return std::pair<DiscreteGm, std::string>(std::move(gm), ss.str());
+}
+
+std::unique_ptr<DiscreteGmTestmodel> hungarian_matching_model(std::size_t n_variables, discrete_label_type n_labels)
+{
+    return std::make_unique<HungarianMatchingModel>(n_variables, n_labels);
+}
+
 } // namespace nxtgm

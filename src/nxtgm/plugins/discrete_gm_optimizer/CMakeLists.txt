@@ -9,6 +9,7 @@ if(BUILD_PLUGINS_DISCRETE_GM_OPTIMIZER)
     add_subdirectory(reduced_gm_optimizer)
     add_subdirectory(brute_force_naive)
     add_subdirectory(belief_propagation)
+    add_subdirectory(hungarian_matching)
 
     # we need to skip this for win and emscripten
     if(NOT WIN32)
