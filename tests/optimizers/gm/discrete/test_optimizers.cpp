@@ -484,6 +484,11 @@ TEST_CASE("matching_icm")
             {
                 unique_label_chain(8,8),
                 unique_label_chain(10,12),
+                hungarian_matching_model(/*n_var*/ 3, /*n_labels*/ 3),
+                hungarian_matching_model(/*n_var*/ 5, /*n_labels*/ 5),
+                hungarian_matching_model(/*n_var*/ 4, /*n_labels*/ 6),
+                hungarian_matching_model(/*n_var*/ 6, /*n_labels*/ 4),
+                hungarian_matching_model(/*n_var*/ 8, /*n_labels*/ 3)
             },
             {
                 require_local_n_optimality(subgraph_size),
