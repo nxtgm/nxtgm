@@ -118,8 +118,8 @@ jobs:
   windows:
     strategy:
       matrix:
-        include:
-          - os: windows-latest
+        os: [windows-latest]
+        build_type: ["Release", "Debug"]
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
