@@ -11,6 +11,7 @@ jobs:
   unix:
     strategy:
       matrix:
+        include:
         os: ["ubuntu-latest"," macos-latest"]
         build_type: ["Release", "Debug"]
 
@@ -74,7 +75,7 @@ jobs:
             cd $d
             mkdir -p bld
             cd bld
-            cmake .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+            cmake .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
             make -j ${{ steps.cpu-cores.outputs.count }}
             make install
             cd ../..
@@ -144,7 +145,7 @@ jobs:
           set PATH=%PATH%;%CD%
           cmake .. ^
             -G Ninja ^
-            -DCMAKE_BUILD_TYPE=-DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ^
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ^
             -DBUILD_TESTS=ON ^
             -DBUILD_SINGLE_BINARY_TESTS=ON ^
             -DBUILD_PYTHON_BINDINGS=ON ^
@@ -170,7 +171,7 @@ jobs:
             cd bld
             cmake .. ^
               -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library" ^
-              -DCAMKE_BUILD_TYPE=${{ matrix.build_type }} ^
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ^
               -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%
 
             cmake --build . --config ${{ matrix.build_type }}
@@ -186,7 +187,7 @@ jobs:
             cd bld
             cmake .. ^
               -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library" ^
-              -DCAMKE_BUILD_TYPE=${{ matrix.build_type }} ^
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ^
               -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%
 
             cmake --build . --config ${{ matrix.build_type }}
@@ -200,7 +201,7 @@ jobs:
             cd bld
             cmake .. ^
               -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library" ^
-              -DCAMKE_BUILD_TYPE=${{ matrix.build_type }} ^
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ^
               -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%
 
             cmake --build . --config Release
@@ -214,7 +215,7 @@ jobs:
             cd bld
             cmake .. ^
               -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library" ^
-              -DCAMKE_BUILD_TYPE=${{ matrix.build_type }} ^
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ^
               -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%
 
             cmake --build . --config ${{ matrix.build_type }}
