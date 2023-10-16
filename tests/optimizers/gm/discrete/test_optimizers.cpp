@@ -484,6 +484,10 @@ TEST_CASE("matching_icm")
             {
                 unique_label_chain(8,8),
                 unique_label_chain(10,12),
+                hungarian_matching_model(/*n_var*/ 3, /*n_labels*/ 3),
+                hungarian_matching_model(/*n_var*/ 5, /*n_labels*/ 5),
+                hungarian_matching_model(/*n_var*/ 4, /*n_labels*/ 6),
+                hungarian_matching_model(/*n_var*/ 5, /*n_labels*/ 8)
             },
             {
                 require_local_n_optimality(subgraph_size),
@@ -599,6 +603,26 @@ TEST_CASE("reduced_gm_optimizer")
             // clang-format on
         }
     }
+}
+
+TEST_CASE("hungarian_matching")
+{
+
+    // clang-format off
+        test_discrete_gm_optimizer(
+            "hungarian_matching",
+            OptimizerParameters(),
+            {
+                hungarian_matching_model(/*n_var*/ 3, /*n_labels*/ 3),
+                hungarian_matching_model(/*n_var*/ 5, /*n_labels*/ 5),
+                hungarian_matching_model(/*n_var*/ 4, /*n_labels*/ 6),
+                hungarian_matching_model(/*n_var*/ 3, /*n_labels*/ 8)
+            },
+            {
+                require_optimality(/*proven*/ true)
+            }
+        );
+    // clang-format on
 }
 
 } // namespace nxtgm

@@ -175,4 +175,18 @@ class InfeasibleModel : public DiscreteGmTestmodel
 
 std::unique_ptr<DiscreteGmTestmodel> infeasible_model(std::size_t n_variables = 3, discrete_label_type n_labels = 2);
 
+class HungarianMatchingModel : public DiscreteGmTestmodel
+{
+  public:
+    HungarianMatchingModel(std::size_t n_variables, discrete_label_type n_labels);
+    std::pair<DiscreteGm, std::string> operator()(unsigned seed) override;
+
+  private:
+    std::size_t n_variables;
+    discrete_label_type n_labels;
+};
+
+std::unique_ptr<DiscreteGmTestmodel> hungarian_matching_model(std::size_t n_variables = 3,
+                                                              discrete_label_type n_labels = 3);
+
 } // namespace nxtgm

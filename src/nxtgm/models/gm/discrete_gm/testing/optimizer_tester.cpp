@@ -95,6 +95,10 @@ void TestReporterCallback::begin()
     NXTGM_CHECK_EQ_TOL(current_solution_value.energy(), optimizer()->current_solution_value().energy(), 1e-6,
                        info_ + "current_solution_value");
 
+    // ensure energies are finite
+    NXTGM_TEST(std::isfinite(best_solution_value.energy()), info_ + "best_solution_value.energy() is finite");
+    NXTGM_TEST(std::isfinite(current_solution_value.energy()), info_ + "current_solution_value.energy() is finite");
+
     // ensure best is not worse than current
     NXTGM_TEST_OP(optimizer()->best_solution_value().energy(), <=, optimizer()->current_solution_value().energy(),
                   info_ + " best is not worse than current");

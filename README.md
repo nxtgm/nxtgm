@@ -1,7 +1,7 @@
 # nxtgm
 
 `nxtgm` is C++ 17 library for optimization of discrete graphical models.
-Is the inofficial successor of [OpenGM](https://github.com/opengm/opengm)
+It is the inofficial successor of [OpenGM](https://github.com/opengm/opengm)
 
 ## Build Status
 [![build](https://github.com/nxtgm/nxtgm/actions/workflows/ci_splitted.yaml/badge.svg)](https://github.com/nxtgm/nxtgm/actions/workflows/ci_splitted.yaml)
@@ -20,6 +20,7 @@ Is the inofficial successor of [OpenGM](https://github.com/opengm/opengm)
 * QPBO
 * Higher order QPBO
 * Integer Linear Programming (ILP)
+* Hungarian Matching
 
 ## Meta-Optimizers
 Meta optimizers that use other optimizers
