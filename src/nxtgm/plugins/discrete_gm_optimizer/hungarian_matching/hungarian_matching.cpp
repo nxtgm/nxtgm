@@ -88,7 +88,7 @@ namespace nxtgm
 HungarianMatching::HungarianMatching(const DiscreteGm &gm, OptimizerParameters &&parameters)
     : base_type(gm, parameters),
       parameters_(std::move(parameters)),
-      best_solution_(gm.num_variables()),
+      best_solution_(gm.num_variables(), 0),
       best_sol_value_(gm.evaluate(best_solution_))
 {
     // check if the solver is applicable
