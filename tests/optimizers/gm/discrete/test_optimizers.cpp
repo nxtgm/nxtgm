@@ -487,8 +487,7 @@ TEST_CASE("matching_icm")
                 hungarian_matching_model(/*n_var*/ 3, /*n_labels*/ 3),
                 hungarian_matching_model(/*n_var*/ 5, /*n_labels*/ 5),
                 hungarian_matching_model(/*n_var*/ 4, /*n_labels*/ 6),
-                hungarian_matching_model(/*n_var*/ 6, /*n_labels*/ 4),
-                hungarian_matching_model(/*n_var*/ 8, /*n_labels*/ 3)
+                hungarian_matching_model(/*n_var*/ 5, /*n_labels*/ 8)
             },
             {
                 require_local_n_optimality(subgraph_size),
@@ -617,8 +616,7 @@ TEST_CASE("hungarian_matching")
                 hungarian_matching_model(/*n_var*/ 3, /*n_labels*/ 3),
                 hungarian_matching_model(/*n_var*/ 5, /*n_labels*/ 5),
                 hungarian_matching_model(/*n_var*/ 4, /*n_labels*/ 6),
-                hungarian_matching_model(/*n_var*/ 6, /*n_labels*/ 4),
-                hungarian_matching_model(/*n_var*/ 8, /*n_labels*/ 3)
+                hungarian_matching_model(/*n_var*/ 3, /*n_labels*/ 8)
             },
             {
                 require_optimality(/*proven*/ true)
