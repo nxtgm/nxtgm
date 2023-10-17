@@ -58,6 +58,24 @@ TEST_CASE("belief_propagation")
         );
         // clang-format on
     }
+    SUBCASE("large_chains")
+    {
+        // clang-format off
+        test_discrete_gm_optimizer(
+            "belief_propagation",
+            OptimizerParameters(),
+            {
+                potts_grid(20, 1, 10, false),
+                potts_grid(20, 1, 10, false),
+            },
+            {
+                // compare against dynamic programming
+                require_optimality(/*proven*/ false, /*tolerance*/ 1e-3, "dynamic_programming"),
+                require_optimization_status(OptimizationStatus::CONVERGED)
+            }
+        );
+        // clang-format on
+    }
     SUBCASE("forest")
     {
         // clang-format off

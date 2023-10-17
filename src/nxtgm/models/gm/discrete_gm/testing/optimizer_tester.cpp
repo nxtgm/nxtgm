@@ -162,14 +162,18 @@ std::unique_ptr<DiscreteGmOptimizerRequireBase> require_feasiblity()
     return std::make_unique<RequireFeasiblity>();
 }
 
-RequireOptimality::RequireOptimality(bool proven, energy_type tolerance)
+RequireOptimality::RequireOptimality(bool proven, energy_type tolerance, std::string method,
+                                     OptimizerParameters parameters)
     : proven(proven),
-      tolerance(tolerance)
+      tolerance(tolerance),
+      method(method),
+      parameters(parameters)
 {
 }
-std::unique_ptr<DiscreteGmOptimizerRequireBase> require_optimality(bool proven, energy_type tolerance)
+std::unique_ptr<DiscreteGmOptimizerRequireBase> require_optimality(bool proven, energy_type tolerance,
+                                                                   std::string method, OptimizerParameters parameters)
 {
-    return std::make_unique<RequireOptimality>(proven, tolerance);
+    return std::make_unique<RequireOptimality>(proven, tolerance, method, parameters);
 }
 
 std::string RequireOptimality::name() const
@@ -187,17 +191,26 @@ void RequireOptimality::require(DiscreteGmOptimizerBase *optimizer, Optimization
     const auto &model = optimizer->model();
     SolutionValue optimal_solution_value;
     discrete_solution optimal_solution;
-    std::tie(optimal_solution, optimal_solution_value) = solve_brute_force(model);
+
+    using gm_type = std::decay_t<decltype(model)>;
+    using solution_type = typename gm_type::solution_type;
+
+    auto opt_optimizer = nxtgm::discrete_gm_optimizer_factory(model, method, parameters);
+
+    opt_optimizer->optimize();
+    auto best_solution = opt_optimizer->best_solution();
+    auto best_solution_value = opt_optimizer->best_solution_value();
+
     auto solution_value = model.evaluate(optimizer->best_solution(), false);
 
-    NXTGM_TEST(optimal_solution_value.is_feasible() == solution_value.is_feasible(), info);
-    if (optimal_solution_value.is_feasible())
+    NXTGM_TEST(best_solution_value.is_feasible() == solution_value.is_feasible(), info);
+    if (best_solution_value.is_feasible())
     {
 
         auto print = [&]() {
             std::stringstream ss;
-            ss << "optimal solution: " << std::endl;
-            for (auto l : optimal_solution)
+            ss << "best solution: " << std::endl;
+            for (auto l : best_solution)
             {
                 ss << l << " ";
             }
@@ -210,10 +223,7 @@ void RequireOptimality::require(DiscreteGmOptimizerBase *optimizer, Optimization
             ss << std::endl;
             return ss.str();
         };
-
-        // REQUIRE_MESSAGE(solution_value.energy() == doctest::Approx(optimal_solution_value.energy()), print());
-        // REQUIRE(solution_value.energy() == doctest::Approx(optimal_solution_value.energy()));
-        NXTGM_TEST_EQ_TOL(solution_value.energy(), optimal_solution_value.energy(), tolerance, info + print());
+        NXTGM_TEST_EQ_TOL(solution_value.energy(), best_solution_value.energy(), tolerance, info + print());
     }
 }
 
