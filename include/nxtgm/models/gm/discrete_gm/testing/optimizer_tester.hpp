@@ -45,7 +45,7 @@ std::unique_ptr<DiscreteGmOptimizerRequireBase> require_feasiblity();
 class RequireOptimality : public DiscreteGmOptimizerRequireBase
 {
   public:
-    RequireOptimality(bool proven, energy_type tolerance);
+    RequireOptimality(bool proven, energy_type tolerance, std::string method, OptimizerParameters parameters);
     virtual ~RequireOptimality() = default;
     std::string name() const override;
     void require(DiscreteGmOptimizerBase *optimizer, OptimizationStatus status, const std::string &info) const override;
@@ -53,8 +53,13 @@ class RequireOptimality : public DiscreteGmOptimizerRequireBase
   private:
     bool proven;
     energy_type tolerance;
+    std::string method;
+    OptimizerParameters parameters;
 };
-std::unique_ptr<DiscreteGmOptimizerRequireBase> require_optimality(bool proven = false, energy_type tolerance = 1e-6);
+
+std::unique_ptr<DiscreteGmOptimizerRequireBase> require_optimality(
+    bool proven = false, energy_type tolerance = 1e-6, std::string method = "brute_force_naive",
+    OptimizerParameters parameters = OptimizerParameters());
 
 class RequireInfesibility : public DiscreteGmOptimizerRequireBase
 {

@@ -46,6 +46,9 @@ class Potts : public DiscreteEnergyFunctionBase
     nlohmann::json serialize_json() const override;
     void serialize(Serializer &serializer) const override;
 
+    void compute_factor_to_variable_messages(const energy_type *const *in_messages,
+                                             energy_type **out_messages) const override;
+
     std::unique_ptr<DiscreteEnergyFunctionBase> bind(span<const std::size_t> binded_vars,
                                                      span<const discrete_label_type> binded_vars_labels) const override;
 
