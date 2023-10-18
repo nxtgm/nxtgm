@@ -1,5 +1,9 @@
 #include <nxtgm/functions/discrete_energy_function_base.hpp>
-#include <nxtgm/functions/discrete_energy_functions.hpp>
+#include <nxtgm/functions/label_costs_energy_function.hpp>
+#include <nxtgm/functions/potts_energy_function.hpp>
+#include <nxtgm/functions/sparse_energy_function.hpp>
+#include <nxtgm/functions/xarray_energy_function.hpp>
+#include <nxtgm/functions/xtensor_energy_function.hpp>
 #include <pybind11/pybind11.h>
 #include <xtensor-python/pytensor.hpp>
 

@@ -1,5 +1,6 @@
+#include <nxtgm/functions/array_constraint_function.hpp>
 #include <nxtgm/functions/discrete_constraint_function_base.hpp>
-#include <nxtgm/functions/discrete_constraints.hpp>
+#include <nxtgm/functions/unique_labels_constraint_function.hpp>
 #include <nxtgm/utils/tuple_for_each.hpp>
 
 namespace nxtgm

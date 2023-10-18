@@ -73,9 +73,13 @@ SET(NXTGM_LIBRARY_SOURCES
     # src/nxtgm/utils/serialize.cpp
     src/nxtgm/functions/discrete_function_base.cpp
     src/nxtgm/functions/discrete_energy_function_base.cpp
-    src/nxtgm/functions/discrete_energy_functions.cpp
+    src/nxtgm/functions/xarray_energy_function.cpp
+    src/nxtgm/functions/sparse_energy_function.cpp
+    src/nxtgm/functions/label_costs_energy_function.cpp
+    src/nxtgm/functions/potts_energy_function.cpp
     src/nxtgm/functions/discrete_constraint_function_base.cpp
-    src/nxtgm/functions/discrete_constraints.cpp
+    src/nxtgm/functions/array_constraint_function.cpp
+    src/nxtgm/functions/unique_labels_constraint_function.cpp
     src/nxtgm/spaces/discrete_space.cpp
     src/nxtgm/models/solution_value.cpp
     src/nxtgm/models/gm/discrete_gm/discrete_gm.cpp

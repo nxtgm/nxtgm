@@ -9,7 +9,10 @@
 // xtensor adapt
 #include <xtensor/xadapt.hpp>
 
-#include <nxtgm/functions/discrete_energy_functions.hpp>
+#include <nxtgm/functions/label_costs_energy_function.hpp>
+#include <nxtgm/functions/potts_energy_function.hpp>
+#include <nxtgm/functions/sparse_energy_function.hpp>
+#include <nxtgm/functions/xarray_energy_function.hpp>
 #include <nxtgm/utils/n_nested_loops.hpp>
 
 // bitset
