@@ -1,4 +1,4 @@
-#include <nxtgm/functions/discrete_constraints.hpp>
+#include <nxtgm/functions/unique_labels_constraint_function.hpp>
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/optimizers/gm/discrete/optimizer_base.hpp>
 #include <nxtgm/utils/timer.hpp>

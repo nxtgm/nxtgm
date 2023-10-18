@@ -1,5 +1,10 @@
 #include <discrete_function_tester.hpp>
-#include <nxtgm/functions/discrete_energy_functions.hpp>
+
+#include <nxtgm/functions/label_costs_energy_function.hpp>
+#include <nxtgm/functions/potts_energy_function.hpp>
+#include <nxtgm/functions/sparse_energy_function.hpp>
+#include <nxtgm/functions/xarray_energy_function.hpp>
+#include <nxtgm/functions/xtensor_energy_function.hpp>
 
 // this function is used to check if the default implementation of
 // DiscreteEnergyFunctionBase are correct. Therefore we only implement the pure

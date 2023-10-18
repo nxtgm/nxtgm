@@ -1,5 +1,13 @@
 #include <nxtgm/models/gm/discrete_gm/testing/testmodels.hpp>
 
+#include <nxtgm/functions/array_constraint_function.hpp>
+#include <nxtgm/functions/label_costs_energy_function.hpp>
+#include <nxtgm/functions/potts_energy_function.hpp>
+#include <nxtgm/functions/sparse_energy_function.hpp>
+#include <nxtgm/functions/unique_labels_constraint_function.hpp>
+#include <nxtgm/functions/xarray_energy_function.hpp>
+#include <nxtgm/functions/xtensor_energy_function.hpp>
+
 #include <sstream>
 
 namespace nxtgm

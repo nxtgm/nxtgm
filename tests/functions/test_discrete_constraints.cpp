@@ -1,6 +1,7 @@
 #include <discrete_function_tester.hpp>
 #include <math.h>
-#include <nxtgm/functions/discrete_constraints.hpp>
+#include <nxtgm/functions/array_constraint_function.hpp>
+#include <nxtgm/functions/unique_labels_constraint_function.hpp>
 #include <test.hpp>
 
 TEST_CASE("unique-labels")

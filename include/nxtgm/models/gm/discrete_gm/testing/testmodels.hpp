@@ -1,8 +1,5 @@
 #pragma once
 
-#include <nxtgm/functions/discrete_constraints.hpp>
-#include <nxtgm/functions/discrete_energy_functions.hpp>
-
 #include <xtensor/xarray.hpp>
 #include <xtensor/xrandom.hpp>
 #include <xtensor/xview.hpp>

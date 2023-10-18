@@ -5,8 +5,12 @@
 #include <xtensor/xarray.hpp>
 #include <xtensor/xview.hpp>
 
-#include <nxtgm/functions/discrete_constraints.hpp>
-#include <nxtgm/functions/discrete_energy_functions.hpp>
+#include <nxtgm/functions/array_constraint_function.hpp>
+#include <nxtgm/functions/potts_energy_function.hpp>
+#include <nxtgm/functions/unique_labels_constraint_function.hpp>
+#include <nxtgm/functions/xarray_energy_function.hpp>
+#include <nxtgm/functions/xtensor_energy_function.hpp>
+
 #include <nxtgm/models/gm/discrete_gm/gm.hpp>
 #include <nxtgm/spaces/discrete_space.hpp>
 

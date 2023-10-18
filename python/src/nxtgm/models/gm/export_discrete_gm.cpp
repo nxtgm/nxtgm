@@ -1,5 +1,7 @@
-#include <nxtgm/functions/discrete_constraints.hpp>
-#include <nxtgm/functions/discrete_energy_functions.hpp>
+#include <nxtgm/functions/array_constraint_function.hpp>
+#include <nxtgm/functions/discrete_energy_function_base.hpp>
+#include <nxtgm/functions/xarray_energy_function.hpp>
+#include <nxtgm/functions/xtensor_energy_function.hpp>
 #include <nxtgm/models/gm/discrete_gm.hpp>
 #include <pybind11/pybind11.h>
 #include <xtensor-python/pyarray.hpp>
