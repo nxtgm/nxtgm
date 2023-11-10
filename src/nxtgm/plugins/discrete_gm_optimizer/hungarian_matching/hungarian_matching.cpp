@@ -122,19 +122,18 @@ void HungarianMatching::check_model() const
 {
     const auto &gm = this->model();
 
-    if (gm.max_factor_arity() > 2)
-    {
-        throw UnsupportedModelException("HungarianMatching only supports factors of arity 2");
-    }
-
     if (gm.num_constraints() != 1 || gm.max_constraint_arity() != gm.num_variables())
     {
         throw UnsupportedModelException("graphical models needs exactly one global unique label constraint");
     }
 
-    if (!dynamic_cast<const UniqueLables *>(gm.constraints()[0].function()))
+    if (auto ptr = dynamic_cast<const UniqueLables *>(gm.constraints()[0].function()); !ptr)
     {
         throw UnsupportedModelException("graphical model has no global unique label constraints");
+    }
+    else if (ptr->with_ignore_label())
+    {
+        throw UnsupportedModelException("Only unique label constraint **without** ignore label is supported");
     }
 
     if (gm.max_factor_arity() > 1)
