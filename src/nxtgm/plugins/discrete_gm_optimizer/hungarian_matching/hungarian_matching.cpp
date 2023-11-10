@@ -132,9 +132,13 @@ void HungarianMatching::check_model() const
         throw UnsupportedModelException("graphical models needs exactly one global unique label constraint");
     }
 
-    if (!dynamic_cast<const UniqueLables *>(gm.constraints()[0].function()))
+    if (auto ptr = dynamic_cast<const UniqueLables *>(gm.constraints()[0].function()); !ptr)
     {
         throw UnsupportedModelException("graphical model has no global unique label constraints");
+    }
+    else if (ptr->with_ignore_label())
+    {
+        throw UnsupportedModelException("Only unique label constraint **without** ignore label is supported");
     }
 
     if (gm.max_factor_arity() > 1)

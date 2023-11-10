@@ -36,6 +36,11 @@ class UniqueLables : public DiscreteConstraintFunctionBase
     static std::unique_ptr<DiscreteConstraintFunctionBase> deserialize(Deserializer &deserializer);
     static std::unique_ptr<DiscreteConstraintFunctionBase> deserialize_json(const nlohmann::json &json);
 
+    inline bool with_ignore_label() const
+    {
+        return with_ignore_label_;
+    }
+
   private:
     std::size_t arity_;
     discrete_label_type n_labels_;
