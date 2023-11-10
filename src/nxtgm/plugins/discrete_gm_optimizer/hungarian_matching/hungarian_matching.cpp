@@ -122,7 +122,7 @@ void HungarianMatching::check_model() const
 {
     const auto &gm = this->model();
 
-    if (gm.max_factor_arity() > 2)
+    if (gm.max_factor_arity() > 1)
     {
         throw UnsupportedModelException("HungarianMatching only supports factors of arity 2");
     }
