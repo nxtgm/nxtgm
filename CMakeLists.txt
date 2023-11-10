@@ -143,6 +143,9 @@ target_link_libraries(nxtgm_shared PUBLIC
     xtensor
     nlohmann_json::nlohmann_json
 )
+if(CMAKE_DL_LIBS)
+    target_link_libraries(nxtgm_shared PUBLIC ${CMAKE_DL_LIBS})
+endif()
 
 # private
 target_link_libraries(nxtgm_shared PRIVATE
