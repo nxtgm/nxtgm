@@ -37,6 +37,7 @@ class SolutionValue
         return how_violated_;
     }
 
+    bool operator>(const SolutionValue &other) const;
     bool operator<(const SolutionValue &other) const;
     bool operator<=(const SolutionValue &other) const;
     SolutionValue &operator+=(const SolutionValue &other);

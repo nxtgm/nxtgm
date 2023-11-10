@@ -28,7 +28,7 @@ class FilteredMovemaker
           current_solution_value_(),
           factors_of_variables_(gm, use_factor),
           constraints_of_variables_(gm, use_constraint),
-          max_num_labels_solution_value_buffer_(gm.space().max_num_labels()),
+          max_num_labels_solution_value_buffer_(gm.space().max_num_labels(), SolutionValue(0, 0)),
           max_arity_labels_buffer_(gm.max_arity())
     {
         current_solution_value_ = gm.evaluate_if(current_solution_, false, use_factor_, use_constraint_);
@@ -55,7 +55,7 @@ class FilteredMovemaker
         // reset buffers
         for (discrete_label_type label = 0; label < num_labels; ++label)
         {
-            max_num_labels_solution_value_buffer_[label] = SolutionValue(0, true);
+            max_num_labels_solution_value_buffer_[label] = SolutionValue(0, 0);
         }
 
         for (const auto fid : factors_ids)
@@ -88,6 +88,11 @@ class FilteredMovemaker
         // find argmin with stl in max_num_labels_solution_value_buffer_ vector
         auto min_value_iter = std::min_element(max_num_labels_solution_value_buffer_.begin(),
                                                max_num_labels_solution_value_buffer_.begin() + num_labels);
+
+        if (min_value_iter == max_num_labels_solution_value_buffer_.end())
+        {
+            throw std::runtime_error("min_element failed");
+        }
         const auto best_label = std::distance(max_num_labels_solution_value_buffer_.begin(), min_value_iter);
 
         if (best_label != current_label)
@@ -188,7 +193,7 @@ class UseNoGlobalUniqueConstraints
     {
         if (gm.max_constraint_arity() < gm.num_variables())
         {
-            throw std::runtime_error("graphical model has no global unique label constraints");
+            throw UnsupportedModelException("graphical model has no global unique label constraints");
         }
         for (auto ci = 0; ci < gm.num_constraints(); ++ci)
         {
@@ -203,7 +208,7 @@ class UseNoGlobalUniqueConstraints
                 }
             }
         }
-        throw std::runtime_error("graphical model has no global unique label constraints");
+        throw UnsupportedModelException("graphical model has no global unique label constraints");
     }
     // copy constructor
     UseNoGlobalUniqueConstraints(const UseNoGlobalUniqueConstraints &other)
@@ -238,13 +243,13 @@ class MatchingMovemaker : public FilteredMovemaker<UseAll, UseNoGlobalUniqueCons
         // check if gm is usable
         if (!gm.space().is_simple())
         {
-            throw std::runtime_error("MatchingMovemaker only works with simple spaces");
+            throw UnsupportedModelException("MatchingMovemaker only works with simple spaces");
         }
         const auto num_labels = gm.space()[0];
         if (num_labels < gm.num_variables())
         {
-            throw std::runtime_error("MatchingMovemaker only works with spaces with at least as "
-                                     "many labels as variables");
+            throw UnsupportedModelException("MatchingMovemaker only works with spaces with at least as "
+                                            "many labels as variables");
         }
 
         // check if there are more labels than variables

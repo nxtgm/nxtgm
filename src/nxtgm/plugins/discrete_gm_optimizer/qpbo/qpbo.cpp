@@ -24,6 +24,7 @@ class Qpbo : public DiscreteGmOptimizerBase
             parameters.assign_and_pop("strong_persistencies", strong_persistencies, false);
             parameters.assign_and_pop("improving", improving, false);
             parameters.assign_and_pop("seed", seed, 0);
+            parameters.assign_and_pop("constraint_scaling", constraint_scaling);
         }
 
         std::string qpbo_plugin_name;
@@ -31,6 +32,7 @@ class Qpbo : public DiscreteGmOptimizerBase
         bool strong_persistencies;
         bool improving;
         unsigned seed;
+        energy_type constraint_scaling = default_constraint_scaling;
     };
 
   public:
@@ -120,17 +122,12 @@ Qpbo::Qpbo(const DiscreteGm &gm, OptimizerParameters &&parameters)
     // check space
     if (gm.space().max_num_labels() != 2)
     {
-        throw std::runtime_error("QPBO only supports binary variables");
-    }
-    // check for constraints
-    if (gm.num_constraints() > 0)
-    {
-        throw std::runtime_error("QPBO does not support constraints");
+        throw UnsupportedModelException("QPBO only supports binary variables");
     }
     // check arity
     if (gm.max_arity() > 2)
     {
-        throw std::runtime_error("QPBO only supports pairwise factors");
+        throw UnsupportedModelException("QPBO only supports pairwise factors");
     }
 
     // build the qpbo model count the number of edges
@@ -145,20 +142,32 @@ Qpbo::Qpbo(const DiscreteGm &gm, OptimizerParameters &&parameters)
     qpbo_->add_nodes(gm.num_variables());
 
     double energies[4] = {0, 0, 0, 0};
-    for (size_t i = 0; i < gm.num_factors(); ++i)
-    {
-        const auto &factor = gm.factor(i);
-        if (const auto arity = factor.arity(); arity == 1)
-        {
-            factor.copy_values(energies);
-            qpbo_->add_unary_term(factor.variables()[0], energies);
-        }
-        else if (arity == 2)
-        {
-            factor.copy_values(energies);
-            qpbo_->add_pairwise_term(factor.variables()[0], factor.variables()[1], energies);
-        }
-    }
+    gm.for_each_factor_and_constraint(
+        [&](auto &&factor_or_constraint, std::size_t /*factor_or_constraint_index*/, bool is_constraint) {
+            if (const auto arity = factor_or_constraint.arity(); arity == 1)
+            {
+                factor_or_constraint.function()->copy_values(energies);
+                if (is_constraint)
+                {
+                    energies[0] *= parameters_.constraint_scaling;
+                    energies[1] *= parameters_.constraint_scaling;
+                }
+                qpbo_->add_unary_term(factor_or_constraint.variables()[0], energies);
+            }
+            else if (arity == 2)
+            {
+                factor_or_constraint.function()->copy_values(energies);
+                if (is_constraint)
+                {
+                    for (auto i = 0; i < 4; ++i)
+                    {
+                        energies[i] *= parameters_.constraint_scaling;
+                    }
+                }
+                qpbo_->add_pairwise_term(factor_or_constraint.variables()[0], factor_or_constraint.variables()[1],
+                                         energies);
+            }
+        });
 }
 
 energy_type Qpbo::lower_bound() const

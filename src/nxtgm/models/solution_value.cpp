@@ -35,6 +35,39 @@ bool SolutionValue::operator<(const SolutionValue &other) const
     }
 }
 
+bool SolutionValue::operator>(const SolutionValue &other) const
+{
+    if (this->is_feasible())
+    {
+        if (other.is_feasible())
+        {
+            return energy_ > other.energy_;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        if (other.is_feasible())
+        {
+            return true;
+        }
+        else
+        {
+            if (how_violated_ == other.how_violated_)
+            {
+                return energy_ > other.energy_;
+            }
+            else
+            {
+                return how_violated_ > other.how_violated_;
+            }
+        }
+    }
+}
+
 bool SolutionValue::operator<=(const SolutionValue &other) const
 {
     if (this->is_feasible())

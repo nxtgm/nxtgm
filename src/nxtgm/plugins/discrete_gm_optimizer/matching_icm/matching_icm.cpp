@@ -18,11 +18,8 @@ class MatchingIcm : public DiscreteGmOptimizerBase
       public:
         inline parameters_type(OptimizerParameters &parameters)
         {
-            if (auto it = parameters.int_parameters.find("subgraph_size"); it != parameters.int_parameters.end())
-            {
-                subgraph_size = it->second;
-                parameters.int_parameters.erase(it);
-            }
+            parameters.assign_and_pop("subgraph_size", subgraph_size);
+            ensure_all_handled(MatchingIcm::name(), parameters);
         }
         int subgraph_size = 3;
     };
@@ -100,7 +97,7 @@ MatchingIcm::MatchingIcm(const DiscreteGm &gm, OptimizerParameters &&parameters)
       movemaker_(gm),
       in_queue_(gm.num_variables(), 1)
 {
-    ensure_all_handled(name(), parameters);
+
     for (std::size_t i = 0; i < gm.num_variables(); ++i)
     {
         queue_.push(i);

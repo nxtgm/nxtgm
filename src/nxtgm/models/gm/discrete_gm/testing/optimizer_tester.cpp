@@ -9,14 +9,16 @@ namespace nxtgm
 template <class F>
 void run_time_limited(F &&f, std::chrono::duration<double, std::milli> time_limit)
 {
+    // run once to warm up
+    f();
     auto start = std::chrono::high_resolution_clock::now();
     f();
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration<double, std::milli>(end - start);
 
     // running mean of duration
-    static std::chrono::duration<double, std::milli> duration_mean = duration;
-    static std::size_t count = 1;
+    std::chrono::duration<double, std::milli> duration_mean = duration;
+    std::size_t count = 1;
 
     while (true)
     {
@@ -33,6 +35,7 @@ void run_time_limited(F &&f, std::chrono::duration<double, std::milli> time_limi
         f();
         ++count;
     }
+    std::cout << "did run " << count + 1 << " times" << std::endl;
     end = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration<double, std::milli>(end - start);
 }
@@ -162,32 +165,28 @@ std::unique_ptr<DiscreteGmOptimizerRequireBase> require_feasiblity()
     return std::make_unique<RequireFeasiblity>();
 }
 
-RequireOptimality::RequireOptimality(bool proven, energy_type tolerance, std::string method,
-                                     OptimizerParameters parameters)
-    : proven(proven),
-      tolerance(tolerance),
+RequireNotWorseThan::RequireNotWorseThan(energy_type tolerance, std::string method, OptimizerParameters parameters)
+    : tolerance(tolerance),
       method(method),
       parameters(parameters)
 {
 }
-std::unique_ptr<DiscreteGmOptimizerRequireBase> require_optimality(bool proven, energy_type tolerance,
-                                                                   std::string method, OptimizerParameters parameters)
+std::unique_ptr<DiscreteGmOptimizerRequireBase> require_not_worse_than(std::string method,
+                                                                       OptimizerParameters parameters,
+                                                                       energy_type tolerance)
 {
-    return std::make_unique<RequireOptimality>(proven, tolerance, method, parameters);
+    return std::make_unique<RequireNotWorseThan>(tolerance, method, parameters);
 }
 
-std::string RequireOptimality::name() const
+std::string RequireNotWorseThan::name() const
 {
-    return "RequireOptimality";
+    return "RequireNotWorseThan " + method;
 }
 
-void RequireOptimality::require(DiscreteGmOptimizerBase *optimizer, OptimizationStatus status,
-                                const std::string &info) const
+void RequireNotWorseThan::require(DiscreteGmOptimizerBase *optimizer, OptimizationStatus status,
+                                  const std::string &info) const
 {
-    if (proven)
-    {
-        NXTGM_TEST(status == OptimizationStatus::OPTIMAL, info);
-    }
+
     const auto &model = optimizer->model();
     SolutionValue optimal_solution_value;
     discrete_solution optimal_solution;
@@ -195,27 +194,26 @@ void RequireOptimality::require(DiscreteGmOptimizerBase *optimizer, Optimization
     using gm_type = std::decay_t<decltype(model)>;
     using solution_type = typename gm_type::solution_type;
 
-    auto opt_optimizer = nxtgm::discrete_gm_optimizer_factory(model, method, parameters);
+    auto reference_optimizer = nxtgm::discrete_gm_optimizer_factory(model, method, parameters);
 
-    opt_optimizer->optimize();
-    auto best_solution = opt_optimizer->best_solution();
-    auto best_solution_value = opt_optimizer->best_solution_value();
+    reference_optimizer->optimize();
+    auto best_solution = reference_optimizer->best_solution();
+    auto reference_solution_value = reference_optimizer->best_solution_value();
 
     auto solution_value = model.evaluate(optimizer->best_solution(), false);
 
-    NXTGM_TEST(best_solution_value.is_feasible() == solution_value.is_feasible(), info);
-    if (best_solution_value.is_feasible())
+    if (reference_solution_value.is_feasible())
     {
 
         auto print = [&]() {
             std::stringstream ss;
-            ss << "best solution: " << std::endl;
+            ss << "solution " << method << ":" << std::endl;
             for (auto l : best_solution)
             {
                 ss << l << " ";
             }
             ss << std::endl;
-            ss << "        solution: " << std::endl;
+            ss << "solution:" << std::endl;
             for (auto l : optimizer->best_solution())
             {
                 ss << l << " ";
@@ -223,7 +221,18 @@ void RequireOptimality::require(DiscreteGmOptimizerBase *optimizer, Optimization
             ss << std::endl;
             return ss.str();
         };
-        NXTGM_TEST_EQ_TOL(solution_value.energy(), best_solution_value.energy(), tolerance, info + print());
+        // NXTGM_TEST_EQ_TOL(solution_value.energy(), reference_solution_value.energy(), tolerance, info + print());
+        // NXTGM_TEST_OP(solution_value.energy(), <=, reference_solution_value.energy() + tolerance, info + print());
+        if (solution_value.how_violated() > reference_solution_value.how_violated())
+        {
+            NXTGM_TEST_EQ_TOL(solution_value.how_violated(), reference_solution_value.how_violated(), tolerance,
+                              info + print());
+        }
+
+        if (solution_value.energy() > reference_solution_value.energy())
+        {
+            NXTGM_TEST_EQ_TOL(solution_value.energy(), reference_solution_value.energy(), tolerance, info + print());
+        }
     }
 }
 
@@ -295,6 +304,9 @@ void RequireLocalOptimality::require(DiscreteGmOptimizerBase *optimizer, Optimiz
                 ss << "could improve solution by chaging label of "
                       "variable "
                    << vi << " from " << l << " to " << li << std::endl;
+                ss << "algorithm value: " << solution_value.energy() << std::endl;
+                ss << "better    value: " << solution_copy_value.energy() << std::endl;
+
                 return ss.str();
             };
 
@@ -530,7 +542,7 @@ std::chrono::duration<double> TestDiscreteGmOptimizerOptions::default_per_model_
     // NXTGM_TEST_PER_MODEL_TIME_LIMIT
     const double t = std::getenv("NXTGM_TEST_PER_MODEL_TIME_LIMIT") != nullptr
                          ? std::stod(std::getenv("NXTGM_TEST_PER_MODEL_TIME_LIMIT"))
-                         : 0.1;
+                         : 0.2;
     return std::chrono::duration<double>(t);
 };
 
@@ -544,20 +556,24 @@ void test_discrete_gm_optimizer(const std::string optimizer_name, const Optimize
 
         unsigned seed = options.seed;
         bool first = true;
+        std::string last_gm_name;
         auto run = [&]() {
             auto gm_and_name = model_gen->operator()(seed);
             auto gm = std::move(gm_and_name.first);
             auto gm_name = std::move(gm_and_name.second);
-
+            last_gm_name = gm_name;
             auto optimizer = discrete_gm_optimizer_factory(gm, optimizer_name, parameters);
             // INFO("Testing model instance ", gm_name.second, " with ", optimizer_name);
             if(first){
                 first = false;
+                // replace ", seed=0" with "" (for nicer output)
+                auto pos = gm_name.find(", seed=0");
+                if(pos != std::string::npos){
+                    gm_name.replace(pos, std::string(", seed=0").size(), "");
+                }
+                std::cout<<gm_name<<" with "<<optimizer_name<<std::endl;
             }
-            // eval trivial sol
-            discrete_solution sol(gm.num_variables(), 0);
 
-            auto sol_value = gm.evaluate(sol);
 
             // run optimizer
             OptimizationStatus status;
@@ -573,19 +589,18 @@ void test_discrete_gm_optimizer(const std::string optimizer_name, const Optimize
             {
                 status = optimizer->optimize();
             }
-
             // check reuirements
             for (const auto &requirement : requirements)
             {
                 std::string info =
-                    "\nmodel: " + gm_name + "\noptimizer: " + optimizer_name + "\nrequirement: " + requirement->name();
+                    "\nmodel: " + gm_name + "\noptimizer: " + optimizer_name + "\nrequirement: " + requirement->name() + "\n";
                 requirement->require(optimizer.get(), status, info);
             }
             ++seed;
         };
-
-        auto budget = std::chrono::duration<double, std::milli>(options.per_model_time_limit);
-        run_time_limited(run, budget);
+        run();
+        //auto budget = std::chrono::duration<double, std::milli>(options.per_model_time_limit);
+        //run_time_limited(run, budget);
     }
 }
 

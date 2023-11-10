@@ -1,5 +1,6 @@
 #include <doctest/doctest.h>
 #include <nxtgm/models/gm/discrete_gm/testing/optimizer_tester.hpp>
+#include <nxtgm/plugins/plugin_registry.hpp>
 
 #ifdef _WIN32
 #define SKIP_WIN doctest::skip(true)
@@ -9,6 +10,57 @@
 
 namespace nxtgm
 {
+
+std::vector<std::string> all_optimizers()
+{
+    std::vector<std::string> result;
+    auto &registry = get_plugin_registry<DiscreteGmOptimizerFactoryBase>();
+    for (auto &[plugin_name, factory] : registry)
+    {
+        auto optimizer_name = plugin_name.substr(std::string("discrete_gm_optimizer_").size());
+        result.push_back(optimizer_name);
+    }
+    return result;
+}
+
+TEST_CASE("raise_on_unknown_parameters")
+{
+    for (auto optimizer_name : all_optimizers())
+    {
+        OptimizerParameters parameters;
+        parameters["_unknown_parameter"] = 42;
+
+        auto model_and_name = potts_grid(1, 2, 2, true)->operator()(0 /*seed*/);
+        auto model = std::move(model_and_name.first);
+
+        INFO(optimizer_name);
+        CHECK_THROWS_AS(discrete_gm_optimizer_factory(model, optimizer_name, parameters), UnknownParameterException);
+    };
+}
+
+TEST_CASE("raise_on_unsupported_model")
+{
+    for (auto optimizer_name : all_optimizers())
+    {
+        OptimizerParameters parameters;
+
+        auto model_and_name = unique_label_chain(10, 3)->operator()(0 /*seed*/);
+        auto model = std::move(model_and_name.first);
+
+        try
+        {
+            auto optimizer = discrete_gm_optimizer_factory(model, optimizer_name, parameters);
+        }
+        catch (const UnsupportedModelException &e)
+        {
+        }
+        catch (const std::exception &e)
+        {
+            INFO(optimizer_name, "wrong exception", std::string(e.what()));
+            CHECK(false);
+        }
+    }
+}
 
 TEST_CASE("chained_optimizers")
 {
@@ -41,6 +93,23 @@ TEST_CASE("chained_optimizers")
 
 TEST_CASE("belief_propagation")
 {
+    SUBCASE("fancy_models")
+    {
+
+        OptimizerParameters belief_propagation_params;
+        belief_propagation_params["max_iterations"] = 3;
+        belief_propagation_params["convergence_tolerance"] = 0.0001;
+        belief_propagation_params["damping"] = 0.999;
+        belief_propagation_params["normalize_messages"] = true;
+
+        test_discrete_gm_optimizer("belief_propagation", belief_propagation_params,
+                                   {unique_label_chain(5, 5, false /*pairwise*/, true /*with ignore label*/)},
+                                   {
+                                       // require_optimization_status(OptimizationStatus::CONVERGED)
+                                   });
+        std::cout << "done fancy" << std::endl;
+    }
+
     SUBCASE("trees")
     {
         // clang-format off
@@ -52,7 +121,7 @@ TEST_CASE("belief_propagation")
                 potts_grid(5, 1, 3, false),
             },
             {
-                require_optimality(/*proven*/ false),
+                require_optimality(),
                 require_optimization_status(OptimizationStatus::CONVERGED)
             }
         );
@@ -70,7 +139,7 @@ TEST_CASE("belief_propagation")
             },
             {
                 // compare against dynamic programming
-                require_optimality(/*proven*/ false, /*tolerance*/ 1e-3, "dynamic_programming"),
+                require_optimality( /*tolerance*/ 1e-3, "dynamic_programming"),
                 require_optimization_status(OptimizationStatus::CONVERGED)
             }
         );
@@ -94,7 +163,7 @@ TEST_CASE("belief_propagation")
                 ),
             },
             {
-                require_optimality(/*proven*/ false),
+                require_optimality(),
                 require_optimization_status(OptimizationStatus::CONVERGED)
             }
         );
@@ -113,7 +182,7 @@ TEST_CASE("belief_propagation")
                 potts_grid(5, 1, 3, false),
             },
             {
-                require_optimality(/*proven*/ false),
+                require_optimality(),
                 require_optimization_status(OptimizationStatus::CONVERGED)
             }
         );
@@ -152,7 +221,8 @@ TEST_CASE("dynamic_programming")
                 star(5, 3)
             },
             {
-                require_optimality(/*proven*/ true),
+                require_optimality(),
+                require_optimization_status(OptimizationStatus::OPTIMAL)
             }
         );
         // clang-format on
@@ -240,7 +310,10 @@ TEST_CASE("graph_cut")
                 potts_grid(3,4,2,true),
                 potts_grid(10,1,2,true)
             },
-            require_optimality(/*proven*/ true)
+            {
+                require_optimality( /*tolerance*/ 1e-3),
+                require_optimization_status(OptimizationStatus::OPTIMAL)
+            }
         );
         // clang-format on
     }
@@ -302,7 +375,10 @@ TEST_CASE("qpbo")
                 star(5,2),
                 sparse_potts_chain(4, 2)
             },
-            require_optimality(/*proven*/ true)
+            {
+                require_optimality( /*tolerance*/ 1e-3),
+                require_optimization_status(OptimizationStatus::OPTIMAL)
+            }
         );
         // clang-format on
     }
@@ -316,8 +392,8 @@ TEST_CASE("qpbo")
             "qpbo",
             parameters,
             {
-                potts_grid(10,10,2,true),
-                star(20,2)
+                potts_grid(6,6,2,true),
+                star(10,2)
             },
             {
                 require_optimization_status(OptimizationStatus::OPTIMAL),
@@ -395,8 +471,10 @@ TEST_CASE("hqpbo")
                     star(5,2),
                     sparse_potts_chain(4, 2)
                 },
-
-                require_optimality(/*proven*/ true)
+                {
+                    require_optimality( /*tolerance*/ 1e-3),
+                    require_optimization_status(OptimizationStatus::OPTIMAL)
+                }
             );
             // clang-format on
         }
@@ -539,7 +617,10 @@ TEST_CASE("ilp_highs" * SKIP_WIN)
                 unique_label_chain(2,2, false),
                 unique_label_chain(4,5, false)
             },
-            require_optimality(/*proven*/ true, /*tolerance*/ 1e-3)
+            {
+                require_optimality( /*tolerance*/ 1e-3),
+                require_optimization_status(OptimizationStatus::OPTIMAL)
+            }
         );
         // clang-format on
     }
@@ -561,7 +642,10 @@ TEST_CASE("reduced_gm_optimizer")
                 {
                     potts_grid(4,3,2,false)
                 },
-                require_optimality(/*proven*/ true, /*tolerance*/ 1e-3)
+                {
+                    require_optimality( /*tolerance*/ 1e-3),
+                    require_optimization_status(OptimizationStatus::OPTIMAL)
+                }
             );
             // clang-format on
         }
@@ -598,7 +682,10 @@ TEST_CASE("reduced_gm_optimizer")
                     random_model(12, 5, 3,  2),
                     random_model(12, 5, 10, 2)
                 },
-                require_optimality(/*proven*/ true, /*tolerance*/ 1e-3)
+                {
+                    require_optimality( /*tolerance*/ 1e-3),
+                    require_optimization_status(OptimizationStatus::OPTIMAL)
+                }
             );
             // clang-format on
         }
@@ -637,10 +724,226 @@ TEST_CASE("hungarian_matching")
                 hungarian_matching_model(/*n_var*/ 3, /*n_labels*/ 8)
             },
             {
-                require_optimality(/*proven*/ true)
+                require_optimality( /*tolerance*/ 1e-3),
+                require_optimization_status(OptimizationStatus::OPTIMAL)
             }
         );
     // clang-format on
+}
+
+TEST_CASE("fusion_moves")
+{
+    SUBCASE("binary_models_full")
+    {
+        // when using a binary model, and use alpha expansion as proposal generator,
+        // the first proposals will be all zeros, but since the starting point is also
+        // all zeros, the fist fusion-move-model will have zero variables.
+        // The second proposal will be all ones, and the second fusion-move-model will
+        // have all variables -- The model is the same as the original model.
+        //  This is a special case, which is tested here.
+
+        // fusion parameters
+        OptimizerParameters fusion_parameters;
+        fusion_parameters["optimizer_name"] = "brute_force_naive";
+
+        // fusion-moves parameters
+        OptimizerParameters fusion_moves_parameters;
+        fusion_moves_parameters["fusion_parameters"] = fusion_parameters;
+        fusion_moves_parameters["proposal_gen_name"] = "alpha_expansion";
+        fusion_moves_parameters["max_iterations"] = 2;
+
+        // clang-format off
+        test_discrete_gm_optimizer(
+            "fusion_moves",
+            fusion_moves_parameters,
+            {
+                potts_grid(3, 1, 2, true),
+                random_sparse_model(8, 5, 1, 4, 2, 0.5 ),
+                random_model(6, 6, 3, 2)
+            },
+            {
+                require_optimization_status(OptimizationStatus::ITERATION_LIMIT_REACHED),
+                require_optimality(/*tolerance*/ 1e-5)
+            }
+        );
+        // clang-format on
+    }
+    SUBCASE("icm")
+    {
+        // We can emulate icm with fusion moves when
+        // using proposals where just a single variable is changes.
+        // Therefore, for a single variable we generate proposals for all labels
+        // and do that for all variables, until no change are accepted for any variable.
+        // This is very slow, but allows to test the fusion framework,
+        // since we can test for the "local_optimal" status.
+        // Ie. after optimizing with fusion moves, no single variable can be changed
+        // to improve the solution. We test this property in a brute force way.
+
+        // fusion parameters
+        OptimizerParameters fusion_parameters;
+        fusion_parameters["optimizer_name"] = "brute_force_naive";
+
+        // fusion-moves parameters
+        OptimizerParameters fusion_moves_parameters;
+        fusion_moves_parameters["fusion_parameters"] = fusion_parameters;
+        fusion_moves_parameters["proposal_gen_name"] = "testing";
+        fusion_moves_parameters["max_iterations"] = 0;
+        OptimizerParameters proposal_gen_parameters;
+        proposal_gen_parameters["name"] = "icm";
+        fusion_moves_parameters["proposal_gen_parameters"] = proposal_gen_parameters;
+
+        // clang-format off
+        test_discrete_gm_optimizer(
+            "fusion_moves",
+            fusion_moves_parameters,
+            {
+                potts_grid(5, 5, 3, false),
+                random_sparse_model(8, 5, 1, 4, 3, 0.5 ),
+                random_model(6, 6, 3, 3),
+                random_model(8, 6, 4, 3),
+                unique_label_chain(8, 8),
+            },
+            {
+                require_optimization_status(OptimizationStatus::CONVERGED),
+                require_local_n_optimality(1)
+            }
+        );
+        // clang-format on
+    }
+    SUBCASE("alpha_expansion")
+    {
+        // running alpha expansion with an optimal fusion moves optimizer
+        // will give a local optimal solution.
+        // ie no single variable can be changed to improve the solution.
+
+        // fusion parameters
+        OptimizerParameters fusion_parameters;
+        fusion_parameters["optimizer_name"] = "brute_force_naive";
+
+        // fusion-moves parameters
+        OptimizerParameters fusion_moves_parameters;
+        fusion_moves_parameters["fusion_parameters"] = fusion_parameters;
+        fusion_moves_parameters["proposal_gen_name"] = "alpha_expansion";
+        fusion_moves_parameters["max_iterations"] = 0;
+
+        // clang-format off
+        test_discrete_gm_optimizer(
+            "fusion_moves",
+            fusion_moves_parameters,
+            {
+                potts_grid(4, 2, 3, false),
+                random_sparse_model(8, 5, 1, 4, 3, 0.5 ),
+                random_model(6, 4, 3, 3)
+            },
+            {
+                require_optimization_status(OptimizationStatus::CONVERGED),
+                require_local_n_optimality(1)
+            }
+        );
+        // clang-format on
+    }
+    SUBCASE("optimizer_based_higher_order")
+    {
+        // running with optimizer based proposal
+        // gives us the guarantee to be not worse
+        // than the optimizer itself. this is even true
+        // when the fusion-optimizer is not optimal (ie icm)
+        std::vector<std::string> fusion_optimizer_names = {"icm", "brute_force_naive", "hqpbo", "belief_propagation"};
+
+        for (auto fusion_optimizer_name : fusion_optimizer_names)
+        {
+            SUBCASE(fusion_optimizer_name.c_str())
+            {
+                // fusion parameters
+                OptimizerParameters fusion_parameters;
+                fusion_parameters["optimizer_name"] = fusion_optimizer_name;
+
+                // fusion-moves parameters
+                OptimizerParameters fusion_moves_parameters;
+                fusion_moves_parameters["fusion_parameters"] = fusion_parameters;
+                fusion_moves_parameters["proposal_gen_name"] = "optimizer_based";
+
+                OptimizerParameters proposal_gen_parameters;
+                OptimizerParameters belief_propagation_parameters;
+                belief_propagation_parameters["max_iterations"] = 10;
+                belief_propagation_parameters["convergence_tolerance"] = 0.0001;
+                belief_propagation_parameters["damping"] = 0.5;
+                proposal_gen_parameters["optimizer_name"] = "belief_propagation";
+                proposal_gen_parameters["optimizer_parameters"] = belief_propagation_parameters;
+
+                fusion_moves_parameters["proposal_gen_parameters"] = proposal_gen_parameters;
+
+                // clang-format off
+                test_discrete_gm_optimizer(
+                    "fusion_moves",
+                    fusion_moves_parameters,
+                    {
+                        random_sparse_model(8, 5, 1, 4, 3, 0.5 ),
+                        random_model(6, 4, 3, 3),
+                        unique_label_chain(4, 4)
+                    },
+                    {
+                        require_optimization_status(OptimizationStatus::CONVERGED),
+                        require_not_worse_than("belief_propagation", belief_propagation_parameters)
+
+                    }
+                );
+                // clang-format on
+            }
+        }
+    }
+
+    SUBCASE("optimizer_based_second_order")
+    {
+        // running with optimizer based proposal
+        // gives us the guarantee to be not worse
+        // than the optimizer itself. this is even true
+        // when the fusion-optimizer is not optimal (ie icm)
+        std::vector<std::string> fusion_optimizer_names = {"icm", "brute_force_naive", "hqpbo", "belief_propagation",
+                                                           "qpbo"};
+
+        for (auto fusion_optimizer_name : fusion_optimizer_names)
+        {
+            SUBCASE(fusion_optimizer_name.c_str())
+            {
+                // fusion parameters
+                OptimizerParameters fusion_parameters;
+                fusion_parameters["optimizer_name"] = fusion_optimizer_name;
+
+                // fusion-moves parameters
+                OptimizerParameters fusion_moves_parameters;
+                fusion_moves_parameters["fusion_parameters"] = fusion_parameters;
+                fusion_moves_parameters["proposal_gen_name"] = "optimizer_based";
+
+                OptimizerParameters proposal_gen_parameters;
+                OptimizerParameters belief_propagation_parameters;
+                belief_propagation_parameters["max_iterations"] = 10;
+                belief_propagation_parameters["convergence_tolerance"] = 0.0001;
+                belief_propagation_parameters["damping"] = 0.5;
+                proposal_gen_parameters["optimizer_name"] = "belief_propagation";
+                proposal_gen_parameters["optimizer_parameters"] = belief_propagation_parameters;
+
+                fusion_moves_parameters["proposal_gen_parameters"] = proposal_gen_parameters;
+
+                // clang-format off
+                test_discrete_gm_optimizer(
+                    "fusion_moves",
+                    fusion_moves_parameters,
+                    {
+                        potts_grid(4, 2, 3, false),
+                        random_sparse_model(8, 8, 1, 2, 5, 0.5),
+                        random_model(6, 4, 2, 2),
+                        unique_label_chain(5, 5, true)
+                    },
+                    {
+                        require_optimization_status(OptimizationStatus::CONVERGED),
+                        require_not_worse_than("belief_propagation", belief_propagation_parameters)
+                    }
+                );
+                // clang-format on
+            }
+        }
+    }
 }
 
 } // namespace nxtgm

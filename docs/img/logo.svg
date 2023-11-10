@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="20mm"
+   height="20mm"
+   viewBox="0 0 20 20.000001"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a84865, 2022-12-01)"
+   sodipodi:docname="logo.svg"
+   inkscape:export-filename="logo_medium.png"
+   inkscape:export-xdpi="398.02875"
+   inkscape:export-ydpi="398.02875"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="10.35098"
+     inkscape:cx="39.947908"
+     inkscape:cy="40.720782"
+     inkscape:window-width="1390"
+     inkscape:window-height="1205"
+     inkscape:window-x="93"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <rect
+       x="153.56769"
+       y="279.81018"
+       width="124.87622"
+       height="77.876854"
+       id="rect452" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-47.940847,-67.931238)">
+    <ellipse
+       style="fill:#da0c81;fill-opacity:1;stroke:#000000;stroke-width:0.294607;stroke-dasharray:none"
+       id="path1172-3"
+       cx="65.188515"
+       cy="82.733803"
+       rx="2.1327896"
+       ry="1.9520447" />
+    <ellipse
+       style="fill:#da0c81;fill-opacity:1;stroke:#000000;stroke-width:0.294607;stroke-dasharray:none"
+       id="path1172-3-9"
+       cx="50.604359"
+       cy="82.733803"
+       rx="2.1327896"
+       ry="1.9520447" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.294607;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 52.365455,81.632741 1.797352,-1.12373"
+       id="path1280"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#path1172-3-9"
+       inkscape:connection-end="#rect616" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.294607;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 63.426359,81.634173 61.623288,80.509011"
+       id="path1282"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#path1172-3"
+       inkscape:connection-end="#rect616" />
+    <rect
+       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.294607;stroke-dasharray:none"
+       id="rect616"
+       width="11.745146"
+       height="4.6599588"
+       x="52.016926"
+       y="75.849052"
+       rx="2.1323092"
+       ry="2.1690314" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.175px;text-align:center;text-anchor:middle;fill:#383838;stroke:#000000;stroke-width:0.264583;stroke-dasharray:0.264583, 0.264583"
+       x="57.643394"
+       y="88.300743"
+       id="text236"><tspan
+         sodipodi:role="line"
+         id="tspan234"
+         style="stroke-width:0.264583"
+         x="57.643394"
+         y="88.300743" /></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,0.78286812,2.3606242)"
+       id="text450"
+       style="font-size:10.6667px;text-align:center;white-space:pre;shape-inside:url(#rect452);display:inline;fill:#000000;stroke:none;stroke-width:1.11348;stroke-dasharray:1, 1"><tspan
+         x="196.83653"
+         y="289.5421"
+         id="tspan463"><tspan
+           style="font-weight:bold;font-family:'.Arial Hebrew Desk Interface';-inkscape-font-specification:'.Arial Hebrew Desk Interface Bold'"
+           id="tspan461">nxtgm</tspan></tspan></text>
+    <ellipse
+       style="fill:#da0c81;fill-opacity:1;stroke:#000000;stroke-width:0.294607;stroke-dasharray:none"
+       id="path1172"
+       cx="57.889496"
+       cy="72.152168"
+       rx="2.1327896"
+       ry="1.9520447" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.294607;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 57.889497,74.104213 1e-6,1.744839"
+       id="path1284"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#path1172"
+       inkscape:connection-end="#rect616"
+       inkscape:export-filename="rect.png"
+       inkscape:export-xdpi="398.02875"
+       inkscape:export-ydpi="398.02875" />
+  </g>
+</svg>

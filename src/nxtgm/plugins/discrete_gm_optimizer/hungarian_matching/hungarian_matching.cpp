@@ -91,6 +91,9 @@ HungarianMatching::HungarianMatching(const DiscreteGm &gm, OptimizerParameters &
       best_solution_(gm.num_variables(), 0),
       best_sol_value_(gm.evaluate(best_solution_))
 {
+    // check that no unknown parameters are passed
+    ensure_all_handled(name(), parameters);
+
     // check if the solver is applicable
     this->check_model();
 
@@ -121,26 +124,26 @@ void HungarianMatching::check_model() const
 
     if (gm.max_factor_arity() > 2)
     {
-        throw std::runtime_error("HungarianMatching only supports factors of arity 2");
+        throw UnsupportedModelException("HungarianMatching only supports factors of arity 2");
     }
 
     if (gm.num_constraints() != 1 || gm.max_constraint_arity() != gm.num_variables())
     {
-        throw std::runtime_error("graphical models needs exactly one global unique label constraint");
+        throw UnsupportedModelException("graphical models needs exactly one global unique label constraint");
     }
 
     if (!dynamic_cast<const UniqueLables *>(gm.constraints()[0].function()))
     {
-        throw std::runtime_error("graphical model has no global unique label constraints");
+        throw UnsupportedModelException("graphical model has no global unique label constraints");
     }
 
     if (gm.max_factor_arity() > 1)
     {
-        throw std::runtime_error("HungarianMatching only supports unary factors");
+        throw UnsupportedModelException("HungarianMatching only supports unary factors");
     }
     if (!gm.space().is_simple())
     {
-        throw std::runtime_error("HungarianMatching only supports simple spaces");
+        throw UnsupportedModelException("HungarianMatching only supports simple spaces");
     }
 }
 

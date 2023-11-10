@@ -8,7 +8,7 @@ TEST_CASE("unique-labels")
 {
     SUBCASE("2")
     {
-        auto constraint = nxtgm::UniqueLables(2, 2, 10.0);
+        auto constraint = nxtgm::UniqueLables(2, 2, false, 10.0);
         CHECK_EQ(constraint.arity(), 2);
         CHECK_EQ(constraint.value({0, 0}), doctest::Approx(10.0));
         CHECK_EQ(constraint.value({0, 1}), doctest::Approx(0.0));
@@ -17,7 +17,7 @@ TEST_CASE("unique-labels")
     }
     SUBCASE("4")
     {
-        auto constraint = nxtgm::UniqueLables(2, 4, 10.0);
+        auto constraint = nxtgm::UniqueLables(2, 4, false, 10.0);
         CHECK_EQ(constraint.arity(), 2);
         CHECK_EQ(constraint.value({0, 0}), doctest::Approx(10.0));
         CHECK_EQ(constraint.value({0, 2}), doctest::Approx(0.0));

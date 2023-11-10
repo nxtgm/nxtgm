@@ -53,6 +53,12 @@ SolutionValue DiscreteGm::evaluate(const solution_type &solution, bool early_sto
     span<const discrete_label_type> solution_span(solution.data(), solution.size());
     return this->evaluate(solution_span, early_stop_infeasible);
 }
+SolutionValue DiscreteGm::evaluate(const discrete_label_type *solution, bool early_stop_infeasible) const
+{
+    span<const discrete_label_type> solution_span(solution, this->num_variables());
+    return this->evaluate(solution_span, early_stop_infeasible);
+}
+
 SolutionValue DiscreteGm::evaluate(const span<const discrete_label_type> &solution, bool early_stop_infeasible) const
 {
     return this->evaluate_if(

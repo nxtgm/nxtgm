@@ -227,4 +227,65 @@ void exitable_n_nested_loop_unique_labels(const std::size_t n, SHAPE &&shape, BU
     }
 }
 
+template <class C, class F>
+void n_nested_loops_binary_shape(std::size_t n, C *coordinates, F &&functor)
+{
+    switch (n)
+    {
+    case 1: {
+        for (coordinates[0] = 0; coordinates[0] < 2; ++coordinates[0])
+        {
+            functor(coordinates);
+        }
+        break;
+    }
+    case 2: {
+        for (coordinates[0] = 0; coordinates[0] < 2; ++coordinates[0])
+            for (coordinates[1] = 0; coordinates[1] < 2; ++coordinates[1])
+            {
+                functor(coordinates);
+            }
+        break;
+    }
+    case 3: {
+        for (coordinates[0] = 0; coordinates[0] < 2; ++coordinates[0])
+            for (coordinates[1] = 0; coordinates[1] < 2; ++coordinates[1])
+                for (coordinates[2] = 0; coordinates[2] < 2; ++coordinates[2])
+                {
+                    functor(coordinates);
+                }
+        break;
+    }
+    default: {
+        // initialize the solution with zeros
+        std::fill(coordinates, coordinates + n, 0);
+
+        const auto last_var = n - 1;
+        auto index = last_var;
+        while (true)
+        {
+            // TODO: Your inner loop code goes here. You can inspect the values in
+            // slots
+            functor(coordinates);
+
+            // Increment
+            coordinates[last_var]++;
+            // Carry
+            while (coordinates[index] == 2)
+            {
+                // Overflow, we're done
+                if (index == 0)
+                {
+                    return;
+                }
+
+                coordinates[index--] = 0;
+                coordinates[index]++;
+            }
+            index = last_var;
+        }
+    }
+    }
+}
+
 } // namespace nxtgm

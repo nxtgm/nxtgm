@@ -6,6 +6,8 @@
 #include <string>
 #include <tsl/ordered_map.h>
 #include <vector>
+// exceptions
+#include <stdexcept>
 
 // std::pair
 #include <any>
@@ -23,6 +25,12 @@ using ordered_map_vec =
 }
 /// \endcond
 
+class UnknownParameterException : public std::runtime_error
+{
+  public:
+    UnknownParameterException(const std::string &str);
+};
+
 class OptimizerParameters
 {
   public:
@@ -34,7 +42,6 @@ class OptimizerParameters
         Proxy &operator=(const std::string &value);
         Proxy &operator=(const OptimizerParameters &value);
 
-        // operator for all floating point types (but in a way that multiple overloads can be defined)
         template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type * = nullptr>
         Proxy &operator=(const T &value)
         {
@@ -70,6 +77,25 @@ class OptimizerParameters
     tsl::ordered_map<std::string, std::any> any_parameters;
     detail::ordered_map_vec<std::string, OptimizerParameters> optimizer_parameters;
     bool empty() const;
+
+    template <class T>
+    void assign_and_pop_from_any(const std::string &key, T &value)
+    {
+        if (auto it = any_parameters.find(key); it != any_parameters.end())
+        {
+            const std::any &anyval = it->second;
+            if (anyval.has_value() == false || anyval.type() != typeid(T))
+            {
+                throw std::runtime_error(std::string("beliefs_callback must be ") + typeid(T).name() + " but is " +
+                                         anyval.type().name());
+            }
+            else
+            {
+                value = std::any_cast<T>(anyval);
+                any_parameters.erase(it);
+            }
+        }
+    }
 
     template <class T>
     void assign_and_pop(const std::string &key, T &value)

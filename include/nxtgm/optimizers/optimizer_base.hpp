@@ -23,6 +23,24 @@ enum class OptimizerFlags : uint64_t
     MetaOptimizer = 1 << 7
 };
 
+// custom exception UnsupportedModelException
+class UnsupportedModelException : public std::exception
+{
+  public:
+    UnsupportedModelException(const std::string &message)
+        : message_(message)
+    {
+    }
+
+    virtual const char *what() const throw()
+    {
+        return message_.c_str();
+    }
+
+  private:
+    std::string message_;
+};
+
 inline OptimizerFlags operator|(OptimizerFlags lhs, OptimizerFlags rhs)
 {
     return static_cast<OptimizerFlags>(static_cast<std::underlying_type<OptimizerFlags>::type>(lhs) |

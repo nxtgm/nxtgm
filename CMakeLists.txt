@@ -37,6 +37,7 @@ option(BUILD_PLUGIN_QPBO_KOLMOGOROV                          "Build qpbo kolmogo
 option(BUILD_PLUGIN_HOCR_FIX                                 "Build fix higher order qpbo plugin" ON)
 option(BUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV                    "Build kolmogorov min st cut plugin" ON)
 
+
 ###############################################################
 # dependencies
 ###############################################################
@@ -71,6 +72,7 @@ endif()
 SET(NXTGM_LIBRARY_SOURCES
     src/nxtgm/utils/timer.cpp
     # src/nxtgm/utils/serialize.cpp
+    src/nxtgm/functions/argmin2.cpp
     src/nxtgm/functions/discrete_function_base.cpp
     src/nxtgm/functions/discrete_energy_function_base.cpp
     src/nxtgm/functions/xarray_energy_function.cpp
@@ -87,6 +89,7 @@ SET(NXTGM_LIBRARY_SOURCES
     src/nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.cpp
     src/nxtgm/optimizers/gm/discrete/movemaker.cpp
     src/nxtgm/optimizers/gm/discrete/optimizer_base.cpp
+    src/nxtgm/optimizers/gm/discrete/fusion.cpp
     src/nxtgm/plugins/hocr/hocr_base.cpp
 )
 if(NOT EMSCRIPTEN)

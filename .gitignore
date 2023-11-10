@@ -65,3 +65,11 @@ nxtgm.code-workspace
 node_modules
 package-lock.json
 javascript/lib/
+
+
+# build dir
+build/
+build_wasm*/
+
+# javascript
+javascript/dist/

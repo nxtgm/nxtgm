@@ -30,6 +30,13 @@ class CallbackBase
     const optimizer_base_type *optimizer_;
 };
 
+// struct ReportData
+// {
+//     std::unordered_map<std::string, span<const double>>      double_data;
+//     std::unordered_map<std::string, span<const int64_t>>     int_data;
+//     std::unordered_map<std::string, std::any>                any_data;
+// };
+
 // print / log energy / bounds / etc
 template <class OPTIMIZER_BASE_TYPE>
 class ReporterCallbackBase : public CallbackBase<OPTIMIZER_BASE_TYPE>
@@ -48,6 +55,10 @@ class ReporterCallbackBase : public CallbackBase<OPTIMIZER_BASE_TYPE>
     {
     }
     virtual bool report() = 0;
+    // virtual void report_data(const ReportData &data)
+    // {
+    //     this->report();
+    // }
     virtual void end()
     {
     }
