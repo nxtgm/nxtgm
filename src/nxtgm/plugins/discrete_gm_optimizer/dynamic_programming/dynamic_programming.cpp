@@ -18,23 +18,7 @@ class DynamicProgramming : public DiscreteGmOptimizerBase
       public:
         inline parameters_type(OptimizerParameters &&parameters)
         {
-
-            if (auto it = parameters.any_parameters.find("roots"); it != parameters.any_parameters.end())
-            {
-                const std::any &roots_any = it->second;
-                if (roots_any.has_value() == false)
-                {
-                    throw std::runtime_error("roots must be a std::vector<std::size_t>");
-                }
-                if (roots_any.has_value() == false || roots_any.type() != typeid(std::vector<std::size_t>))
-                {
-                    throw std::runtime_error("roots must be a std::vector<std::size_t>");
-                }
-                else
-                {
-                    roots = std::any_cast<std::vector<std::size_t>>(roots_any);
-                }
-            }
+            parameters.assign_and_pop_from_any<std::vector<std::size_t>>("roots", roots);
         }
         std::vector<std::size_t> roots;
     };
@@ -124,13 +108,15 @@ DynamicProgramming::DynamicProgramming(const DiscreteGm &gm, OptimizerParameters
       node_order_(gm.space().size(), std::numeric_limits<std::size_t>::max()),
       ordered_nodes_(gm.space().size(), std::numeric_limits<std::size_t>::max())
 {
+    ensure_all_handled(name(), parameters);
+
     if (gm.max_factor_arity() > 2)
     {
-        throw std::runtime_error("DynamicProgramming only supports factors of arity 2");
+        throw UnsupportedModelException("DynamicProgramming only supports factors of arity 2");
     }
     if (!gm.constraints().empty())
     {
-        throw std::runtime_error("DynamicProgramming does not support constraints");
+        throw UnsupportedModelException("DynamicProgramming does not support constraints");
     }
 
     // node order

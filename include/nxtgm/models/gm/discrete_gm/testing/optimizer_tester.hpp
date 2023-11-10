@@ -42,24 +42,30 @@ class RequireFeasiblity : public DiscreteGmOptimizerRequireBase
 };
 std::unique_ptr<DiscreteGmOptimizerRequireBase> require_feasiblity();
 
-class RequireOptimality : public DiscreteGmOptimizerRequireBase
+class RequireNotWorseThan : public DiscreteGmOptimizerRequireBase
 {
   public:
-    RequireOptimality(bool proven, energy_type tolerance, std::string method, OptimizerParameters parameters);
-    virtual ~RequireOptimality() = default;
+    RequireNotWorseThan(energy_type tolerance, std::string method, OptimizerParameters parameters);
+    virtual ~RequireNotWorseThan() = default;
     std::string name() const override;
     void require(DiscreteGmOptimizerBase *optimizer, OptimizationStatus status, const std::string &info) const override;
 
   private:
-    bool proven;
     energy_type tolerance;
     std::string method;
     OptimizerParameters parameters;
 };
 
+std::unique_ptr<DiscreteGmOptimizerRequireBase> require_not_worse_than(std::string method,
+                                                                       OptimizerParameters parameters,
+                                                                       energy_type tolerance = 1e-6);
+
 std::unique_ptr<DiscreteGmOptimizerRequireBase> require_optimality(
-    bool proven = false, energy_type tolerance = 1e-6, std::string method = "brute_force_naive",
-    OptimizerParameters parameters = OptimizerParameters());
+    energy_type tolerance = 1e-6, std::string method = "brute_force_naive",
+    OptimizerParameters parameters = OptimizerParameters())
+{
+    return require_not_worse_than(method, parameters, tolerance);
+}
 
 class RequireInfesibility : public DiscreteGmOptimizerRequireBase
 {

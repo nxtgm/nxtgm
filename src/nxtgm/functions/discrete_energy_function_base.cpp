@@ -18,6 +18,9 @@
 // bitset
 #include <bitset>
 
+// fusion
+#include <nxtgm/optimizers/gm/discrete/fusion.hpp>
+
 namespace nxtgm
 {
 
@@ -97,8 +100,8 @@ void DiscreteEnergyFunctionBase::add_to_lp(IlpData &ilp_data, const std::size_t 
     }
 }
 
-void DiscreteEnergyFunctionBase::compute_factor_to_variable_messages(const energy_type *const *in_messages,
-                                                                     energy_type **out_messages) const
+void DiscreteEnergyFunctionBase::compute_to_variable_messages(const energy_type *const *in_messages,
+                                                              energy_type **out_messages) const
 {
 
     const auto arity = this->arity();
@@ -167,6 +170,32 @@ std::unique_ptr<DiscreteEnergyFunctionBase> DiscreteEnergyFunctionBase::bind(
     auto binded = bind_many(energy_view, binded_vars, binded_vars_labels);
 
     return std::make_unique<XArray>(std::move(binded));
+}
+
+void DiscreteEnergyFunctionBase::fuse(const discrete_label_type *labels_a, const discrete_label_type *labels_b,
+                                      discrete_label_type *labels_ab, const std::size_t fused_arity,
+                                      const std::size_t *fuse_factor_var_pos, Fusion &fusion) const
+{
+
+    std::vector<std::size_t> shape(fused_arity, 2);
+    auto fused_function_data = xt::xarray<energy_type>::from_shape(shape);
+    small_arity_vector<discrete_label_type> fused_coords(fused_arity);
+
+    // iterate over all states of the fused function
+    std::size_t sub_factor_flat_index = 0;
+    n_nested_loops_binary_shape(fused_arity, fused_coords.data(), [&](auto &&_) {
+        for (std::size_t fi = 0; fi < fused_arity; ++fi)
+        {
+            const auto pos = fuse_factor_var_pos[fi];
+            labels_ab[pos] = fused_coords[fi] == 0 ? labels_a[pos] : labels_b[pos];
+        }
+
+        auto e = this->value(labels_ab);
+        fused_function_data[sub_factor_flat_index] = e;
+        ++sub_factor_flat_index;
+    });
+
+    fusion.add_to_fuse_gm(std::make_unique<XArray>(std::move(fused_function_data)), fuse_factor_var_pos);
 }
 
 template <class T>

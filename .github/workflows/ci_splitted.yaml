@@ -11,7 +11,7 @@ jobs:
   unix:
     strategy:
       matrix:
-        os: ["ubuntu-latest"," macos-latest"]
+        os: ["ubuntu-latest","macos-latest"]
         build_type: ["Release"]
 
       fail-fast: false
@@ -49,6 +49,7 @@ jobs:
               -DBUILD_PLUGIN_QPBO_KOLMOGOROV=OFF \
               -DBUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV=OFF \
               -DBUILD_PLUGIN_HOCR_FIX=OFF \
+              -DBUILD_PLUGIN_PROPOSAL_GENS=OFF \
               -DBUILD_PLUGINS_DISCRETE_GM_OPTIMIZER=OFF \
               -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
 
@@ -79,7 +80,21 @@ jobs:
             make install
             cd ../..
           done
-
+      - name: build all proposal gen
+        shell: bash -l {0}
+        run: |
+          cd src/nxtgm/plugins/proposal_gen
+          # loop over all subdirectories
+          for d in */ ; do
+            echo "building" $d
+            cd $d
+            mkdir -p bld
+            cd bld
+            cmake .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+            make -j ${{ steps.cpu-cores.outputs.count }}
+            make install
+            cd ../..
+          done
       - name: Build&install qpbo kolmogorov
         shell: bash -l {0}
         run: |
@@ -152,6 +167,7 @@ jobs:
             -DBUILD_PLUGIN_QPBO_KOLMOGOROV=OFF ^
             -DBUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV=OFF ^
             -DBUILD_PLUGIN_HOCR_FIX=OFF ^
+            -DBUILD_PLUGIN_PROPOSAL_GENS=OFF ^
             -DBUILD_PLUGINS_DISCRETE_GM_OPTIMIZER=OFF ^
             -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library" ^
             -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%
@@ -162,6 +178,25 @@ jobs:
         shell: cmd /C CALL {0}
         run: |
           cd src\nxtgm\plugins\discrete_gm_optimizer
+          # loop over all subdirectories
+          for /D %%d in (*) do (
+            echo "building" %%d
+            cd %%d
+            mkdir bld
+            cd bld
+            cmake .. ^
+              -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library" ^
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ^
+              -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%
+
+            cmake --build . --config ${{ matrix.build_type }}
+            cmake --install . --config ${{ matrix.build_type }}
+            cd ..\..
+          )
+      - name: build all proposal gens
+        shell: cmd /C CALL {0}
+        run: |
+          cd src\nxtgm\plugins\proposal_gen
           # loop over all subdirectories
           for /D %%d in (*) do (
             echo "building" %%d

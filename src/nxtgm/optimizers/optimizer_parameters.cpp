@@ -3,6 +3,12 @@
 
 namespace nxtgm
 {
+
+UnknownParameterException::UnknownParameterException(const std::string &str)
+    : std::runtime_error("Unknown parameter: " + str)
+{
+}
+
 OptimizerParameters::Proxy::Proxy(const std::string &key, OptimizerParameters *parent)
     : key(key),
       parent(parent)
@@ -122,9 +128,9 @@ void ensure_all_handled(const std::string &optimizer_name, const OptimizerParame
     if (!parameters.empty())
     {
         std::stringstream ss;
-        ss << "The following parameters are not supported by the optimizer '" << optimizer_name << "':\n";
+        ss << "The following parameters are not supported by '" << optimizer_name << "':\n";
         to_stream(ss, parameters);
-        throw std::runtime_error(ss.str());
+        throw UnknownParameterException(ss.str());
     }
 }
 

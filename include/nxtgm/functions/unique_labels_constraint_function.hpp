@@ -20,7 +20,8 @@ class UniqueLables : public DiscreteConstraintFunctionBase
     {
     }
     UniqueLables() = default;
-    UniqueLables(std::size_t arity, discrete_label_type n_labels, energy_type scale = 1.0);
+    UniqueLables(std::size_t arity, discrete_label_type n_labels, bool with_ignore_label = false,
+                 energy_type scale = 1.0);
 
     std::size_t arity() const override;
     discrete_label_type shape(std::size_t) const override;
@@ -38,6 +39,7 @@ class UniqueLables : public DiscreteConstraintFunctionBase
   private:
     std::size_t arity_;
     discrete_label_type n_labels_;
+    bool with_ignore_label_;
     energy_type scale_;
 };
 

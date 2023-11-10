@@ -18,6 +18,9 @@ const_discrete_label_span local_solution_from_model_solution(const std::vector<s
                                                              const span<const discrete_label_type> &solution,
                                                              std::vector<discrete_label_type> &local_labels_buffer);
 
+// forward declaration
+class DiscreteEnergyFunctionBase;
+
 class DiscreteFactor
 {
   public:
@@ -116,6 +119,10 @@ class DiscreteConstraint
         return function_index_;
     }
 
+    inline std::size_t variable(std::size_t variable_index) const
+    {
+        return variables_[variable_index];
+    }
     inline const std::vector<std::size_t> &variables() const
     {
         return variables_;
@@ -303,6 +310,19 @@ class DiscreteGm
         }
     }
 
+    template <class F>
+    void for_each_factor_and_constraint(F &&f) const
+    {
+        for (std::size_t i = 0; i < factors_.size(); ++i)
+        {
+            f(factors_[i], i, false);
+        }
+        for (std::size_t i = 0; i < constraints_.size(); ++i)
+        {
+            f(constraints_[i], i, true);
+        }
+    }
+
     std::size_t add_energy_function(std::unique_ptr<DiscreteEnergyFunctionBase> function);
     std::size_t add_constraint_function(std::unique_ptr<DiscreteConstraintFunctionBase> function);
 
@@ -360,6 +380,7 @@ class DiscreteGm
 
     SolutionValue evaluate(const span<const discrete_label_type> &solution, bool early_stop_infeasible = false) const;
     SolutionValue evaluate(const solution_type &solution, bool early_stop_infeasible = false) const;
+    SolutionValue evaluate(const discrete_label_type *solution, bool early_stop_infeasible = false) const;
 
     template <class USE_FACTOR, class USE_CONSTRAINT>
     SolutionValue evaluate_if(const span<const discrete_label_type> &solution, bool early_stop_infeasible,
@@ -369,7 +390,7 @@ class DiscreteGm
         energy_type total_how_violated = 0;
 
         // buffer holding the labels for the factors/constraints
-        std::vector<discrete_label_type> local_labels_buffer(2);
+        std::vector<discrete_label_type> local_labels_buffer(max_arity());
 
         std::size_t ci = 0;
         for (const auto &constraint : constraints_)
@@ -407,8 +428,8 @@ class DiscreteGm
                 const const_discrete_label_span labels =
                     local_solution_from_model_solution(factor.variables(), solution, local_labels_buffer);
                 total_energy += factor.function()->value(labels.data());
-                ++fi;
             }
+            ++fi;
         }
         total_how_violated = total_how_violated < constraint_feasiblility_limit ? 0 : total_how_violated;
         return SolutionValue{total_energy, total_how_violated};

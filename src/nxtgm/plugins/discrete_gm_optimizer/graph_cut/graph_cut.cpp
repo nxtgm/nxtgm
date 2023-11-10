@@ -15,20 +15,15 @@ class GraphCut : public DiscreteGmOptimizerBase
       public:
         inline parameters_type(OptimizerParameters &&parameters)
         {
-            if (auto it = parameters.string_parameters.find("min_st_cut_plugin_name");
-                it != parameters.string_parameters.end())
-            {
-                min_st_cut_plugin_name = it->second;
-            }
-            if (auto it = parameters.double_parameters.find("submodular_epsilon");
-                it != parameters.double_parameters.end())
-            {
-                submodular_epsilon = it->second;
-            }
+            parameters.assign_and_pop("min_st_cut_plugin_name", min_st_cut_plugin_name);
+            parameters.assign_and_pop("submodular_epsilon", submodular_epsilon);
+            parameters.assign_and_pop("constraint_scaling", constraint_scaling);
+            ensure_all_handled(GraphCut::name(), parameters);
         }
 
         std::string min_st_cut_plugin_name;
         double submodular_epsilon = 1e-6;
+        energy_type constraint_scaling = default_constraint_scaling;
     };
 
   public:
@@ -110,17 +105,12 @@ GraphCut::GraphCut(const DiscreteGm &gm, OptimizerParameters &&parameters)
     // check space
     if (gm.space().max_num_labels() != 2)
     {
-        throw std::runtime_error("GraphCut only supports binary variables");
-    }
-    // check for constraints
-    if (gm.num_constraints() > 0)
-    {
-        throw std::runtime_error("GraphCut does not support constraints");
+        throw UnsupportedModelException("GraphCut only supports binary variables");
     }
     // check arity
     if (gm.max_arity() > 2)
     {
-        throw std::runtime_error("GraphCut only supports pairwise factors");
+        throw UnsupportedModelException("GraphCut only supports pairwise factors");
     }
 
     size_t num_edges = 0;
@@ -134,64 +124,69 @@ GraphCut::GraphCut(const DiscreteGm &gm, OptimizerParameters &&parameters)
     min_st_cut_ = factory->create(gm.num_variables(), num_edges);
 
     double energies[4] = {0, 0, 0, 0};
-    for (size_t i = 0; i < gm.num_factors(); ++i)
-    {
-        const auto &factor = gm.factor(i);
-        if (const auto arity = factor.arity(); arity == 1)
-        {
-            const auto var0 = factor.variable(0);
-            factor.copy_values(energies);
-            if (energies[0] <= energies[1])
-            {
-                min_st_cut_->add_terminal_weights(var0, energies[1] - energies[0], 0);
-            }
-            else
-            {
-                min_st_cut_->add_terminal_weights(var0, 0, energies[0] - energies[1]);
-            }
-        }
-        else if (arity == 2)
-        {
-            factor.copy_values(energies);
-            const auto A = energies[0]; // 00
-            const auto B = energies[1]; // 01
-            const auto C = energies[2]; // 10
-            const auto D = energies[3]; // 11
-            const auto var0 = factor.variable(0);
-            const auto var1 = factor.variable(1);
 
-            // first variable
-            if (C > A)
+    gm.for_each_factor_and_constraint(
+        [&](auto &&factor_or_constraint, std::size_t /*factor_or_constraint_index*/, bool is_constraint) {
+            if (const auto arity = factor_or_constraint.arity(); arity == 1)
             {
-                min_st_cut_->add_terminal_weights(var0, C - A, 0);
+                const auto var0 = factor_or_constraint.variable(0);
+                factor_or_constraint.function()->copy_values(energies);
+                if (energies[0] <= energies[1])
+                {
+                    const auto value = energies[1] - energies[0];
+                    const auto c = is_constraint ? value * parameters_.constraint_scaling : value;
+                    min_st_cut_->add_terminal_weights(var0, c, 0);
+                }
+                else
+                {
+                    const auto value = energies[0] - energies[1];
+                    const auto c = is_constraint ? value * parameters_.constraint_scaling : value;
+                    min_st_cut_->add_terminal_weights(var0, 0, c);
+                }
             }
-            else if (C < A)
+            else if (arity == 2)
             {
-                min_st_cut_->add_terminal_weights(var0, 0, A - C);
-            }
+                const auto scale = is_constraint ? parameters_.constraint_scaling : 1.0;
+                factor_or_constraint.function()->copy_values(energies);
+                const auto A = energies[0] * scale; // 00
+                const auto B = energies[1] * scale; // 01
+                const auto C = energies[2] * scale; // 10
+                const auto D = energies[3] * scale; // 11
+                const auto var0 = factor_or_constraint.variable(0);
+                const auto var1 = factor_or_constraint.variable(1);
 
-            // second variable
-            if (D > C)
-            {
-                min_st_cut_->add_terminal_weights(var1, D - C, 0);
-            }
-            else if (D < C)
-            {
-                min_st_cut_->add_terminal_weights(var1, 0, C - D);
-            }
+                // first variable
+                if (C > A)
+                {
+                    min_st_cut_->add_terminal_weights(var0, C - A, 0);
+                }
+                else if (C < A)
+                {
+                    min_st_cut_->add_terminal_weights(var0, 0, A - C);
+                }
 
-            // submodular term
-            const auto term = B + C - A - D;
-            if (term < -parameters_.submodular_epsilon)
-            {
-                throw std::runtime_error("non sub-modular factors cannot be processed");
+                // second variable
+                if (D > C)
+                {
+                    min_st_cut_->add_terminal_weights(var1, D - C, 0);
+                }
+                else if (D < C)
+                {
+                    min_st_cut_->add_terminal_weights(var1, 0, C - D);
+                }
+
+                // submodular term
+                const auto term = B + C - A - D;
+                if (term < -parameters_.submodular_epsilon)
+                {
+                    throw std::runtime_error("non sub-modular factors cannot be processed");
+                }
+                if (term > 0)
+                {
+                    min_st_cut_->add_edge(var0, var1, term, 0);
+                }
             }
-            if (term > 0)
-            {
-                min_st_cut_->add_edge(var0, var1, term, 0);
-            }
-        }
-    }
+        });
 }
 
 OptimizationStatus GraphCut::optimize_impl(reporter_callback_wrapper_type &reporter_callback,

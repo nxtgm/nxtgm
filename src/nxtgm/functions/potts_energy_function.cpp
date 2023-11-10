@@ -3,39 +3,10 @@
 #include <nxtgm/functions/potts_energy_function.hpp>
 #include <nxtgm/functions/xtensor_energy_function.hpp>
 
+#include "argmin2.hpp"
+
 namespace nxtgm
 {
-
-// find the arg minimum and second arg minimum value in a range
-std::pair<std::size_t, std::size_t> arg2min(const energy_type *begin, const energy_type *end)
-{
-    std::pair<std::size_t, std::size_t> res;
-    energy_type min0 = std::numeric_limits<energy_type>::infinity();
-    energy_type min1 = min0;
-    const auto dist = std::distance(begin, end);
-    for (auto i = 0; i < dist; ++i)
-    {
-        const energy_type val = begin[i];
-        if (val < min1)
-        {
-            if (val < min0)
-            {
-
-                min1 = min0;
-                res.second = res.first;
-                min0 = val;
-                res.first = i;
-                continue;
-            }
-            else
-            {
-                min1 = val;
-                res.second = i;
-            }
-        }
-    }
-    return res;
-}
 
 Potts::Potts(std::size_t num_labels, energy_type beta)
     : num_labels_(num_labels),
@@ -91,7 +62,7 @@ void Potts::add_values(energy_type *energies) const
     }
 }
 
-void Potts::compute_factor_to_variable_messages(const energy_type *const *in_messages, energy_type **out_messages) const
+void Potts::compute_to_variable_messages(const energy_type *const *in_messages, energy_type **out_messages) const
 {
 
     if (beta_ >= 0)

@@ -179,6 +179,66 @@ std::unique_ptr<DiscreteGmTestmodel> star(std::size_t n_arms, std::size_t n_labe
     return std::make_unique<Star>(n_arms, n_labels);
 }
 
+ConstraintStar::ConstraintStar(std::size_t n_arms, std::size_t arm_length, std::size_t n_labels)
+    : n_arms(n_arms),
+      arm_length(arm_length),
+      n_labels(n_labels)
+{
+}
+
+std::pair<DiscreteGm, std::string> ConstraintStar::operator()(unsigned seed)
+{
+    xt::random::seed(seed);
+
+    auto space = DiscreteSpace(n_arms * arm_length + 1, n_labels);
+    DiscreteGm gm(space);
+
+    // unaries
+    for (std::size_t vi = 0; vi < space.size(); ++vi)
+    {
+        auto tensor = xt::random::rand<energy_type>({n_labels}, energy_type(-1), energy_type(1));
+        auto f = std::make_unique<nxtgm::XTensor<1>>(tensor);
+        auto fid = gm.add_energy_function(std::move(f));
+        gm.add_factor({vi}, fid);
+    }
+
+    auto constraint = std::make_unique<UniqueLables>(2, n_labels, true /*with ignore label*/);
+    auto cid = gm.add_constraint_function(std::move(constraint));
+
+    auto add_pairwise = [&](auto vi0, auto vi1) {
+        // energy
+        auto tensor = xt::random::rand<energy_type>({n_labels, n_labels}, energy_type(-1), energy_type(1));
+        auto f = std::make_unique<nxtgm::XTensor<2>>(tensor);
+        auto fid = gm.add_energy_function(std::move(f));
+        gm.add_factor({vi0, vi1}, fid);
+        gm.add_constraint({vi0, vi1}, cid);
+    };
+
+    for (std::size_t arm_index = 0; arm_index < n_arms; ++arm_index)
+    {
+        const std::size_t start_vi = arm_index * arm_length;
+        for (std::size_t length_index = 0; length_index + 1 < arm_length; ++length_index)
+        {
+            const auto vi0 = start_vi + length_index;
+            const auto vi1 = start_vi + length_index + 1;
+            add_pairwise(vi0, vi1);
+        }
+        // connect first of arm with root (last node)
+        add_pairwise(start_vi, arm_length * n_arms);
+    }
+
+    std::stringstream ss;
+    ss << "ConstraintStar(n_arms=" << n_arms << ", arm_length=" << arm_length << ", n_labels=" << n_labels
+       << ", seed=" << seed << ")";
+    ++seed;
+    return std::pair<DiscreteGm, std::string>(std::move(gm), ss.str());
+}
+
+std::unique_ptr<DiscreteGmTestmodel> constraint_star(std::size_t n_arms, std::size_t arm_length, std::size_t n_labels)
+{
+    return std::make_unique<ConstraintStar>(n_arms, arm_length, n_labels);
+}
+
 PottsGrid::PottsGrid(std::size_t n_x, std::size_t n_y, discrete_label_type n_labels, bool submodular)
     : n_x(n_x),
       n_y(n_y),
@@ -343,10 +403,12 @@ std::unique_ptr<DiscreteGmTestmodel> potts_chain_with_label_costs(std::size_t n_
     return std::make_unique<PottsChainWithLabelCosts>(n_variables, n_labels);
 }
 
-UniqueLabelChain::UniqueLabelChain(std::size_t n_variables, discrete_label_type n_labels, bool use_pairwise_constraints)
+UniqueLabelChain::UniqueLabelChain(std::size_t n_variables, discrete_label_type n_labels, bool use_pairwise_constraints,
+                                   bool with_ignore_label)
     : n_variables(n_variables),
       n_labels(n_labels),
-      use_pairwise_constraints(use_pairwise_constraints)
+      use_pairwise_constraints(use_pairwise_constraints),
+      with_ignore_label(with_ignore_label)
 {
 }
 std::pair<DiscreteGm, std::string> UniqueLabelChain::operator()(unsigned seed)
@@ -380,7 +442,7 @@ std::pair<DiscreteGm, std::string> UniqueLabelChain::operator()(unsigned seed)
     // pairwise constraints (all pairs, not just neighbours)
     if (use_pairwise_constraints)
     {
-        auto f = std::make_unique<UniqueLables>(2, n_labels);
+        auto f = std::make_unique<UniqueLables>(2, n_labels, with_ignore_label);
         auto fid = gm.add_constraint_function(std::move(f));
         for (std::size_t i = 0; i < n_variables - 1; i++)
         {
@@ -393,7 +455,7 @@ std::pair<DiscreteGm, std::string> UniqueLabelChain::operator()(unsigned seed)
     }
     else
     {
-        auto f = std::make_unique<UniqueLables>(n_variables, n_labels);
+        auto f = std::make_unique<UniqueLables>(n_variables, n_labels, with_ignore_label);
         auto fid = gm.add_constraint_function(std::move(f));
 
         std::vector<std::size_t> vars(n_variables);
@@ -409,9 +471,9 @@ std::pair<DiscreteGm, std::string> UniqueLabelChain::operator()(unsigned seed)
 }
 
 std::unique_ptr<DiscreteGmTestmodel> unique_label_chain(std::size_t n_variables, discrete_label_type n_labels,
-                                                        bool use_pairwise_constraints)
+                                                        bool use_pairwise_constraints, bool with_ignore_label)
 {
-    return std::make_unique<UniqueLabelChain>(n_variables, n_labels, use_pairwise_constraints);
+    return std::make_unique<UniqueLabelChain>(n_variables, n_labels, use_pairwise_constraints, with_ignore_label);
 }
 
 RandomModel::RandomModel(std::size_t n_variables, std::size_t n_factors, std::size_t max_factor_arity,

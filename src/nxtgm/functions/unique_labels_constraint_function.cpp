@@ -1,14 +1,20 @@
+#include <iomanip>
 #include <nxtgm/functions/unique_labels_constraint_function.hpp>
 #include <nxtgm/utils/n_nested_loops.hpp>
 
 namespace nxtgm
 {
 
-UniqueLables::UniqueLables(std::size_t arity, discrete_label_type n_labels, energy_type scale)
+UniqueLables::UniqueLables(std::size_t arity, discrete_label_type n_labels, bool with_ignore_label, energy_type scale)
     : arity_(arity),
       n_labels_(n_labels),
+      with_ignore_label_(with_ignore_label),
       scale_(scale)
 {
+    if (arity < 2)
+    {
+        throw std::runtime_error("UniqueLables arity must be >= 2");
+    }
 }
 
 std::size_t UniqueLables::arity() const
@@ -32,9 +38,19 @@ energy_type UniqueLables::value(const discrete_label_type *discrete_labels) cons
 
     for (auto i = 0; i < arity_ - 1; ++i)
     {
+        const auto label_i = discrete_labels[i];
+        if (with_ignore_label_ && label_i == 0)
+        {
+            continue;
+        }
         for (auto j = i + 1; j < arity_; ++j)
         {
-            if (discrete_labels[i] == discrete_labels[j])
+            const auto label_j = discrete_labels[j];
+            if (with_ignore_label_ && label_j == 0)
+            {
+                continue;
+            }
+            if (label_i == label_j)
             {
                 ++n_duplicates;
             }
@@ -45,14 +61,13 @@ energy_type UniqueLables::value(const discrete_label_type *discrete_labels) cons
 
 std::unique_ptr<DiscreteConstraintFunctionBase> UniqueLables::clone() const
 {
-    return std::make_unique<UniqueLables>(arity_, n_labels_, scale_);
+    return std::make_unique<UniqueLables>(arity_, n_labels_, with_ignore_label_, scale_);
 }
 
 void UniqueLables::add_to_lp(IlpData &ilp_data, const std::size_t *indicator_variables_mapping) const
 {
-    for (discrete_label_type l = 0; l < n_labels_; ++l)
+    for (discrete_label_type l = (with_ignore_label_ ? 1 : 0); l < n_labels_; ++l)
     {
-
         ilp_data.begin_constraint(0.0, 1.0);
         for (auto i = 0; i < arity_; ++i)
         {
@@ -63,8 +78,11 @@ void UniqueLables::add_to_lp(IlpData &ilp_data, const std::size_t *indicator_var
 
 nlohmann::json UniqueLables::serialize_json() const
 {
-    return {
-        {"type", UniqueLables::serialization_key()}, {"arity", arity_}, {"num_labels", n_labels_}, {"scale", scale_}};
+    return {{"type", UniqueLables::serialization_key()},
+            {"arity", arity_},
+            {"num_labels", n_labels_},
+            {"with_ignore_label", with_ignore_label_},
+            {"scale", scale_}};
 }
 
 void UniqueLables::serialize(Serializer &serializer) const
@@ -72,14 +90,17 @@ void UniqueLables::serialize(Serializer &serializer) const
     serializer(UniqueLables::serialization_key());
     serializer(arity_);
     serializer(n_labels_);
+    serializer(with_ignore_label_);
     serializer(scale_);
 }
+
 std::unique_ptr<DiscreteConstraintFunctionBase> UniqueLables::deserialize(Deserializer &deserializer)
 {
     auto f = new UniqueLables();
     deserializer(f->arity_);
     deserializer(f->n_labels_);
     deserializer(f->scale_);
+    deserializer(f->with_ignore_label_);
     return std::unique_ptr<DiscreteConstraintFunctionBase>(f);
 }
 
@@ -87,7 +108,7 @@ std::unique_ptr<DiscreteConstraintFunctionBase> UniqueLables::deserialize_json(c
 {
     return std::make_unique<UniqueLables>(json["arity"].get<std::size_t>(),
                                           json["num_labels"].get<discrete_label_type>(),
-                                          json["scale"].get<energy_type>());
+                                          json["with_ignore_label"].get<bool>(), json["scale"].get<energy_type>());
 }
 
 } // namespace nxtgm

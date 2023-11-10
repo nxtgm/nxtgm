@@ -60,8 +60,22 @@ class Star : public DiscreteGmTestmodel
     std::size_t n_arms;
     std::size_t n_labels;
 };
-
 std::unique_ptr<DiscreteGmTestmodel> star(std::size_t n_arms = 3, std::size_t n_labels = 2);
+
+class ConstraintStar : public DiscreteGmTestmodel
+{
+  public:
+    ConstraintStar(std::size_t n_arms, std::size_t arm_length, std::size_t n_labels);
+    std::pair<DiscreteGm, std::string> operator()(unsigned seed) override;
+
+  private:
+    std::size_t n_arms;
+    std::size_t arm_length;
+    std::size_t n_labels;
+};
+
+std::unique_ptr<DiscreteGmTestmodel> constraint_star(std::size_t n_arms = 3, std::size_t arm_length = 3,
+                                                     std::size_t n_labels = 2);
 
 struct PottsGrid : public DiscreteGmTestmodel
 {
@@ -108,17 +122,20 @@ std::unique_ptr<DiscreteGmTestmodel> potts_chain_with_label_costs(std::size_t n_
 class UniqueLabelChain : public DiscreteGmTestmodel
 {
   public:
-    UniqueLabelChain(std::size_t n_variables, discrete_label_type n_labels, bool use_pairwise_constraints);
+    UniqueLabelChain(std::size_t n_variables, discrete_label_type n_labels, bool use_pairwise_constraints,
+                     bool with_ignore_label);
     std::pair<DiscreteGm, std::string> operator()(unsigned seed) override;
 
   private:
     std::size_t n_variables;
     discrete_label_type n_labels;
     bool use_pairwise_constraints;
+    bool with_ignore_label;
 };
 
 std::unique_ptr<DiscreteGmTestmodel> unique_label_chain(std::size_t n_variables = 3, discrete_label_type n_labels = 2,
-                                                        bool use_pairwise_constraints = false);
+                                                        bool use_pairwise_constraints = false,
+                                                        bool with_ignore_label = false);
 
 class RandomModel : public DiscreteGmTestmodel
 {

@@ -9,6 +9,8 @@
 namespace nxtgm
 {
 
+class Fusion;
+
 class DiscreteConstraintFunctionBase : public DiscreteFunctionBase
 {
   public:
@@ -20,6 +22,13 @@ class DiscreteConstraintFunctionBase : public DiscreteFunctionBase
 
     virtual std::unique_ptr<DiscreteConstraintFunctionBase> bind(
         const span<std::size_t> &binded_vars, const span<discrete_label_type> &binded_vars_labels) const;
+
+    virtual void compute_to_variable_messages(const energy_type *const *in_messages, energy_type **out_messages,
+                                              energy_type constraint_scaling_factor) const;
+
+    virtual void fuse(const discrete_label_type *labels_a, const discrete_label_type *labels_b,
+                      discrete_label_type *labels_ab, const std::size_t fused_arity,
+                      const std::size_t *fuse_factor_var_pos, Fusion &fusion) const;
 };
 
 using DiscretConstraintFunctionSerializationFactory =

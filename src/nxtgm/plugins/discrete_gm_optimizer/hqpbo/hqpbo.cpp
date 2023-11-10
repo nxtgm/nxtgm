@@ -27,11 +27,13 @@ class Hqpbo : public DiscreteGmOptimizerBase
             parameters.assign_and_pop("qpbo_plugin_name", qpbo_plugin_name);
             parameters.assign_and_pop("hocr_plugin_name", hocr_plugin_name);
             parameters.assign_and_pop("strong_persistencies", strong_persistencies, false);
+            parameters.assign_and_pop("constraint_scaling", constraint_scaling);
         }
 
         std::string qpbo_plugin_name;
         std::string hocr_plugin_name;
         bool strong_persistencies = false;
+        energy_type constraint_scaling = default_constraint_scaling;
     };
 
   public:
@@ -129,19 +131,15 @@ void Hqpbo::ensure_model_compatibility()
     // check space
     if (gm.space().max_num_labels() != 2)
     {
-        throw std::runtime_error("QPBO only supports binary variables");
-    }
-    // check for constraints
-    if (gm.num_constraints() > 0)
-    {
-        throw std::runtime_error("QPBO does not support constraints");
+        throw UnsupportedModelException("QPBO only supports binary variables");
     }
     // check arity
     if (gm.max_arity() > max_arity)
     {
         std::stringstream ss;
-        ss << "Hqpbo only supports factors with an arity <= " << max_arity << " (found " << gm.max_arity() << ")";
-        throw std::runtime_error(ss.str());
+        ss << "Hqpbo only supports factors/constraints with an arity <= " << max_arity << " (found " << gm.max_arity()
+           << ")";
+        throw UnsupportedModelException(ss.str());
     }
 }
 
@@ -158,7 +156,9 @@ OptimizationStatus Hqpbo::optimize_impl(reporter_callback_wrapper_type &reporter
     const auto &gm = this->model();
 
     // do the higher order clique reduction
-    auto reducer = get_plugin_registry<HocrFactoryBase>().get_factory(parameters_.hocr_plugin_name)->create(gm);
+    auto reducer = get_plugin_registry<HocrFactoryBase>()
+                       .get_factory(parameters_.hocr_plugin_name)
+                       ->create(gm, parameters_.constraint_scaling);
     auto qpbo = get_plugin_registry<QpboFactoryBase>()
                     .get_factory(parameters_.qpbo_plugin_name)
                     ->create(gm.num_variables() * 2, 0);

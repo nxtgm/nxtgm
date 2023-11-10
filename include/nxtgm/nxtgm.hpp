@@ -42,5 +42,6 @@ template <typename T>
 using flat_set = RandomAccessSet<T>;
 
 constexpr energy_type constraint_feasiblility_limit = 1e-5;
+constexpr energy_type default_constraint_scaling = 1000.0;
 
 } // namespace nxtgm
