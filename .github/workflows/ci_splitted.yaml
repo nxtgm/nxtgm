@@ -11,7 +11,7 @@ jobs:
   unix:
     strategy:
       matrix:
-        os: ["ubuntu-latest"," macos-latest"]
+        os: ["ubuntu-latest","macos-latest"]
         build_type: ["Release"]
 
       fail-fast: false
@@ -193,7 +193,7 @@ jobs:
             cmake --install . --config ${{ matrix.build_type }}
             cd ..\..
           )
-      - name: build solvers
+      - name: build all proposal gens
         shell: cmd /C CALL {0}
         run: |
           cd src\nxtgm\plugins\proposal_gen

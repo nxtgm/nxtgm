@@ -18,6 +18,12 @@ std::vector<std::string> all_optimizers()
     for (auto &[plugin_name, factory] : registry)
     {
         auto optimizer_name = plugin_name.substr(std::string("discrete_gm_optimizer_").size());
+#ifdef _WIN32
+        if (optimizer_name == "ilp_highs")
+        {
+            continue;
+        }
+#endif
         result.push_back(optimizer_name);
     }
     return result;

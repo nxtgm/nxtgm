@@ -16,8 +16,8 @@ jobs:
             build_type: Release
           - os: ubuntu-latest
             build_type: Debug
-
-
+          - os: macos-latest
+            build_type: Release
 
       fail-fast: false
     runs-on: ${{ matrix.os }}
@@ -128,6 +128,11 @@ jobs:
           cmake --build . --config ${{ matrix.build_type }}
           cmake --install . --config ${{ matrix.build_type }}
 
+      - name: run tests from installed binaries / libraries
+        shell: cmd /C CALL {0}
+        run: |
+          nxtgm_test_all
+
       - name: run C++ tests
         shell: cmd /C CALL {0}
         run: |
@@ -139,8 +144,3 @@ jobs:
         run: |
           cd bld
           ctest --output-on-failure  -R python
-
-      - name: run tests from installed binaries / libraries
-        shell: cmd /C CALL {0}
-        run: |
-          nxtgm_test_all
