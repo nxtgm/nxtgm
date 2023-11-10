@@ -27,11 +27,14 @@ Meta optimizers that use other optimizers
 
 * Partial Optimality Reduced Optimization
 * Chained Optimization
+* Fusion Moves
 
 ## Building blocks for optimizers
 * QPBO
 * Min-St-Cut / Maxflow
 * Higher order clique reduction
+* Fusion Moves
+* Hungarian Matching / Assignment Problem
 
 
 ## Supported operation systems / architectures
@@ -202,6 +205,6 @@ The plugins are licensed under different licenses. See [LICENSE_PLUGINS](LICENSE
 
 * I wanted to learn more about plugin architectures for C++ and felt discrete graphical models are an excellent use case for this.
 
-* I want to give non-experts in C++, like **biologists** the possibility to use discrete graphical models.
+* I want to give non-experts the possibility to use discrete graphical models.
 
 * With emscripten it is possible to compile C++ code to WebAssembly. This allows to run discrete graphical models in the browser. This is very useful for teaching purposes.
