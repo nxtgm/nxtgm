@@ -1,5 +1,5 @@
 set(PLUGIN_TYPE         discrete_gm_optimizer)
-set(PLUGIN_NAME_CORE    ilp_highs)
+set(PLUGIN_NAME_CORE    ilp_based)
 set(PLUGIN_TARGET_NAME  ${PLUGIN_TYPE}_${PLUGIN_NAME_CORE})
 
 if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
@@ -8,15 +8,10 @@ if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
     find_package(nxtgm REQUIRED)
 endif()
 
-find_package(HIGHS REQUIRED)
-
 nxtgm_add_plugin(${PLUGIN_TARGET_NAME} ${PLUGIN_NAME_CORE}.cpp)
 
 # link dependencies
-target_link_libraries(${PLUGIN_TARGET_NAME}
-    ${NXTGM_SHARED_LIBRARY}
-    highs::highs
-)
+target_link_libraries(${PLUGIN_TARGET_NAME} ${NXTGM_SHARED_LIBRARY})
 
 # install plugin
 install(TARGETS ${PLUGIN_TARGET_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/nxtgm/plugins/${PLUGIN_TYPE})

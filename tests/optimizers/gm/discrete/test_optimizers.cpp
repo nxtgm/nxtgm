@@ -19,7 +19,7 @@ std::vector<std::string> all_optimizers()
     {
         auto optimizer_name = plugin_name.substr(std::string("discrete_gm_optimizer_").size());
 #ifdef _WIN32
-        if (optimizer_name == "ilp_highs")
+        if (optimizer_name == "ilp_based" || optimizer_name == "ilp_highs")
         {
             continue;
         }
@@ -600,13 +600,14 @@ TEST_CASE("matching_icm")
     }
 }
 
-TEST_CASE("ilp_highs" * SKIP_WIN)
+TEST_CASE("ilp_based" * SKIP_WIN)
 {
     SUBCASE("small")
     {
+        std::cout << "test ilp_based" << std::endl;
         // clang-format off
         test_discrete_gm_optimizer(
-            "ilp_highs",
+            "ilp_based",
             OptimizerParameters(),
             {
                 potts_grid(3,4,2,true),
