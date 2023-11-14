@@ -132,12 +132,12 @@ class TestDiscreteGm:
 class TestOptimizers:
 
     @pytest.mark.skipif(os.name == 'nt', reason='not supported on windows')
-    def test_ilp_highs(self):
+    def test_ilp_based(self):
         gm = potts_chain(num_variables=10, num_labels=2)
 
         # setup optimizer
         print('constructing optimizer')
-        optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'ilp_highs')
+        optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'ilp_based')
         # setup reporter callback
         reporter_callback = nxtgm.DiscreteGmOptimizerReporterCallback(
             optimizer,
