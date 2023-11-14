@@ -81,8 +81,7 @@ class IlpHighs : public IlpBase
     IlpHighs(OptimizerParameters &&parameters)
         : IlpBase(),
           parameters_(parameters),
-          highs_model_(),
-          highs_()
+          highs_() highs_model_(),
     {
         ensure_all_handled("IlpHighs", parameters);
 
@@ -212,8 +211,8 @@ class IlpHighs : public IlpBase
 
   private:
     parameters_type parameters_;
-    HighsModel highs_model_;
     Highs highs_;
+    HighsModel highs_model_;
     std::vector<std::uint8_t> is_integer_;
     double objective_value_;
 };
