@@ -81,7 +81,8 @@ class IlpHighs : public IlpBase
     IlpHighs(OptimizerParameters &&parameters)
         : IlpBase(),
           parameters_(parameters),
-          highs_() highs_model_(),
+          highs_(),
+          highs_model_()
     {
         ensure_all_handled("IlpHighs", parameters);
 
