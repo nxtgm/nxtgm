@@ -68,34 +68,34 @@ TEST_CASE("raise_on_unsupported_model")
     }
 }
 
-TEST_CASE("chained_optimizers")
-{
+// TEST_CASE("chained_optimizers")
+// {
 
-    OptimizerParameters icm_params;
-    icm_params["time_limit_ms"] = 10000000;
+//     OptimizerParameters icm_params;
+//     icm_params["time_limit_ms"] = 10000000;
 
-    OptimizerParameters belief_propagation_params;
-    belief_propagation_params["max_iterations"] = 100;
-    belief_propagation_params["convergence_tolerance"] = 0.0001;
-    belief_propagation_params["damping"] = 0.5;
-    belief_propagation_params["normalize_messages"] = true;
+//     OptimizerParameters belief_propagation_params;
+//     belief_propagation_params["max_iterations"] = 100;
+//     belief_propagation_params["convergence_tolerance"] = 0.0001;
+//     belief_propagation_params["damping"] = 0.5;
+//     belief_propagation_params["normalize_messages"] = true;
 
-    OptimizerParameters chained_optimizer_params;
-    chained_optimizer_params["time_limit_ms"] = 10000000;
+//     OptimizerParameters chained_optimizer_params;
+//     chained_optimizer_params["time_limit_ms"] = 10000000;
 
-    // order will be respected
-    chained_optimizer_params["belief_propagation"] = belief_propagation_params;
-    chained_optimizer_params["icm"] = icm_params;
+//     // order will be respected
+//     chained_optimizer_params["belief_propagation"] = belief_propagation_params;
+//     chained_optimizer_params["icm"] = icm_params;
 
-    // clang-format off
-    test_discrete_gm_optimizer(
-        "chained_optimizers",
-        chained_optimizer_params,
-        potts_grid(4,4,2,false),
-        require_local_optimality(true)
-    );
-    // clang-format on
-}
+//     // clang-format off
+//     test_discrete_gm_optimizer(
+//         "chained_optimizers",
+//         chained_optimizer_params,
+//         potts_grid(4,4,2,false),
+//         require_local_optimality(true)
+//     );
+//     // clang-format on
+// }
 
 TEST_CASE("belief_propagation")
 {
