@@ -137,7 +137,7 @@ class IlpHighs : public IlpBase
         // std::cout << "optimize_lp 2" << std::endl;
 
         // Get a const reference to the LP data in HiGHS
-        const HighsLp &lp = highs_.getLp();
+        // const HighsLp &lp = highs_.getLp();
 
         // std::cout << "optimize_lp 3" << std::endl;
 
