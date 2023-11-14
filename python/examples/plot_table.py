@@ -108,7 +108,7 @@ print(best_solution)
 # %%
 # optimize with an ILP solver
 parameters = dict()
-optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'ilp_highs', parameters)
+optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'ilp_based', parameters)
 callack = nxtgm.DiscreteGmOptimizerReporterCallback(optimizer)
 optimizer.optimize(callack)
 best_solution = optimizer.best_solution()
