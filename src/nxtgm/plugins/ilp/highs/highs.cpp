@@ -127,12 +127,12 @@ class IlpHighs : public IlpBase
                                      highsStatusToString(return_status));
         }
 
-        // print the vec highs_model_.lp_.integrality_
-        for (std::size_t vi = 0; vi < highs_model_.lp_.integrality_.size(); ++vi)
-        {
-            // std::cout << "var " << vi << " integrality: " << (
-            // highs_model_.lp_.integrality_[vi]==HighsVarType::kInteger )<< std::endl;
-        }
+        // // print the vec highs_model_.lp_.integrality_
+        // for (std::size_t vi = 0; vi < highs_model_.lp_.integrality_.size(); ++vi)
+        // {
+        //     // std::cout << "var " << vi << " integrality: " << (
+        //     // highs_model_.lp_.integrality_[vi]==HighsVarType::kInteger )<< std::endl;
+        // }
 
         // std::cout << "optimize_lp 2" << std::endl;
 
