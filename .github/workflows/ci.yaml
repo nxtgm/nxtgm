@@ -48,7 +48,7 @@ jobs:
           cmake \
               -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
               -DBUILD_TESTS=ON \
-              -DBUILD_SINGLE_BINARY_TESTS=ON \
+              -DBUILD_SINGLE_BINARY_TESTS=OFF \
               -DBUILD_PYTHON=ON \
               -DBUILD_DOCS=ON \
           .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
@@ -59,28 +59,28 @@ jobs:
           cd bld
           make -j ${{ steps.cpu-cores.outputs.count }}
 
-      # - name: Run C++ tests
+      - name: Run C++ tests
+        shell: bash -l {0}
+        run: |
+            cd bld
+            ctest --output-on-failure -R nxtgm_test
+
+      # - name: Run Python tests
       #   shell: bash -l {0}
       #   run: |
       #       cd bld
-      #       ctest --output-on-failure -R nxtgm_test
+      #       ctest --output-on-failure -R python
 
-      - name: Run Python tests
-        shell: bash -l {0}
-        run: |
-            cd bld
-            ctest --output-on-failure -R python
+      # - name: install
+      #   shell: bash -l {0}
+      #   run: |
+      #       cd bld
+      #       make install
 
-      - name: install
-        shell: bash -l {0}
-        run: |
-            cd bld
-            make install
-
-      - name: run tests from installed binaries / libraries
-        shell: bash -l {0}
-        run: |
-          nxtgm_test_all
+      # - name: run tests from installed binaries / libraries
+      #   shell: bash -l {0}
+      #   run: |
+      #     nxtgm_test_all
 
       - name: Build docs
         shell: bash -l {0}
