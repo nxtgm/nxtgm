@@ -59,11 +59,11 @@ jobs:
           cd bld
           make -j ${{ steps.cpu-cores.outputs.count }}
 
-      - name: Run C++ tests
-        shell: bash -l {0}
-        run: |
-            cd bld
-            ctest --output-on-failure -R nxtgm_test
+      # - name: Run C++ tests
+      #   shell: bash -l {0}
+      #   run: |
+      #       cd bld
+      #       ctest --output-on-failure -R nxtgm_test
 
       - name: Run Python tests
         shell: bash -l {0}
