@@ -48,7 +48,8 @@ class ChainedOptimizerFactory : public DiscreteGmOptimizerFactoryBase
   public:
     using factory_base_type = DiscreteGmOptimizerFactoryBase;
     virtual ~ChainedOptimizerFactory() = default;
-    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
+    expected<std::unique_ptr<DiscreteGmOptimizerBase>> create(const DiscreteGm &gm,
+                                                              OptimizerParameters &&params) const override
     {
         return std::make_unique<ChainedOptimizers>(gm, std::move(params));
     }
@@ -100,7 +101,12 @@ OptimizationStatus ChainedOptimizers::optimize_impl(reporter_callback_wrapper_ty
 
     for (const auto &[optimizer_name, optimizer_parameters] : parameters_.optimizer_parameters)
     {
-        auto optimizer = discrete_gm_optimizer_factory(gm, optimizer_name, optimizer_parameters);
+        auto expected_optimizer = discrete_gm_optimizer_factory(gm, optimizer_name, optimizer_parameters);
+        if (!expected_optimizer)
+        {
+            throw std::runtime_error(expected_optimizer.error());
+        }
+        auto optimizer = std::move(expected_optimizer.value());
 
         auto starting_point = const_discrete_solution_span(best_solution_.data(), best_solution_.size());
         auto status = optimizer->optimize(nullptr, nullptr, starting_point);

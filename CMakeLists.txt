@@ -46,6 +46,7 @@ find_package(xtensor REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(xplugin REQUIRED)
 find_package(tsl-ordered-map REQUIRED)
+find_package(tl-expected REQUIRED)
 
 ###############################################################
 # converage
@@ -149,6 +150,7 @@ endif()
 target_link_libraries(nxtgm_shared PUBLIC
     xtensor
     nlohmann_json::nlohmann_json
+    tl::expected
 )
 if(CMAKE_DL_LIBS)
     target_link_libraries(nxtgm_shared PUBLIC ${CMAKE_DL_LIBS})

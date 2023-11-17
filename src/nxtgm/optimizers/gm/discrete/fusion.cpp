@@ -125,8 +125,13 @@ bool Fusion::fuse(const discrete_label_type *labels_a, // best
     const_discrete_solution_span fused_starting_point(fused_starting_point_data, fusegm_num_var);
 
     // create the fusion model optimizer
-    auto optimizer =
+    auto expected_optimizer =
         discrete_gm_optimizer_factory(*fusegm_.get(), parameters_.optimizer_name, parameters_.optimizer_parameters);
+    if (!expected_optimizer)
+    {
+        throw std::runtime_error("Could not create optimizer: " + expected_optimizer.error());
+    }
+    auto optimizer = std::move(expected_optimizer.value());
 
     // optimize the fusion model
     optimizer->optimize(nullptr, nullptr, fused_starting_point);
