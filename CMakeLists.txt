@@ -65,6 +65,8 @@ if(EMSCRIPTEN)
     set(CMAKE_STRIP FALSE)  # used by default in pybind11 on .so modules
 endif()
 
+add_definitions(-DNOMINMAX)
+
 ###############################################################
 # library
 ###############################################################
