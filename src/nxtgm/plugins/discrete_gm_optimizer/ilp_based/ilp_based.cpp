@@ -170,6 +170,7 @@ void IlpBased::setup_ilp()
     }
 
     auto factory = get_plugin_registry<IlpFactoryBase>().get_factory(std::string("ilp_") + parameters_.ilp_plugin_name);
+    std::cout << "factory description: " << factory->description() << std::endl;
     ilp_ = std::move(factory->create(std::move(ilp_data), std::move(parameters_.ilp_plugin_parameters)));
 }
 
