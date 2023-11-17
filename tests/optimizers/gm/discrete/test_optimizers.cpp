@@ -29,62 +29,63 @@ std::vector<std::string> all_optimizers()
     return result;
 }
 
-TEST_CASE("raise_on_unknown_parameters" * doctest::skip(true))
-{
-    for (auto optimizer_name : all_optimizers())
-    {
-        OptimizerParameters parameters;
-        parameters["_unknown_parameter"] = 42;
+// TEST_CASE("raise_on_unknown_parameters" * doctest::skip(true))
+// {
+//     for (auto optimizer_name : all_optimizers())
+//     {
+//         OptimizerParameters parameters;
+//         parameters["_unknown_parameter"] = 42;
 
-        auto model_and_name = potts_grid(1, 2, 2, true)->operator()(0 /*seed*/);
-        auto model = std::move(model_and_name.first);
+//         auto model_and_name = potts_grid(1, 2, 2, true)->operator()(0 /*seed*/);
+//         auto model = std::move(model_and_name.first);
 
-        INFO(optimizer_name);
-        // CHECK_THROWS_AS(discrete_gm_optimizer_factory(model, optimizer_name, parameters), UnknownParameterException);
+//         INFO(optimizer_name);
+//         // CHECK_THROWS_AS(discrete_gm_optimizer_factory(model, optimizer_name, parameters),
+//         UnknownParameterException);
 
-        bool did_throw = false;
-        bool wrong_exception = false;
-        try
-        {
-            auto optimizer = discrete_gm_optimizer_factory(model, optimizer_name, parameters);
-        }
-        catch (const UnknownParameterException &e)
-        {
-            did_throw = true;
-        }
-        catch (const std::exception &e)
-        {
-            // INFO(optimizer_name, "wrong exception", std::string(e.what()));
-            wrong_exception = true;
-        }
-        CHECK(wrong_exception == false);
-        CHECK(did_throw);
-    };
-}
+//         bool did_throw = false;
+//         bool wrong_exception = false;
+//         try
+//         {
+//             auto optimizer = discrete_gm_optimizer_factory(model, optimizer_name, parameters);
+//         }
+//         catch (const UnknownParameterException &e)
+//         {
+//             did_throw = true;
+//         }
+//         catch (const std::exception &e)
+//         {
+//             // INFO(optimizer_name, "wrong exception", std::string(e.what()));
+//             wrong_exception = true;
+//         }
+//         CHECK(wrong_exception == false);
+//         CHECK(did_throw);
+//     };
+// }
 
-TEST_CASE("raise_on_unsupported_model" * doctest::skip(true))
-{
-    for (auto optimizer_name : all_optimizers())
-    {
-        OptimizerParameters parameters;
+// TEST_CASE("raise_on_unsupported_model" * doctest::skip(true))
+// {
+//     for (auto optimizer_name : all_optimizers())
+//     {
+//         OptimizerParameters parameters;
 
-        auto model_and_name = unique_label_chain(10, 3)->operator()(0 /*seed*/);
-        auto model = std::move(model_and_name.first);
+//         auto model_and_name = unique_label_chain(10, 3)->operator()(0 /*seed*/);
+//         auto model = std::move(model_and_name.first);
 
-        try
-        {
-            auto optimizer = discrete_gm_optimizer_factory(model, optimizer_name, parameters);
-        }
-        catch (const UnsupportedModelException &e)
-        {
-        }
-        catch (const std::exception &e)
-        {
-            INFO(optimizer_name, "wrong exception", std::string(e.what()));
-            CHECK(false);
-        }
-    }
-}
+//         try
+//         {
+//             auto optimizer = discrete_gm_optimizer_factory(model, optimizer_name, parameters);
+//         }
+//         catch (const UnsupportedModelException &e)
+//         {
+//         }
+//         catch (const std::exception &e)
+//         {
+//             INFO(optimizer_name, "wrong exception", std::string(e.what()));
+//             CHECK(false);
+//         }
+//     }
+// }
 
 TEST_CASE("chained_optimizers")
 {
