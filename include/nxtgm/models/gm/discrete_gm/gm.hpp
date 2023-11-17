@@ -249,7 +249,8 @@ class DiscreteGm
 
     inline std::size_t max_arity() const
     {
-        return std::max(max_factor_arity_, max_constraint_arity_);
+        // stupid windows
+        return max_factor_arity_ > max_constraint_arity_ ? max_factor_arity_ : max_constraint_arity_;
     }
 
     inline discrete_label_type num_labels(std::size_t variable_index) const
