@@ -79,7 +79,13 @@ void export_discrete_gm_optimizers(py::module_ &pymodule)
     pymodule.def(
         "_discrete_gm_optimizer_factory",
         [](const DiscreteGm &gm, const std::string &optimizer_name, const OptimizerParameters &parameters) {
-            return discrete_gm_optimizer_factory(gm, optimizer_name, parameters);
+            auto expected = discrete_gm_optimizer_factory(gm, optimizer_name, parameters);
+            if (!expected)
+            {
+
+                throw std::runtime_error(expected.error());
+            }
+            return std::move(expected.value());
         },
         py::arg("gm"), py::arg("optimizer_name"), py::arg("parameters") = OptimizerParameters(),
         py::keep_alive<1, 2>());
