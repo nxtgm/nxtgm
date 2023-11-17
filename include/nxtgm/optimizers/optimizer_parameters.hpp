@@ -4,6 +4,7 @@
 #include <map>
 #include <nxtgm/utils/serialize.hpp>
 #include <string>
+#define NOMINMAX
 #include <tsl/ordered_map.h>
 #include <vector>
 // exceptions

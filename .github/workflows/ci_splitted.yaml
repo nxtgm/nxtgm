@@ -156,7 +156,6 @@ jobs:
             )
             cd ..
           )
-
       - name: run installed tests
         shell: cmd /C CALL {0}
         run: |

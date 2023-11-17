@@ -13,6 +13,6 @@ if(BUILD_PLUGINS_DISCRETE_GM_OPTIMIZER)
     add_subdirectory(fusion_moves)
     # we need to skip this for win and emscripten
     if(NOT WIN32)
-        add_subdirectory(ilp_highs)
+        add_subdirectory(ilp_based)
     endif()
 endif()

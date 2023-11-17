@@ -65,6 +65,8 @@ if(EMSCRIPTEN)
     set(CMAKE_STRIP FALSE)  # used by default in pybind11 on .so modules
 endif()
 
+add_definitions(-DNOMINMAX)
+
 ###############################################################
 # library
 ###############################################################
@@ -91,6 +93,11 @@ SET(NXTGM_LIBRARY_SOURCES
     src/nxtgm/optimizers/gm/discrete/optimizer_base.cpp
     src/nxtgm/optimizers/gm/discrete/fusion.cpp
     src/nxtgm/plugins/hocr/hocr_base.cpp
+    src/nxtgm/plugins/ilp/ilp_base.cpp
+    src/nxtgm/plugins/min_st_cut/min_st_cut_base.cpp
+    src/nxtgm/plugins/proposal_gen/proposal_gen_base.cpp
+    src/nxtgm/plugins/qpbo/qpbo_base.cpp
+    src/nxtgm/plugins/plugin_registry.cpp
 )
 if(NOT EMSCRIPTEN)
     SET(NXTGM_LIBRARY_SOURCES ${NXTGM_LIBRARY_SOURCES}

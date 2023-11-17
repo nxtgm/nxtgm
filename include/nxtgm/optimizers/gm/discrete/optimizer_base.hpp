@@ -5,6 +5,7 @@
 #include <nxtgm/optimizers/optimizer_base.hpp>
 
 #include <nlohmann/json.hpp>
+#include <nxtgm/plugins/plugin_registry.hpp>
 #include <xplugin/xfactory.hpp>
 
 #include <memory>
@@ -24,10 +25,7 @@ class DiscreteGmOptimizerBase : public OptimizerBase<DiscreteGm, DiscreteGmOptim
 
     virtual ~DiscreteGmOptimizerBase() = default;
 
-    virtual bool is_partial_optimal(std::size_t variable_index) const
-    {
-        return false;
-    }
+    virtual bool is_partial_optimal(std::size_t variable_index) const;
 };
 
 class DiscreteGmOptimizerFactoryBase
@@ -38,15 +36,9 @@ class DiscreteGmOptimizerFactoryBase
     virtual std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm,
                                                             OptimizerParameters &&params) const = 0;
 
-    static std::string plugin_type()
-    {
-        return "discrete_gm_optimizer";
-    }
+    static std::string plugin_type();
 
-    static std::string plugin_dir_env_var()
-    {
-        return "NXTGM_DISCRETE_GM_OPTIMIZER_PLUGIN_PATH";
-    }
+    static std::string plugin_dir_env_var();
 
     // priority of the plugin (higher means more important)
     virtual int priority() const = 0;
@@ -59,6 +51,9 @@ class DiscreteGmOptimizerFactoryBase
 
     // flags of the plugin
     virtual OptimizerFlags flags() const = 0;
+
+    // get the registry of the plugin
+    static plugin_registry<DiscreteGmOptimizerFactoryBase> &get_registry();
 };
 
 } // namespace nxtgm

@@ -5,6 +5,7 @@
 
 #include <nxtgm/optimizers/optimizer_parameters.hpp>
 #include <nxtgm/plugins/plugin.hpp>
+#include <nxtgm/plugins/plugin_registry.hpp>
 
 namespace nxtgm
 {
@@ -82,12 +83,12 @@ class QpboBase : public QuadraticRepresentationBase
 class QpboFactoryBase
 {
   public:
-    static std::string plugin_type()
+    inline static std::string plugin_type()
     {
         return "qpbo";
     }
 
-    static std::string plugin_dir_env_var()
+    inline static std::string plugin_dir_env_var()
     {
         return "NXTGM_QPBO_PLUGIN_PATH";
     }
@@ -105,6 +106,8 @@ class QpboFactoryBase
 
     // description of the plugin
     virtual std::string description() const = 0;
+
+    static plugin_registry<QpboFactoryBase> &get_registry();
 };
 
 } // namespace nxtgm

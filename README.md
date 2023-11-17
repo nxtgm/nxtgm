@@ -34,7 +34,7 @@ Meta optimizers that use other optimizers
 * Min-St-Cut / Maxflow
 * Higher order clique reduction
 * Fusion Moves
-* Hungarian Matching / Assignment Problem
+* LP / ILP Solvers
 
 
 ## Supported operation systems / architectures
@@ -187,6 +187,9 @@ We define multiple plugin interfaces:
 * **`min_st_cut`**: an interface for `maxflow`/`min-st-cut`-like optimizers. At the moment, there is only one implementation of this interface, which is `maxflow` from Vladimir Kolmogorov.
 
 * **`horc`**: is an interface for higher order clique reduction. At the moment, there is only one implementation of this interface, which is `horc` from  Alexander Fix.
+
+
+* **`ilp`**: is an interface for integer linear programming solvers. At the moment, there is only one implementation of this interface, which is `highs`.
 
 
 # Licencing

@@ -8,6 +8,12 @@
 namespace nxtgm
 {
 
+plugin_registry<HocrFactoryBase> &HocrFactoryBase::get_registry()
+{
+    static plugin_registry<HocrFactoryBase> registry;
+    return registry;
+}
+
 std::unique_ptr<HocrBase> HocrFactoryBase::create(const DiscreteGm &gm, const energy_type constraint_scaling)
 {
     const auto max_arity = gm.max_arity();

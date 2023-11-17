@@ -43,6 +43,7 @@ nxtgm_regiter_test(discrete_energy_functions     functions/test_discrete_energy_
 nxtgm_regiter_test(space                         spaces/test_space.cpp)
 nxtgm_regiter_test(optimizers                    optimizers/gm/discrete/test_optimizers.cpp)
 nxtgm_regiter_test(optimizer_parameters          optimizers/test_optimizer_parameters.cpp)
+nxtgm_regiter_test(ilp_plugins                   plugins/test_ilp.cpp)
 
 if(BUILD_SINGLE_BINARY_TESTS)
     message(STATUS "Adding single binary test")
