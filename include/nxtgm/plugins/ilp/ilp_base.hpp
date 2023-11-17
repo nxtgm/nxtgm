@@ -4,11 +4,11 @@
 #include <string>
 
 #include <nxtgm/nxtgm.hpp>
+#include <nxtgm/optimizers/optimizer_base.hpp>
 #include <nxtgm/optimizers/optimizer_parameters.hpp>
 #include <nxtgm/plugins/ilp/ilp_data.hpp>
 #include <nxtgm/plugins/plugin_priority.hpp>
-
-#include <nxtgm/optimizers/optimizer_base.hpp>
+#include <nxtgm/plugins/plugin_registry.hpp>
 
 namespace nxtgm
 {
@@ -52,6 +52,8 @@ class IlpFactoryBase
 
     // description of the plugin
     virtual std::string description() const = 0;
+
+    static plugin_registry<IlpFactoryBase> &get_registry();
 };
 
 } // namespace nxtgm

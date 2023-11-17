@@ -58,6 +58,8 @@ class HocrFactoryBase
 
     // with default implementation
     virtual std::unique_ptr<HocrBase> create(const DiscreteGm &gm, const energy_type constraint_scaling);
+
+    static plugin_registry<HocrFactoryBase> &get_registry();
 };
 
 } // namespace nxtgm

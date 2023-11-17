@@ -7,6 +7,7 @@
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/optimizers/optimizer_parameters.hpp>
 #include <nxtgm/plugins/plugin_priority.hpp>
+#include <nxtgm/plugins/plugin_registry.hpp>
 
 namespace nxtgm
 {
@@ -54,6 +55,8 @@ class ProposalGenFactoryBase
 
     // description of the plugin
     virtual std::string description() const = 0;
+
+    static plugin_registry<ProposalGenFactoryBase> &get_registry();
 };
 
 } // namespace nxtgm

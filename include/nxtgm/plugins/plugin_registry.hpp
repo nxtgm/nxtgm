@@ -59,8 +59,7 @@ typename plugin_registry<FACTORY_BASE>::factory_base_type *plugin_registry<FACTO
 template <class FACTORY_BASE>
 inline plugin_registry<FACTORY_BASE> &get_plugin_registry()
 {
-    static plugin_registry<FACTORY_BASE> registry;
-    return registry;
+    return FACTORY_BASE::get_registry();
 }
 
 template <class FACTORY_BASE>

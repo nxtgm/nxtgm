@@ -6,6 +6,7 @@
 
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/plugins/plugin.hpp>
+#include <nxtgm/plugins/plugin_registry.hpp>
 
 namespace nxtgm
 {
@@ -45,6 +46,8 @@ class MinStCutFactoryBase
 
     // description of the plugin
     virtual std::string description() const = 0;
+
+    static plugin_registry<MinStCutFactoryBase> &get_registry();
 };
 
 } // namespace nxtgm
