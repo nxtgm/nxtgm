@@ -40,7 +40,23 @@ TEST_CASE("raise_on_unknown_parameters")
         auto model = std::move(model_and_name.first);
 
         INFO(optimizer_name);
-        CHECK_THROWS_AS(discrete_gm_optimizer_factory(model, optimizer_name, parameters), UnknownParameterException);
+        // CHECK_THROWS_AS(discrete_gm_optimizer_factory(model, optimizer_name, parameters), UnknownParameterException);
+
+        bool did_throw = false;
+        try
+        {
+            auto optimizer = discrete_gm_optimizer_factory(model, optimizer_name, parameters);
+        }
+        catch (const UnknownParameterException &e)
+        {
+            did_throw = true;
+        }
+        catch (const std::exception &e)
+        {
+            INFO(optimizer_name, "wrong exception", std::string(e.what()));
+            CHECK(false);
+        }
+        CHECK(did_throw);
     };
 }
 

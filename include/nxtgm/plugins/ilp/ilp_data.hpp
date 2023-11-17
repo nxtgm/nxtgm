@@ -9,7 +9,7 @@ class IlpData
   public:
     using value_tye = double;
 
-    inline int add_variable(value_tye lb, value_tye ub, value_tye obj, bool is_integer)
+    inline std::size_t add_variable(value_tye lb, value_tye ub, value_tye obj, bool is_integer)
     {
         col_lower_.push_back(lb);
         col_upper_.push_back(ub);
@@ -17,7 +17,7 @@ class IlpData
         is_integer_.push_back(is_integer);
         return col_lower_.size() - 1;
     }
-    inline int add_variables(std::size_t n, value_tye lb, value_tye ub, value_tye obj, bool is_integer)
+    inline std::size_t add_variables(std::size_t n, value_tye lb, value_tye ub, value_tye obj, bool is_integer)
     {
         for (std::size_t i = 0; i < n; ++i)
         {
@@ -29,7 +29,7 @@ class IlpData
         return col_lower_.size() - 1;
     }
     template <class ITER>
-    inline int add_variables(value_tye lb, value_tye ub, ITER obj_begin, ITER obj_end, bool is_integer)
+    inline std::size_t add_variables(value_tye lb, value_tye ub, ITER obj_begin, ITER obj_end, bool is_integer)
     {
         while (obj_begin != obj_end)
         {
@@ -43,7 +43,7 @@ class IlpData
     }
 
     template <class COEFFICIENTS, class VARS>
-    inline int add_constraint(value_tye lb, value_tye ub, COEFFICIENTS &&coefficients, VARS &&variables)
+    inline std::size_t add_constraint(value_tye lb, value_tye ub, COEFFICIENTS &&coefficients, VARS &&variables)
     {
         row_lower_.push_back(lb);
         row_upper_.push_back(ub);
