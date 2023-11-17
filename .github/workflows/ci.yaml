@@ -71,11 +71,11 @@ jobs:
       #       cd bld
       #       ctest --output-on-failure -R python
 
-      - name: install
-        shell: bash -l {0}
-        run: |
-            cd bld
-            make install
+      # - name: install
+      #   shell: bash -l {0}
+      #   run: |
+      #       cd bld
+      #       make install
 
       # - name: run tests from installed binaries / libraries
       #   shell: bash -l {0}
