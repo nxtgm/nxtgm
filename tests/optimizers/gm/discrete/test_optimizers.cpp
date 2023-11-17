@@ -600,38 +600,38 @@ TEST_CASE("matching_icm")
     }
 }
 
-// TEST_CASE("ilp_based" * SKIP_WIN)
-// {
-//     SUBCASE("small")
-//     {
-//         std::cout << "test ilp_based" << std::endl;
-//         // clang-format off
-//         test_discrete_gm_optimizer(
-//             "ilp_based",
-//             OptimizerParameters(),
-//             {
-//                 potts_grid(3,4,2,true),
-//                 potts_grid(3,4,2,false),
-//                 potts_grid(2,3,2,false),
-//                 star(5,2),
-//                 sparse_potts_chain(4, 2),
-//                 random_sparse_model(4, 3, 2, 4, 4, 0.5 ),
-//                 random_sparse_model(10,10, 2, 4, 4, 0.2 ),
-//                 sparse_potts_chain(5,5),
-//                 potts_chain_with_label_costs(5,5),
-//                 unique_label_chain(2,2, true),
-//                 unique_label_chain(4,5, true),
-//                 unique_label_chain(2,2, false),
-//                 unique_label_chain(4,5, false)
-//             },
-//             {
-//                 require_optimality( /*tolerance*/ 1e-3),
-//                 require_optimization_status(OptimizationStatus::OPTIMAL)
-//             }
-//         );
-//         // clang-format on
-//     }
-// }
+TEST_CASE("ilp_based" * SKIP_WIN)
+{
+    SUBCASE("small")
+    {
+        std::cout << "test ilp_based" << std::endl;
+        // clang-format off
+        test_discrete_gm_optimizer(
+            "ilp_based",
+            OptimizerParameters(),
+            {
+                potts_grid(3,4,2,true),
+                potts_grid(3,4,2,false),
+                potts_grid(2,3,2,false),
+                star(5,2),
+                sparse_potts_chain(4, 2),
+                random_sparse_model(4, 3, 2, 4, 4, 0.5 ),
+                random_sparse_model(10,10, 2, 4, 4, 0.2 ),
+                sparse_potts_chain(5,5),
+                potts_chain_with_label_costs(5,5),
+                unique_label_chain(2,2, true),
+                unique_label_chain(4,5, true),
+                unique_label_chain(2,2, false),
+                unique_label_chain(4,5, false)
+            },
+            {
+                require_optimality( /*tolerance*/ 1e-3),
+                require_optimization_status(OptimizationStatus::OPTIMAL)
+            }
+        );
+        // clang-format on
+    }
+}
 
 TEST_CASE("reduced_gm_optimizer")
 {
