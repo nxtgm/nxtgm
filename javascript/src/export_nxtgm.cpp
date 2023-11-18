@@ -281,7 +281,7 @@ void export_optimizer()
                              throw std::runtime_error(expected.error());
                          }
                          return std::move(expected.value());
-                     }))
+                     }));
 }
 
 EMSCRIPTEN_BINDINGS(my_module)
