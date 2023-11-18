@@ -94,7 +94,7 @@ jobs:
         if : ${{ matrix.os == 'macos-latest' }}
         shell: bash -l {0}
         run: |
-            nxtgm_test_all --tce="ilp*"
+            nxtgm_test_all
 
   windows:
     strategy:
