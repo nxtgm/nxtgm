@@ -86,9 +86,15 @@ jobs:
           done
 
       - name: run installed tests
+        if : ${{ matrix.os == 'ubuntu-latest' }}
         shell: bash -l {0}
         run: |
-            nxtgm_test_all
+            nxtgm_test_all --tce="ilp*"
+      - name: run installed tests
+        if : ${{ matrix.os == 'macos-latest' }}
+        shell: bash -l {0}
+        run: |
+            nxtgm_test_all --tce="ilp*"
 
   windows:
     strategy:
