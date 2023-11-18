@@ -77,6 +77,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.build_type == 'Debug' }}
         shell: bash -l {0}
         run: |
+            sudo apt install -y libc6-dbg
             $MAMBA_EXE install -y valgrind
             cd bld
             NXTGM_PLUGIN_PATH=src/nxtgm/plugins valgrind --error-exitcode=1 --tool=memcheck --leak-check=full ./tests/nxtgm_test_all --tce="ilp*"
