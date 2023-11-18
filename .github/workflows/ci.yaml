@@ -69,16 +69,19 @@ jobs:
         shell: bash -l {0}
         run: |
             cd bld
-            ctest --repeat until-pass:5 --output-on-failure -R nxtgm_test; done
+            ctest --repeat until-pass:5 --output-on-failure -R nxtgm_test
 
       # on macos we **have not** seen the same issue as on ubuntu
-      # therefore we the test up to 5 times
+      # therefore we the test up to 5 times (
+      # there is a small chance that the test fails 5 times in a row
+      # but this is very unlikely. If this will happen we will
+      # need to change something here)
       - name: Run C++ tests  via ctest
         if: ${{ matrix.os == 'macos-latest' }}
         shell: bash -l {0}
         run: |
             cd bld
-            ctest --repeat until-fail:5 --output-on-failure -R nxtgm_test; done
+            ctest --repeat until-fail:5 --output-on-failure -R nxtgm_test
 
       # on ubuntu and mac we **do not have any issue** with the ilp tests
       # therefore we all tests except the ilp tests for many times
@@ -176,11 +179,12 @@ jobs:
         run: |
           nxtgm_test_all
 
+      # run the tests many times to see if we can reproduce the segfaults
       - name: run C++ tests
         shell: cmd /C CALL {0}
         run: |
           cd bld
-          ctest --output-on-failure  -R nxtgm_testx
+          ctest --repeat until-fail:10 --output-on-failure  -R nxtgm_test
 
       - name: run Python tests
         shell: cmd /C CALL {0}
