@@ -63,7 +63,7 @@ jobs:
         shell: bash -l {0}
         run: |
             cd bld
-            ctest --output-on-failure -R nxtgm_test
+            for i in {1..10}; do echo "run $i"; ctest --output-on-failure -R nxtgm_test; done
 
       - name: Run Python tests
         shell: bash -l {0}
