@@ -11,3 +11,4 @@ dependencies:
   - tsl_ordered_map
   - highs
   - zlib
+  - cpp-expected
