@@ -124,9 +124,16 @@ jobs:
             make install
 
       - name: run tests from installed binaries / libraries
+        if: ${{ matrix.os == 'macos-latest' }}
         shell: bash -l {0}
         run: |
           nxtgm_test_all
+
+      - name: run tests from installed binaries / libraries
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        shell: bash -l {0}
+        run: |
+          nxtgm_test_all --tce="ilp*"
 
       - name: Build docs
         shell: bash -l {0}
@@ -178,6 +185,14 @@ jobs:
         shell: cmd /C CALL {0}
         run: |
           nxtgm_test_all
+
+      # same as abvoe but repeat 10 times with random test order
+      - name: run tests from installed binaries / libraries
+        shell: cmd /C CALL {0}
+        run: |
+          for /L %%i in (1,1,10) do (
+            nxtgm_test_all --order-by=random --rand-seed=%%i
+          )
 
       # run the tests many times to see if we can reproduce the segfaults
       - name: run C++ tests
