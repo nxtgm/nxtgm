@@ -59,11 +59,17 @@ jobs:
           cd bld
           make -j ${{ steps.cpu-cores.outputs.count }}
 
-      - name: Run C++ tests
+      - name: Run C++ tests  via ctest
         shell: bash -l {0}
         run: |
             cd bld
             for i in {1..10}; do echo "run $i"; ctest --output-on-failure -R nxtgm_test; done
+
+      - name: Run C++ tests directly
+        shell: bash -l {0}
+        run: |
+            cd bld
+            for i in {1..10}; do echo "run $i";  NXTGM_PLUGIN_PATH=src/nxtgm/plugin ./tests/nxtgm_test_all; done
 
       # at the moment the ilp highs tests are not stable enough and already leak
       # when loading the shared library. Therefore we skip them for now
@@ -72,9 +78,8 @@ jobs:
         shell: bash -l {0}
         run: |
             $MAMBA_EXE install -y valgrind
-
             cd bld
-            valgrind --error-exitcode=1 --tool=memcheck --leak-check=full ./nxtgm_test_all --tce="ilp*"
+            NXTGM_PLUGIN_PATH=src/nxtgm/plugins valgrind --error-exitcode=1 --tool=memcheck --leak-check=full ./tests/nxtgm_test_all --tce="ilp*"
 
 
       - name: Run Python tests
