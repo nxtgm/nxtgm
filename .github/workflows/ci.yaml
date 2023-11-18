@@ -65,6 +65,18 @@ jobs:
             cd bld
             for i in {1..10}; do echo "run $i"; ctest --output-on-failure -R nxtgm_test; done
 
+      # at the moment the ilp highs tests are not stable enough and already leak
+      # when loading the shared library. Therefore we skip them for now
+      - name: Run C++ tests with valgrind
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.build_type == 'Debug' }}
+        shell: bash -l {0}
+        run: |
+            $MAMBA_EXE install -y valgrind
+
+            cd bld
+            valgrind --error-exitcode=1 --tool=memcheck --leak-check=full ./nxtgm_test_all --tce="ilp*"
+
+
       - name: Run Python tests
         shell: bash -l {0}
         run: |

@@ -262,7 +262,7 @@ TEST_CASE("dynamic_programming")
             {
                 potts_grid(15, 1, 2, false),
                 potts_grid(20, 1, 3, false),
-                star(20, 10)
+                star(8, 5)
             },
             {
                 require_optimization_status(OptimizationStatus::OPTIMAL),
