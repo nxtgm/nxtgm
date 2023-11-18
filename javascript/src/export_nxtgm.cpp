@@ -281,7 +281,7 @@ void export_optimizer()
         auto expected = discrete_gm_optimizer_factory(gm, name, p);
         if (!expected)
         {
-            throw std::runtime_error(expected.error().message());
+            throw std::runtime_error(expected.error());
         }
         return std::move(expected.value());
         })
