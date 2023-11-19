@@ -16,6 +16,7 @@ find_package(Threads REQUIRED)
 find_package(xtensor REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(xplugin REQUIRED)
+find_package(tl-expected REQUIRED)
 
 
 check_required_components(nxtgm)

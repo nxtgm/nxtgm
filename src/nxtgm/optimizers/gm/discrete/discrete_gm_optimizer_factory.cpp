@@ -4,15 +4,17 @@
 namespace nxtgm
 {
 
-std::unique_ptr<DiscreteGmOptimizerBase> discrete_gm_optimizer_factory(const DiscreteGm &gm, const std::string &name,
-                                                                       const OptimizerParameters &parameter)
+expected<std::unique_ptr<DiscreteGmOptimizerBase>> discrete_gm_optimizer_factory(const DiscreteGm &gm,
+                                                                                 const std::string &name,
+                                                                                 const OptimizerParameters &parameter)
 {
     OptimizerParameters params(parameter);
     return discrete_gm_optimizer_factory(gm, name, std::move(params));
 }
 
-std::unique_ptr<DiscreteGmOptimizerBase> discrete_gm_optimizer_factory(const DiscreteGm &gm, const std::string &name,
-                                                                       OptimizerParameters &&parameter)
+expected<std::unique_ptr<DiscreteGmOptimizerBase>> discrete_gm_optimizer_factory(const DiscreteGm &gm,
+                                                                                 const std::string &name,
+                                                                                 OptimizerParameters &&parameter)
 {
     const std::string plugin_name = "discrete_gm_optimizer_" + name;
     return get_plugin_registry<DiscreteGmOptimizerFactoryBase>()

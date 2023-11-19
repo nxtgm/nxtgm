@@ -79,7 +79,8 @@ class ReducedGmOptimizerFactory : public DiscreteGmOptimizerFactoryBase
   public:
     using factory_base_type = DiscreteGmOptimizerFactoryBase;
     virtual ~ReducedGmOptimizerFactory() = default;
-    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
+    expected<std::unique_ptr<DiscreteGmOptimizerBase>> create(const DiscreteGm &gm,
+                                                              OptimizerParameters &&params) const override
     {
         return std::make_unique<ReducedGmOptimizer>(gm, std::move(params));
     }
@@ -170,7 +171,13 @@ OptimizationStatus ReducedGmOptimizer::get_partial_optimality_via_qpbo(
 
     const auto qpbo_type = this->model().max_arity() > 2 ? std::string("hqpbo") : std::string("qpbo");
 
-    auto optimizer = discrete_gm_optimizer_factory(this->model(), qpbo_type, qpbo_parameters);
+    auto expected_optimizer = discrete_gm_optimizer_factory(this->model(), qpbo_type, qpbo_parameters);
+    if (!expected_optimizer)
+    {
+        throw std::runtime_error(expected_optimizer.error());
+    }
+    auto optimizer = std::move(expected_optimizer.value());
+
     optimizer->optimize();
     best_solution_ = optimizer->best_solution();
     best_solution_value_ = optimizer->best_solution_value();
@@ -211,7 +218,13 @@ OptimizationStatus ReducedGmOptimizer::build_and_optimize_submodel(reporter_call
     {
         auto factory = get_discrete_gm_optimizer_factory(parameters_.sub_optimizer);
 
-        auto optimizer = factory->create(gm, OptimizerParameters(parameters_.sub_optimizer_parameters));
+        auto expected_optimizer = factory->create(gm, OptimizerParameters(parameters_.sub_optimizer_parameters));
+        if (!expected_optimizer)
+        {
+            throw std::runtime_error(expected_optimizer.error());
+        }
+        auto optimizer = std::move(expected_optimizer.value());
+
         if (this->remaining_time() < optimizer->get_time_limit())
         {
             optimizer->set_time_limit(this->remaining_time());
@@ -237,8 +250,13 @@ OptimizationStatus ReducedGmOptimizer::build_and_optimize_submodel(reporter_call
 
         auto [sub_gm, gm_to_sub_gm, constant] = gm.bind(mask, labels, false);
 
-        auto sub_optimizer =
+        auto expected_sub_optimizer =
             discrete_gm_optimizer_factory(sub_gm, parameters_.sub_optimizer, parameters_.sub_optimizer_parameters);
+        if (!expected_sub_optimizer)
+        {
+            throw std::runtime_error(expected_sub_optimizer.error());
+        }
+        auto sub_optimizer = std::move(expected_sub_optimizer.value());
 
         OptimizationStatus sub_status;
         if (starting_point.empty())

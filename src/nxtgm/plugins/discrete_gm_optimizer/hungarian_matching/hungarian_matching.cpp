@@ -56,7 +56,8 @@ class HungarianMatchingFactory : public DiscreteGmOptimizerFactoryBase
   public:
     using factory_base_type = DiscreteGmOptimizerFactoryBase;
     virtual ~HungarianMatchingFactory() = default;
-    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
+    expected<std::unique_ptr<DiscreteGmOptimizerBase>> create(const DiscreteGm &gm,
+                                                              OptimizerParameters &&params) const override
     {
         return std::make_unique<HungarianMatching>(gm, std::move(params));
     }

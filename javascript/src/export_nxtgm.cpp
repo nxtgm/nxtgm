@@ -271,10 +271,17 @@ void export_optimizer()
                   em::select_overload<SolutionValue(DiscreteGmOptimizerBase &)>(
                       [](DiscreteGmOptimizerBase &self) { return self.current_solution_value(); }));
 
-    em::function(
-        "discrete_gm_optimizer_factory",
-        em::select_overload<std::unique_ptr<DiscreteGmOptimizerBase>(
-            const DiscreteGm &, const std::string &, const OptimizerParameters &)>(&discrete_gm_optimizer_factory));
+    em::function("discrete_gm_optimizer_factory",
+                 em::select_overload<std::unique_ptr<DiscreteGmOptimizerBase>(const DiscreteGm &, const std::string &,
+                                                                              const OptimizerParameters &)>(
+                     [](const DiscreteGm &gm, const std::string &name, const OptimizerParameters &p) {
+                         auto expected = discrete_gm_optimizer_factory(gm, name, p);
+                         if (!expected)
+                         {
+                             throw std::runtime_error(expected.error());
+                         }
+                         return std::move(expected.value());
+                     }));
 }
 
 EMSCRIPTEN_BINDINGS(my_module)

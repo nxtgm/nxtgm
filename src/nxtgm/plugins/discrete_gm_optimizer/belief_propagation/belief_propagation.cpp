@@ -105,7 +105,8 @@ class BeliefPropagationFactory : public DiscreteGmOptimizerFactoryBase
   public:
     using factory_base_type = DiscreteGmOptimizerFactoryBase;
     virtual ~BeliefPropagationFactory() = default;
-    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
+    expected<std::unique_ptr<DiscreteGmOptimizerBase>> create(const DiscreteGm &gm,
+                                                              OptimizerParameters &&params) const override
     {
         return std::make_unique<BeliefPropagation>(gm, std::move(params));
     }
@@ -250,9 +251,8 @@ void BeliefPropagation::compute_beliefs()
     // reset the beliefs
     std::fill(belief_storage_.begin(), belief_storage_.end(), 0);
 
-// compute beliefs
-// - from factors
-#if 1
+    // compute beliefs
+    // - from factors
     for (std::size_t fi = 0; fi < gm.num_factors(); ++fi)
     {
 
@@ -293,7 +293,6 @@ void BeliefPropagation::compute_beliefs()
             constraint_to_var_ptr += num_labels;
         }
     }
-#endif
 }
 
 // variable_to_factor / variable_to_factor messages

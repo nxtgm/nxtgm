@@ -46,6 +46,7 @@ find_package(xtensor REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(xplugin REQUIRED)
 find_package(tsl-ordered-map REQUIRED)
+find_package(tl-expected REQUIRED)
 
 ###############################################################
 # converage
@@ -65,7 +66,10 @@ if(EMSCRIPTEN)
     set(CMAKE_STRIP FALSE)  # used by default in pybind11 on .so modules
 endif()
 
-add_definitions(-DNOMINMAX)
+if(WIN32)
+    # disable min max macros
+    add_definitions(-DNOMINMAX)
+endif()
 
 ###############################################################
 # library
@@ -113,6 +117,8 @@ add_library(nxtgm_shared SHARED
 if(EMSCRIPTEN)
     # add defintion NXTGM_NO_THREADS
     target_compile_definitions(nxtgm_shared PUBLIC NXTGM_NO_THREADS)
+elseif(WIN32)
+    target_compile_definitions(nxtgm_shared PUBLIC NOMINMAX)
 endif()
 SET(NXTGM_SHARED_LIBRARY nxtgm_shared)
 
@@ -149,6 +155,7 @@ endif()
 target_link_libraries(nxtgm_shared PUBLIC
     xtensor
     nlohmann_json::nlohmann_json
+    tl::expected
 )
 if(CMAKE_DL_LIBS)
     target_link_libraries(nxtgm_shared PUBLIC ${CMAKE_DL_LIBS})

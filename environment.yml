@@ -13,6 +13,7 @@ dependencies:
   - xtensor
   - xplugin >= 0.2.0
   - tsl_ordered_map
+  - cpp-expected
   # dependencies for python-bindings
   - python
   - pybind11

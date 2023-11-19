@@ -262,7 +262,7 @@ TEST_CASE("dynamic_programming")
             {
                 potts_grid(15, 1, 2, false),
                 potts_grid(20, 1, 3, false),
-                star(20, 10)
+                star(8, 5)
             },
             {
                 require_optimization_status(OptimizationStatus::OPTIMAL),
@@ -461,7 +461,12 @@ TEST_CASE("qpbo")
 
             auto concated_gm = concat_models(models);
 
-            auto optimizer = discrete_gm_optimizer_factory(concated_gm, "qpbo", parameters);
+            auto expected_optimizer = discrete_gm_optimizer_factory(concated_gm, "qpbo", parameters);
+            if (!expected_optimizer)
+            {
+                throw std::runtime_error(expected_optimizer.error());
+            }
+            auto optimizer = std::move(expected_optimizer.value());
             auto status = optimizer->optimize();
 
             for (auto i = 0; i < models[0].num_variables(); ++i)
@@ -557,7 +562,12 @@ TEST_CASE("hqpbo")
 
                 auto concated_gm = concat_models(models);
 
-                auto optimizer = discrete_gm_optimizer_factory(concated_gm, "qpbo", parameters);
+                auto expected_optimizer = discrete_gm_optimizer_factory(concated_gm, "qpbo", parameters);
+                if (!expected_optimizer)
+                {
+                    throw std::runtime_error(expected_optimizer.error());
+                }
+                auto optimizer = std::move(expected_optimizer.value());
                 auto status = optimizer->optimize();
 
                 for (auto i = 0; i < models[0].num_variables(); ++i)

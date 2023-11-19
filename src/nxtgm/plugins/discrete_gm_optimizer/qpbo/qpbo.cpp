@@ -77,7 +77,8 @@ class QpboDiscreteGmOptimizerFactory : public DiscreteGmOptimizerFactoryBase
   public:
     using factory_base_type = DiscreteGmOptimizerFactoryBase;
     virtual ~QpboDiscreteGmOptimizerFactory() = default;
-    std::unique_ptr<DiscreteGmOptimizerBase> create(const DiscreteGm &gm, OptimizerParameters &&params) const override
+    expected<std::unique_ptr<DiscreteGmOptimizerBase>> create(const DiscreteGm &gm,
+                                                              OptimizerParameters &&params) const override
     {
         return std::make_unique<Qpbo>(gm, std::move(params));
     }

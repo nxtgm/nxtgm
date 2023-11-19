@@ -47,7 +47,13 @@ std::pair<typename DiscreteGm::solution_type, SolutionValue> solve_brute_force(c
     using solution_type = typename gm_type::solution_type;
 
     auto optimizer_parameters = OptimizerParameters();
-    auto optimizer = nxtgm::discrete_gm_optimizer_factory(model, "brute_force_naive", optimizer_parameters);
+    auto expected_optimizer = nxtgm::discrete_gm_optimizer_factory(model, "brute_force_naive", optimizer_parameters);
+    if (!expected_optimizer)
+    {
+        throw std::runtime_error(expected_optimizer.error());
+    }
+
+    auto optimizer = std::move(expected_optimizer.value());
 
     optimizer->optimize();
     return std::pair<solution_type, SolutionValue>(optimizer->best_solution(), optimizer->best_solution_value());
@@ -194,7 +200,14 @@ void RequireNotWorseThan::require(DiscreteGmOptimizerBase *optimizer, Optimizati
     using gm_type = std::decay_t<decltype(model)>;
     using solution_type = typename gm_type::solution_type;
 
-    auto reference_optimizer = nxtgm::discrete_gm_optimizer_factory(model, method, parameters);
+    auto expected_reference_optimizer = nxtgm::discrete_gm_optimizer_factory(model, method, parameters);
+
+    if (!expected_reference_optimizer)
+    {
+        throw std::runtime_error(expected_reference_optimizer.error());
+    }
+
+    auto reference_optimizer = std::move(expected_reference_optimizer.value());
 
     reference_optimizer->optimize();
     auto best_solution = reference_optimizer->best_solution();
@@ -562,7 +575,16 @@ void test_discrete_gm_optimizer(const std::string optimizer_name, const Optimize
             auto gm = std::move(gm_and_name.first);
             auto gm_name = std::move(gm_and_name.second);
             last_gm_name = gm_name;
-            auto optimizer = discrete_gm_optimizer_factory(gm, optimizer_name, parameters);
+            auto expected_optimizer = discrete_gm_optimizer_factory(gm, optimizer_name, parameters);
+
+
+            if(!expected_optimizer){
+            throw std::runtime_error(expected_optimizer.error());
+            }
+
+            auto optimizer = std::move(expected_optimizer.value());
+
+
             // INFO("Testing model instance ", gm_name.second, " with ", optimizer_name);
             if(first){
                 first = false;

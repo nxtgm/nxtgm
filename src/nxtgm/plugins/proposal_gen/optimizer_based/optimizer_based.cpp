@@ -78,8 +78,13 @@ class ProposalGenOptimizerBased : public ProposalGenBase
                   std::function<ProposalConsumerStatus()> consumer) override
     {
 
-        auto optimizer =
+        auto expected_optimizer =
             discrete_gm_optimizer_factory(gm_, parameters_.optimizer_name, std::move(parameters_.optimizer_parameters));
+        if (!expected_optimizer)
+        {
+            throw std::runtime_error(expected_optimizer.error());
+        }
+        auto optimizer = std::move(expected_optimizer.value());
         Callback callback(optimizer.get(), proposal, best, consumer);
 
         const_discrete_solution_span starting_point(proposal, gm_.num_variables());

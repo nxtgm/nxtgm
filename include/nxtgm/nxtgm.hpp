@@ -9,6 +9,8 @@
 
 #include <nxtgm/nxtgm_runtime_checks.hpp>
 
+#include <tl/expected.hpp>
+
 namespace nxtgm
 {
 template <typename T>
@@ -43,5 +45,8 @@ using flat_set = RandomAccessSet<T>;
 
 constexpr energy_type constraint_feasiblility_limit = 1e-5;
 constexpr energy_type default_constraint_scaling = 1000.0;
+
+template <typename T>
+using expected = tl::expected<T, std::string>;
 
 } // namespace nxtgm
