@@ -18,42 +18,21 @@ class plugin_registry : public xp::xthread_save_plugin_registry<FACTORY_BASE>
 
     ~plugin_registry();
     plugin_registry();
-    factory_base_type *highest_priority_factory() const;
 
     factory_base_type *get_factory(const std::string &plugin_name);
 
   private:
     static std::filesystem::path get_plugin_dir();
-    factory_base_type *m_highest_priority_factory = nullptr;
 };
 
 template <class FACTORY_BASE>
 plugin_registry<FACTORY_BASE>::plugin_registry()
     : xp::xthread_save_plugin_registry<factory_base_type>(get_plugin_dir())
 {
-    if (!this->empty())
-    {
-        int highest_priority = (std::numeric_limits<int>::min)();
-        for (auto &[plugin_name, factory] : *this)
-        {
-            if (factory->priority() > highest_priority)
-            {
-                highest_priority = factory->priority();
-                m_highest_priority_factory = factory;
-            }
-        }
-    }
 }
 template <class FACTORY_BASE>
 plugin_registry<FACTORY_BASE>::~plugin_registry()
 {
-}
-
-template <class FACTORY_BASE>
-typename plugin_registry<FACTORY_BASE>::factory_base_type *plugin_registry<FACTORY_BASE>::highest_priority_factory()
-    const
-{
-    return m_highest_priority_factory;
 }
 
 template <class FACTORY_BASE>
@@ -98,6 +77,7 @@ inline std::filesystem::path plugin_registry<FACTORY_BASE>::get_plugin_dir()
         throw std::runtime_error(msg);
     }
 }
+
 template <class FACTORY_BASE>
 typename plugin_registry<FACTORY_BASE>::factory_base_type *plugin_registry<FACTORY_BASE>::get_factory(
     const std::string &plugin_name)
@@ -108,16 +88,17 @@ typename plugin_registry<FACTORY_BASE>::factory_base_type *plugin_registry<FACTO
         {
             throw std::runtime_error("No plugins found for " + factory_base_type::plugin_type());
         }
-        return this->highest_priority_factory();
+        // just return the first
+        for (auto &[plugin_name, factory] : *this)
+        {
+            return factory;
+        }
     }
-    else if (this->contains(plugin_name))
-    {
-        return this->operator[](plugin_name);
-    }
-    else
+    else if (!this->contains(plugin_name))
     {
         throw std::runtime_error(factory_base_type::plugin_type() + " " + plugin_name + " not found");
     }
+    return this->operator[](plugin_name);
 }
 
 } // namespace nxtgm
