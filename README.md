@@ -29,12 +29,25 @@ Meta optimizers that use other optimizers
 * Chained Optimization
 * Fusion Moves
 
-## Building blocks for optimizers
-* QPBO
-* Min-St-Cut / Maxflow
-* Higher order clique reduction
-* Fusion Moves
-* LP / ILP Solvers
+## Building blocks / plugins
+* Higher order clique reduction:
+    * Alexander Fix's higher order clique reduction
+* LP / ILP Solvers:
+    * Highs
+    * Coin CLP / CBC
+* Min-St-Cut / Maxflow:
+    * Kolmogorov's  maxflow algorithm
+* QPBO:
+    * Kolmogorov's famous QPBO algorithm wrapped in a plugin interface
+
+* Proposal Generators:
+    * <b>&alpha;</b>-expansion
+    * optimizer based proposal generator (uses an optimizer like belief propagation generate proposals)
+
+
+
+
+* Fusion Moves:   resulting solution is not worse than the two original solutions
 
 
 ## Supported operation systems / architectures
@@ -189,7 +202,9 @@ We define multiple plugin interfaces:
 * **`horc`**: is an interface for higher order clique reduction. At the moment, there is only one implementation of this interface, which is `horc` from  Alexander Fix.
 
 
-* **`ilp`**: is an interface for integer linear programming solvers. At the moment, there is only one implementation of this interface, which is `highs`.
+* **`ilp`**: is an interface for integer linear programming solvers. At the moment, there are two implementations of this interface, which is `highs` and `coin_clp`.
+
+* **`proposal_generators`**: is an interface for proposal generators. At the moment, there are two implementations of this interface, which is `alpha_expansion` and `optimizer_based_proposal_generator`. The `optimizer_based_proposal_generator` uses an optimizer like belief propagation to generate proposals.
 
 
 # Licencing

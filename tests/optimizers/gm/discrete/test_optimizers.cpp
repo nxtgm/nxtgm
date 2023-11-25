@@ -1,7 +1,8 @@
 #include <doctest/doctest.h>
 #include <nxtgm/models/gm/discrete_gm/testing/optimizer_tester.hpp>
+#include <nxtgm/plugins/ilp/ilp_base.hpp>
 #include <nxtgm/plugins/plugin_registry.hpp>
-
+#include <nxtgm_test_common.hpp>
 #ifdef _WIN32
 #define SKIP_WIN doctest::skip(true)
 #else
@@ -10,24 +11,6 @@
 
 namespace nxtgm
 {
-
-std::vector<std::string> all_optimizers()
-{
-    std::vector<std::string> result;
-    auto &registry = get_plugin_registry<DiscreteGmOptimizerFactoryBase>();
-    for (auto &[plugin_name, factory] : registry)
-    {
-        auto optimizer_name = plugin_name.substr(std::string("discrete_gm_optimizer_").size());
-#ifdef _WIN32
-        if (optimizer_name == "ilp_based" || optimizer_name == "ilp_highs")
-        {
-            continue;
-        }
-#endif
-        result.push_back(optimizer_name);
-    }
-    return result;
-}
 
 // TEST_CASE("raise_on_unknown_parameters" * doctest::skip(true))
 // {
@@ -631,34 +614,43 @@ TEST_CASE("matching_icm")
 
 TEST_CASE("ilp_based" * SKIP_WIN)
 {
-    SUBCASE("small")
+    for (auto ilp_plugin : all_ilp_plugins())
     {
-        std::cout << "test ilp_based" << std::endl;
-        // clang-format off
-        test_discrete_gm_optimizer(
-            "ilp_based",
-            OptimizerParameters(),
-            {
-                potts_grid(3,4,2,true),
-                potts_grid(3,4,2,false),
-                potts_grid(2,3,2,false),
-                star(5,2),
-                sparse_potts_chain(4, 2),
-                random_sparse_model(4, 3, 2, 4, 4, 0.5 ),
-                random_sparse_model(10,10, 2, 4, 4, 0.2 ),
-                sparse_potts_chain(5,5),
-                potts_chain_with_label_costs(5,5),
-                unique_label_chain(2,2, true),
-                unique_label_chain(4,5, true),
-                unique_label_chain(2,2, false),
-                unique_label_chain(4,5, false)
-            },
-            {
-                require_optimality( /*tolerance*/ 1e-3),
-                require_optimization_status(OptimizationStatus::OPTIMAL)
-            }
-        );
-        // clang-format on
+        SUBCASE(ilp_plugin.c_str())
+        {
+            std::cout << "test ilp_based with " << ilp_plugin << std::endl;
+            // clang-format off
+            OptimizerParameters parameters;
+            parameters["ilp_plugin_name"] = ilp_plugin;
+
+            OptimizerParameters ilp_parameters;
+            ilp_parameters["log_level"] = 0;
+            parameters["ilp_plugin_parameters"] = ilp_parameters;
+            test_discrete_gm_optimizer(
+                "ilp_based",
+                parameters,
+                {
+                    potts_grid(3,4,2,true),
+                    potts_grid(3,4,2,false),
+                    potts_grid(2,3,2,false),
+                    star(5,2),
+                    sparse_potts_chain(4, 2),
+                    random_sparse_model(4, 3, 2, 4, 4, 0.5 ),
+                    random_sparse_model(10,10, 2, 4, 4, 0.2 ),
+                    sparse_potts_chain(5,5),
+                    potts_chain_with_label_costs(5,5),
+                    unique_label_chain(2,2, true),
+                    unique_label_chain(4,5, true),
+                    unique_label_chain(2,2, false),
+                    unique_label_chain(4,5, false)
+                },
+                {
+                    require_optimality( /*tolerance*/ 1e-3),
+                    require_optimization_status(OptimizationStatus::OPTIMAL)
+                }
+            );
+            // clang-format on
+        }
     }
 }
 

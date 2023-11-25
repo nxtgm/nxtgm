@@ -9,7 +9,7 @@
 #include <nxtgm/functions/discrete_constraint_function_base.hpp>
 #include <nxtgm/functions/discrete_energy_function_base.hpp>
 #include <nxtgm/nxtgm.hpp>
-#include <test.hpp>
+#include <nxtgm_test_common.hpp>
 
 namespace nxtgm::tests
 {

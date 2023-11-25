@@ -19,8 +19,7 @@ class IlpBase
     IlpBase() = default;
     virtual ~IlpBase() = default;
 
-    virtual OptimizationStatus optimize_lp() = 0;
-    virtual OptimizationStatus optimize_ilp() = 0;
+    virtual OptimizationStatus optimize() = 0;
     virtual std::size_t num_variables() const = 0;
     virtual double get_objective_value() = 0;
     virtual void get_solution(double *solution) = 0;
@@ -28,7 +27,26 @@ class IlpBase
 
 class IlpFactoryBase
 {
+
   public:
+    class parameters_type
+    {
+      public:
+        inline parameters_type(OptimizerParameters &parameters)
+        {
+            parameters.assign_and_pop("integer", integer);
+            parameters.assign_and_pop("log_level", log_level);
+            if (auto it = parameters.int_parameters.find("time_limit_ms"); it != parameters.int_parameters.end())
+            {
+                time_limit = std::chrono::milliseconds(it->second);
+                parameters.int_parameters.erase(it);
+            }
+        }
+        bool integer = true;
+        int log_level = 0;
+        std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
+    };
+
     virtual ~IlpFactoryBase() = default;
 
     inline static std::string plugin_type()

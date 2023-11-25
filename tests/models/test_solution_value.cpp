@@ -1,4 +1,4 @@
-#include <test.hpp>
+#include <nxtgm_test_common.hpp>
 
 #include <nxtgm/models/solution_value.hpp>
 

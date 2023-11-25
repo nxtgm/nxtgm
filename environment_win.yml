@@ -32,10 +32,4 @@ dependencies:
   - breathe
   - sphinx-sitemap
   # for ilp plugins
-  - highs
-  - coin-or-cbc
-  - coin-or-clp
-  - coin-or-cgl
-  - coin-or-clp
-  - coin-or-osi
-  - coin-or-utils
+  # - highs

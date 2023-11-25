@@ -1,5 +1,5 @@
 #include <nxtgm/utils/sparse_array.hpp>
-#include <test.hpp>
+#include <nxtgm_test_common.hpp>
 
 TEST_CASE("sparse-array")
 {

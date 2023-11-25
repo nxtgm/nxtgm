@@ -62,10 +62,11 @@ OptimizationStatus highsModelStatusToOptimizationStatus(Highs &highs, HighsModel
 class IlpHighs : public IlpBase
 {
 
-    class parameters_type
+    class parameters_type : public IlpFactoryBase::parameters_type
     {
       public:
         inline parameters_type(OptimizerParameters &parameters)
+            : IlpFactoryBase::parameters_type(parameters)
         {
             if (auto it = parameters.int_parameters.find("time_limit_ms"); it != parameters.int_parameters.end())
             {
@@ -115,9 +116,8 @@ class IlpHighs : public IlpBase
         is_integer_ = std::move(ilp_data.is_integer());
     }
 
-    OptimizationStatus optimize_lp() override
+    OptimizationStatus optimize_lp()
     {
-        // std::cout << "optimize_lp 1" << std::endl;
 
         // Pass the model to HiGHS
         HighsStatus return_status = highs_.passModel(highs_model_);
@@ -127,22 +127,9 @@ class IlpHighs : public IlpBase
                                      highsStatusToString(return_status));
         }
 
-        // // print the vec highs_model_.lp_.integrality_
-        // for (std::size_t vi = 0; vi < highs_model_.lp_.integrality_.size(); ++vi)
-        // {
-        //     // std::cout << "var " << vi << " integrality: " << (
-        //     // highs_model_.lp_.integrality_[vi]==HighsVarType::kInteger )<< std::endl;
-        // }
-
-        // std::cout << "optimize_lp 2" << std::endl;
-
-        // Get a const reference to the LP data in HiGHS
-        // const HighsLp &lp = highs_.getLp();
-
-        // std::cout << "optimize_lp 3" << std::endl;
-
         // Solve the model
         return_status = highs_.run();
+
         // std::cout << "optimize_lp 4" << std::endl;
         OptimizationStatus status = highsModelStatusToOptimizationStatus(highs_, highs_.getModelStatus());
         // std::cout << "optimize_lp 5" << std::endl;
@@ -157,9 +144,8 @@ class IlpHighs : public IlpBase
         return status;
     }
 
-    OptimizationStatus optimize_ilp() override
+    OptimizationStatus optimize_ilp()
     {
-
         // not 100% sure if this is needed or what it does
         // but this infered from the example in the HiGHS repo
         if (const HighsInfo &info = highs_.getInfo(); !info.primal_solution_status)
@@ -193,6 +179,19 @@ class IlpHighs : public IlpBase
         objective_value_ = highs_.getHighsInfo().objective_function_value;
 
         return status;
+    }
+
+    OptimizationStatus optimize() override
+    {
+        if (parameters_.integer)
+        {
+            auto status = optimize_lp();
+            return optimize_ilp();
+        }
+        else
+        {
+            return optimize_lp();
+        }
     }
 
     double get_objective_value() override

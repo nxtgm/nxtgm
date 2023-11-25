@@ -67,6 +67,7 @@ if true; then
         -DBUILD_PLUGIN_QPBO_KOLMOGOROV=ON \
         -DBUILD_PLUGIN_HOCR_FIX=ON \
         -DBUILD_PLUGIN_MIN_ST_CUT_KOLMOGOROV=ON \
+        -DBUILD_PLUGIN_ILP_COIN_CLP=OFF \
         -DBUILD_DOCS=OFF \
         -DZLIB_INCLUDE_DIR=$PREFIX/include \
         -DZLIB_LIBRARY=$PREFIX/lib/libz.a \
