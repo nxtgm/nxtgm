@@ -1,0 +1,35 @@
+name: nxtgm
+channels:
+  - conda-forge
+
+dependencies:
+  # Build tools
+  - cmake < 3.27.4
+  - doctest
+  - cxx-compiler
+  - ninja
+  # dependencies
+  - nlohmann_json
+  - xtensor
+  - xplugin >= 0.2.0
+  - tsl_ordered_map
+  - cpp-expected
+  # dependencies for python-bindings
+  - python
+  - pybind11
+  - xtensor-python
+  - numpy
+  # python testing
+  - pytest
+  # for examples
+  - sphinx-gallery
+  - matplotlib
+  - scikit-image
+  # documentation
+  - doxygen
+  - sphinx < 7
+  - sphinx_rtd_theme
+  - breathe
+  - sphinx-sitemap
+  # for ilp plugins
+  # - highs
