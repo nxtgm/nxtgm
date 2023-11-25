@@ -171,28 +171,16 @@ void IlpBased::setup_ilp()
     }
 
     auto factory = get_plugin_registry<IlpFactoryBase>().get_factory(std::string("ilp_") + parameters_.ilp_plugin_name);
-    std::cout << "factory description: " << factory->description() << std::endl;
-    ilp_ = std::move(factory->create(std::move(ilp_data), std::move(parameters_.ilp_plugin_parameters)));
+    parameters_.ilp_plugin_parameters["integer"] = parameters_.integer;
+    ilp_ = factory->create(std::move(ilp_data), std::move(parameters_.ilp_plugin_parameters));
 }
 
 OptimizationStatus IlpBased::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
                                            repair_callback_wrapper_type & /*repair_callback not used*/,
                                            const_discrete_solution_span)
 {
-    OptimizationStatus status = OptimizationStatus::OPTIMAL;
-    const bool continue_opt = reporter_callback.report();
-
-    // std::cout<<"optimize_lp"<<std::endl;
-    status = ilp_->optimize_lp();
-    if (status == OptimizationStatus::INFEASIBLE || status == OptimizationStatus::TIME_LIMIT_REACHED)
-    {
-        return status;
-    }
-    if (parameters_.integer)
-    {
-        // std::cout<<"optimize_ilp"<<std::endl;
-        status = ilp_->optimize_ilp();
-    }
+    // optimize the lp / ilp
+    OptimizationStatus status = ilp_->optimize();
     if (status == OptimizationStatus::INFEASIBLE || status == OptimizationStatus::TIME_LIMIT_REACHED)
     {
         return status;

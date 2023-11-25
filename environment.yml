@@ -31,5 +31,6 @@ dependencies:
   - sphinx_rtd_theme
   - breathe
   - sphinx-sitemap
-  # for specific solver
+  # for ilp plugins
   - highs
+  - coin-or-cbc
