@@ -109,7 +109,7 @@ TEST_CASE("ilp_lp" * SKIP_WIN)
     }
 }
 
-TEST_CASE("ilp_ilp")
+TEST_CASE("ilp_ilp" * SKIP_WIN)
 {
     std::size_t num_var = 6;
     std::size_t num_labels = 3;
