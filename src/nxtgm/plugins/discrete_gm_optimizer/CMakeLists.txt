@@ -11,7 +11,7 @@ if(BUILD_PLUGINS_DISCRETE_GM_OPTIMIZER)
     add_subdirectory(belief_propagation)
     add_subdirectory(hungarian_matching)
     add_subdirectory(fusion_moves)
-    # we need to skip this for win and emscripten
+    # we need to skip this for win
     if(NOT WIN32)
         add_subdirectory(ilp_based)
     endif()

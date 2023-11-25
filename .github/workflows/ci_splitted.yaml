@@ -111,7 +111,7 @@ jobs:
       - name: Install Conda environment from environment.yml
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: environment.yml
+          environment-file: environment_win.yml
           init-shell: >-
             cmd.exe
           cache-environment: true
@@ -144,11 +144,26 @@ jobs:
           # ie discrete_gm_optimizer, proposal_gen, ...
           for /D %%d in (*) do (
             echo "building plugins of type:" %%d
+
+            # skip if plugin type is ilp
+            if %%d == ilp (
+              echo "skipping ilp plugins"
+              continue
+            )
+
             cd %%d
             # loop over all concrete plugins
             for /D %%p in (*) do (
               echo "building" %%p
               cd %%p
+
+              # skip if name is ilp based
+              if %%p == ilp_* (
+                echo "skipping ilp plugin"
+                cd ..
+                continue
+              )
+
               mkdir bld
               cd bld
               cmake .. ^
