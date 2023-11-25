@@ -2,7 +2,7 @@
 #include <nxtgm/models/gm/discrete_gm/testing/optimizer_tester.hpp>
 #include <nxtgm/plugins/ilp/ilp_base.hpp>
 #include <nxtgm/plugins/plugin_registry.hpp>
-
+#include <nxtgm_test_common.hpp>
 #ifdef _WIN32
 #define SKIP_WIN doctest::skip(true)
 #else
@@ -11,42 +11,6 @@
 
 namespace nxtgm
 {
-
-std::vector<std::string> all_optimizers()
-{
-    std::vector<std::string> result;
-    auto &registry = get_plugin_registry<DiscreteGmOptimizerFactoryBase>();
-    for (auto &[plugin_name, factory] : registry)
-    {
-        auto optimizer_name = plugin_name.substr(std::string("discrete_gm_optimizer_").size());
-#ifdef _WIN32
-        if (optimizer_name == "ilp_based" || optimizer_name == "ilp_highs")
-        {
-            continue;
-        }
-#endif
-        result.push_back(optimizer_name);
-    }
-    return result;
-}
-
-std::vector<std::string> all_ilp_plugins()
-{
-    std::vector<std::string> result;
-    auto &registry = get_plugin_registry<IlpFactoryBase>();
-    for (auto &[plugin_name, factory] : registry)
-    {
-        auto name = plugin_name.substr(std::string("ilp_").size());
-#ifdef _WIN32
-        if (name == "highs")
-        {
-            continue;
-        }
-#endif
-        result.push_back(name);
-    }
-    return result;
-}
 
 // TEST_CASE("raise_on_unknown_parameters" * doctest::skip(true))
 // {

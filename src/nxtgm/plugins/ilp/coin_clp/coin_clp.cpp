@@ -76,6 +76,11 @@ class CoinClp : public IlpBase
           parameters_(std::move(parameters)),
           simplex_()
     {
+        // log level
+        simplex_.setLogLevel(parameters_.log_level);
+
+        // time limit
+        simplex_.setMaximumSeconds(parameters_.time_limit.count());
     }
 
     std::size_t num_variables() const override

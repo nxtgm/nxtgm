@@ -1,5 +1,5 @@
 #include <nxtgm/optimizers/optimizer_parameters.hpp>
-#include <test.hpp>
+#include <nxtgm_test_common.hpp>
 #include <vector>
 
 TEST_CASE("optimizer-parameters")

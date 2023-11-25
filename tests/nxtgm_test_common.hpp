@@ -15,4 +15,11 @@ using njson = nlohmann::json;
 #define SKIP_WIN doctest::skip(false)
 #endif
 
+namespace nxtgm
+{
+std::vector<std::string> all_optimizers();
+std::vector<std::string> all_ilp_plugins();
+
+} // namespace nxtgm
+
 #endif // NXTGM_TESTS_TEST_HPP

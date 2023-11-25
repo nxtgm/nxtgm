@@ -16,7 +16,10 @@ message(STATUS "PLUGIN_ENV_VARS: ${PLUGIN_ENV_VARS}")
 function(add_nxtgm_test name)
     set(target_name nxtgm_test_${name})
     message(STATUS "Adding test ${target_name}")
-    add_executable(${target_name} main.cpp ${ARGN})
+    add_executable(${target_name} main.cpp
+        nxtgm_test_common.cpp
+        ${ARGN}
+    )
     target_compile_features(${target_name} PRIVATE cxx_std_17)
     target_link_libraries(${target_name} PRIVATE nxtgm_shared doctest::doctest)
     target_include_directories(${target_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

@@ -42,8 +42,8 @@ class IlpFactoryBase
                 parameters.int_parameters.erase(it);
             }
         }
-        bool integer = false;
-        int log_level = 1;
+        bool integer = true;
+        int log_level = 0;
         std::chrono::duration<double> time_limit = std::chrono::duration<double>::max();
     };
 

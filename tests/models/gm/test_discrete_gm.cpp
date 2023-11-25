@@ -1,6 +1,4 @@
-#include <test.hpp>
-
-#include <math.h>
+#include <nxtgm_test_common.hpp>
 
 #include <nxtgm/models/gm/discrete_gm.hpp>
 #include <nxtgm/spaces/discrete_space.hpp>

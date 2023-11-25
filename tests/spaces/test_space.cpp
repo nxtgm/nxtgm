@@ -1,5 +1,4 @@
-#include <test.hpp>
-
+#include <nxtgm_test_common.hpp>
 #include <vector>
 
 #include <nxtgm/nxtgm.hpp>

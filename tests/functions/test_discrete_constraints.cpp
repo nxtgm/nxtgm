@@ -2,7 +2,7 @@
 #include <math.h>
 #include <nxtgm/functions/array_constraint_function.hpp>
 #include <nxtgm/functions/unique_labels_constraint_function.hpp>
-#include <test.hpp>
+#include <nxtgm_test_common.hpp>
 
 TEST_CASE("unique-labels")
 {
