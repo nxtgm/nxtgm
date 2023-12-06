@@ -2,6 +2,10 @@
 #include <nxtgm/functions/label_count_constraint.hpp>
 #include <nxtgm/utils/n_nested_loops.hpp>
 
+#ifndef NXTGM_NO_THREADS
+#include <mutex>
+#endif
+
 namespace nxtgm
 {
 
