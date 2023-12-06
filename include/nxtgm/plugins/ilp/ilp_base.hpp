@@ -19,7 +19,7 @@ class IlpBase
     IlpBase() = default;
     virtual ~IlpBase() = default;
 
-    virtual OptimizationStatus optimize() = 0;
+    virtual OptimizationStatus optimize(const double *starting_point) = 0;
     virtual std::size_t num_variables() const = 0;
     virtual double get_objective_value() = 0;
     virtual void get_solution(double *solution) = 0;

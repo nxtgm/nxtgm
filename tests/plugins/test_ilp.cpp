@@ -75,7 +75,7 @@ TEST_CASE("ilp_lp" * SKIP_WIN)
             parameters["integer"] = false;
             auto factory = get_plugin_registry<IlpFactoryBase>().get_factory(std::string("ilp_") + ilp_plugin);
             auto ilp_solver = factory->create(std::move(ilp_data), std::move(parameters));
-            ilp_solver->optimize();
+            ilp_solver->optimize(nullptr);
             std::vector<double> solution(num_var * num_labels);
             ilp_solver->get_solution(solution.data());
 
@@ -218,7 +218,7 @@ TEST_CASE("ilp_ilp" * SKIP_WIN)
             parameters["integer"] = true;
             auto factory = get_plugin_registry<IlpFactoryBase>().get_factory("ilp_" + ilp_plugin);
             auto ilp_solver = factory->create(std::move(ilp_data), std::move(parameters));
-            ilp_solver->optimize();
+            ilp_solver->optimize(nullptr);
             std::vector<double> solution(num_ilp_var);
             ilp_solver->get_solution(solution.data());
 

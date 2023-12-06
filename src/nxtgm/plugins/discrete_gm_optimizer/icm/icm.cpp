@@ -7,7 +7,7 @@
 #include <nxtgm/utils/timer.hpp>
 
 #include <nxtgm/nxtgm.hpp>
-
+#include <nxtgm/nxtgm_runtime_checks.hpp>
 namespace nxtgm
 {
 
@@ -118,6 +118,11 @@ OptimizationStatus Icm::optimize_impl(reporter_callback_wrapper_type &reporter_c
         // move optimal
         const auto did_improve = movemaker_.move_optimal(vi);
 
+        NXTGM_ASSERT_EQ_TOL(this->model().evaluate(this->best_solution()).energy(),
+                            this->movemaker_.solution_value().energy(), 1e-6, "icm invariant failed (1)");
+        NXTGM_ASSERT_EQ_TOL(this->model().evaluate(this->best_solution()).how_violated(),
+                            this->movemaker_.solution_value().how_violated(), 1e-6, "icm invariant failed (1)");
+
         // if the solution improved we put all neighbors on the queue
         if (did_improve)
         {
@@ -164,6 +169,11 @@ OptimizationStatus Icm::optimize_impl(reporter_callback_wrapper_type &reporter_c
 
 SolutionValue Icm::best_solution_value() const
 {
+    NXTGM_ASSERT_EQ_TOL(this->model().evaluate(this->best_solution()).energy(),
+                        this->movemaker_.solution_value().energy(), 1e-6, "icm invariant failed");
+    NXTGM_ASSERT_EQ_TOL(this->model().evaluate(this->best_solution()).how_violated(),
+                        this->movemaker_.solution_value().how_violated(), 1e-6, "icm invariant failed");
+
     return this->movemaker_.solution_value();
 }
 SolutionValue Icm::current_solution_value() const

@@ -181,8 +181,16 @@ class IlpHighs : public IlpBase
         return status;
     }
 
-    OptimizationStatus optimize() override
+    OptimizationStatus optimize(const double *starting_point) override
     {
+        if (starting_point != nullptr)
+        {
+            // std::cout << "starting_point != nullptr" << std::endl;
+            HighsSolution sol;
+            sol.col_value.resize(highs_model_.lp_.num_col_);
+            std::copy(starting_point, starting_point + highs_model_.lp_.num_col_, sol.col_value.begin());
+            highs_.setSolution(sol);
+        }
         if (parameters_.integer)
         {
             auto status = optimize_lp();

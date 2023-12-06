@@ -1,6 +1,9 @@
 #include <nxtgm/functions/array_constraint_function.hpp>
 #include <nxtgm/functions/discrete_constraint_function_base.hpp>
+#include <nxtgm/functions/label_count_constraint.hpp>
+#include <nxtgm/functions/label_count_constraint_base.hpp>
 #include <nxtgm/functions/unique_labels_constraint_function.hpp>
+
 #include <pybind11/pybind11.h>
 #include <xtensor-python/pyarray.hpp>
 #include <xtensor-python/pytensor.hpp>
@@ -66,8 +69,13 @@ void export_discrete_constraint_functions(py::module_ &pymodule)
 
         ;
 
-    py::class_<UniqueLables, DiscreteConstraintFunctionBase>(pymodule, "UniqueLables")
-        .def(py::init<std::size_t, discrete_label_type, energy_type>(), py::arg("arity"), py::arg("num_labels"),
+    py::class_<LabelCountConstraintBase, DiscreteConstraintFunctionBase>(pymodule, "LabelCountConstraintBase")
+        .def_property_readonly("min_counts", &LabelCountConstraintBase::min_counts)
+        .def_property_readonly("max_counts", &LabelCountConstraintBase::max_counts);
+
+    py::class_<UniqueLables, LabelCountConstraintBase>(pymodule, "UniqueLables")
+        .def(py::init<std::size_t, discrete_label_type, bool, discrete_label_type, energy_type>(), py::arg("arity"),
+             py::arg("num_labels"), py::arg("with_ignore_label") = false, py::arg("ignore_label") = 0,
              py::arg("scale") = 1.0);
 
     py::class_<ArrayDiscreteConstraintFunction, DiscreteConstraintFunctionBase>(pymodule,

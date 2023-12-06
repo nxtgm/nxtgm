@@ -29,7 +29,8 @@ void export_discrete_gm(py::module_ &pymodule)
             "space", [](const DiscreteGm &gm) { return gm.space(); }, py::return_value_policy::reference_internal)
 
         .def_property_readonly("num_variables", [](const DiscreteGm &gm) { return gm.num_variables(); })
-
+        .def_property_readonly("num_factors", [](const DiscreteGm &gm) { return gm.num_factors(); })
+        .def_property_readonly("num_constraints", [](const DiscreteGm &gm) { return gm.num_constraints(); })
         .def_property_readonly("max_factor_arity", [](const DiscreteGm &gm) { return gm.max_factor_arity(); })
         .def_property_readonly("max_factor_size", [](const DiscreteGm &gm) { return gm.max_factor_size(); })
         .def_property_readonly("max_constraint_arity", [](const DiscreteGm &gm) { return gm.max_constraint_arity(); })

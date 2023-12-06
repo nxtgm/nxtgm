@@ -177,10 +177,33 @@ void IlpBased::setup_ilp()
 
 OptimizationStatus IlpBased::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
                                            repair_callback_wrapper_type & /*repair_callback not used*/,
-                                           const_discrete_solution_span)
+                                           const_discrete_solution_span starting_point)
 {
-    // optimize the lp / ilp
-    OptimizationStatus status = ilp_->optimize();
+    OptimizationStatus status = OptimizationStatus::OPTIMAL;
+
+    if (starting_point.size() > 0)
+    {
+        // optimize **with** starting point
+        std::copy(starting_point.begin(), starting_point.end(), best_solution_.begin());
+        best_sol_value_ = this->model().evaluate(best_solution_, false);
+        current_solution_ = best_solution_;
+        current_sol_value_ = best_sol_value_;
+
+        // map the starting point to the lp starting point
+        std::vector<double> lp_starting_point(ilp_->num_variables(), 0.0);
+        for (std::size_t i = 0; i < best_solution_.size(); ++i)
+        {
+            lp_starting_point[indicator_variable_mapping_[i] + best_solution_[i]] = 1.0;
+        }
+        status = ilp_->optimize(lp_starting_point.data());
+    }
+
+    else
+    {
+        // optimize **without** starting point
+        status = ilp_->optimize(nullptr);
+    }
+
     if (status == OptimizationStatus::INFEASIBLE || status == OptimizationStatus::TIME_LIMIT_REACHED)
     {
         return status;

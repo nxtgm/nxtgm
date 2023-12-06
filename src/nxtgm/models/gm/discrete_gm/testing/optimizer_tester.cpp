@@ -620,9 +620,9 @@ void test_discrete_gm_optimizer(const std::string optimizer_name, const Optimize
             }
             ++seed;
         };
-        run();
-        //auto budget = std::chrono::duration<double, std::milli>(options.per_model_time_limit);
-        //run_time_limited(run, budget);
+        //run();
+        auto budget = std::chrono::duration<double, std::milli>(options.per_model_time_limit);
+        run_time_limited(run, budget);
     }
 }
 

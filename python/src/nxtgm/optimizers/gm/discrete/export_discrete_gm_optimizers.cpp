@@ -50,11 +50,22 @@ void export_discrete_gm_optimizers(py::module_ &pymodule)
     // optimizer base
     py::class_<DiscreteGmOptimizerBase>(pymodule, "DiscreteGmOptimizerBase")
 
-        .def("optimize", [](DiscreteGmOptimizerBase *optimizer) { return optimizer->optimize(); })
-        .def("optimize",
-             [](DiscreteGmOptimizerBase *optimizer, reporter_callback_base_type *reporter_callback) {
-                 return optimizer->optimize(reporter_callback);
-             })
+        .def(
+            "optimize",
+            [](DiscreteGmOptimizerBase *optimizer, reporter_callback_base_type *reporter_callback,
+               xt::pytensor<discrete_label_type, 1> stating_point) {
+                if (stating_point.size() != 0)
+                {
+                    auto ptr = stating_point.data();
+                    span<const discrete_label_type> span(ptr, ptr + stating_point.size());
+                    return optimizer->optimize(reporter_callback, nullptr, span);
+                }
+                else
+                {
+                    return optimizer->optimize(reporter_callback);
+                }
+            },
+            py::arg("reporter_callback") = nullptr, py::arg("starting_point") = xt::pytensor<discrete_label_type, 1>())
         .def("best_solution",
              [](DiscreteGmOptimizerBase *optimizer) {
                  const auto &sol = optimizer->best_solution();

@@ -75,8 +75,6 @@ void export_discrete_energy_functions(py::module_ &pymodule)
         .def(py::init([](std::size_t arity, const xt::pytensor<energy_type, 1> &values) {
                  return new LabelCosts(arity, values.begin(), values.end());
              }),
-             py::arg("arity"), py::arg("label_costs"))
-
-        ;
+             py::arg("arity"), py::arg("label_costs"));
 }
 } // namespace nxtgm

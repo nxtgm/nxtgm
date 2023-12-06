@@ -12,6 +12,9 @@
 #include "CoinModel.hpp"
 #include "CoinTime.hpp"
 
+// warm start
+#include <CoinWarmStartVector.hpp>
+
 // For Branch and bound
 #include "CbcModel.hpp"
 #include "OsiSolverInterface.hpp"
@@ -73,48 +76,60 @@ class CoinClp : public IlpBase
     ~CoinClp() = default;
     CoinClp(parameters_type &&parameters)
         : IlpBase(),
-          parameters_(std::move(parameters)),
-          simplex_()
+          parameters_(std::move(parameters))
     {
         // log level
-        simplex_.setLogLevel(parameters_.log_level);
+        osi_clp_lp_solver_.setLogLevel(parameters_.log_level);
 
         // time limit
-        simplex_.setMaximumSeconds(parameters_.time_limit.count());
+        osi_lp_solver_ = &osi_clp_lp_solver_;
+
+        // get the model
+        osi_clp_lp_solver_.getModelPtr()->setMaximumSeconds(parameters_.time_limit.count());
     }
 
     std::size_t num_variables() const override
     {
-        return simplex_.getNumCols();
+        return osi_clp_lp_solver_.getNumCols();
     }
 
     CoinClp(IlpData &&ilp_data, parameters_type &&parameters)
         : CoinClp(std::move(parameters))
     {
-        coin_model_from_ilp_data(ilp_data, simplex_);
+        coin_model_from_ilp_data(ilp_data, osi_clp_lp_solver_);
     }
 
-    OptimizationStatus optimize() override
+    OptimizationStatus optimize(const double *starting_point) override
     {
+        if (starting_point != nullptr)
+        {
+            // copy to owned memory
+            double *warm = new double[num_variables()];
+            std::copy(starting_point, starting_point + num_variables(), warm);
+
+            CoinWarmStartVector<double> ws(num_variables(), warm);
+            osi_lp_solver_->setWarmStart(&ws);
+        }
         OptimizationStatus status = OptimizationStatus::OPTIMAL;
-        simplex_.dual();
+        osi_lp_solver_->initialSolve();
         return status;
     }
 
     double get_objective_value() override
     {
-        return simplex_.objectiveValue();
+        return osi_lp_solver_->getObjValue();
     }
 
     void get_solution(double *solution) override
     {
-        const double *columnPrimal = simplex_.primalColumnSolution();
+        const double *columnPrimal = osi_lp_solver_->getColSolution();
         std::copy(columnPrimal, columnPrimal + num_variables(), solution);
     }
 
   private:
     parameters_type parameters_;
-    ClpSimplex simplex_;
+    OsiSolverInterface *osi_lp_solver_;
+    OsiClpSolverInterface osi_clp_lp_solver_;
 };
 
 class CoinCbc : public IlpBase
@@ -139,22 +154,22 @@ class CoinCbc : public IlpBase
         : CoinCbc(std::move(parameters))
     {
         // the lp model
-        coin_model_from_ilp_data(ilp_data, solver1_);
-        solver_ = &solver1_;
+        coin_model_from_ilp_data(ilp_data, osi_clp_lp_solver_);
+        osi_lp_solver_ = &osi_clp_lp_solver_;
 
         const auto &is_integer = ilp_data.is_integer();
         for (std::size_t i = 0; i < is_integer.size(); ++i)
         {
             if (is_integer[i])
             {
-                solver_->setInteger(i);
+                osi_lp_solver_->setInteger(i);
             }
         }
 
-        cbc_model_ = std::make_unique<CbcModel>(*solver_);
+        cbc_model_ = std::make_unique<CbcModel>(*osi_lp_solver_);
 
         // log level
-        solver1_.setLogLevel(parameters_.log_level);
+        osi_clp_lp_solver_.setLogLevel(parameters_.log_level);
         cbc_model_->solver()->messageHandler()->setLogLevel(parameters_.log_level);
         cbc_model_->setLogLevel(parameters_.log_level);
         if (parameters_.log_level <= 1)
@@ -166,8 +181,18 @@ class CoinCbc : public IlpBase
         cbc_model_->setMaximumSeconds(parameters_.time_limit.count());
     }
 
-    OptimizationStatus optimize() override
+    OptimizationStatus optimize(const double *starting_point) override
     {
+
+        if (starting_point != nullptr)
+        {
+            // copy to owned memory
+            double *warm = new double[num_variables()];
+            std::copy(starting_point, starting_point + num_variables(), warm);
+
+            CoinWarmStartVector<double> ws(num_variables(), warm);
+            osi_lp_solver_->setWarmStart(&ws);
+        }
 
         OptimizationStatus status = OptimizationStatus::OPTIMAL;
 
@@ -265,8 +290,8 @@ class CoinCbc : public IlpBase
 
   private:
     parameters_type parameters_;
-    OsiSolverInterface *solver_;
-    OsiClpSolverInterface solver1_;
+    OsiSolverInterface *osi_lp_solver_;
+    OsiClpSolverInterface osi_clp_lp_solver_;
     std::unique_ptr<CbcModel> cbc_model_;
 };
 

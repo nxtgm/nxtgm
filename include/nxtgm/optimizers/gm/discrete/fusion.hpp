@@ -14,26 +14,16 @@ class DiscreteConstraintFunctionBase;
 class parameters_type
 {
   public:
-    using belief_callack_type = std::function<void(const energy_type *beliefs)>;
-
     inline parameters_type(OptimizerParameters &parameters)
     {
-
-        if (auto it = parameters.string_parameters.find("optimizer_name"); it != parameters.string_parameters.end())
-        {
-            optimizer_name = it->second;
-            parameters.string_parameters.erase(it);
-        }
-        if (auto it = parameters.optimizer_parameters.find("optimizer_parameters");
-            it != parameters.optimizer_parameters.end())
-        {
-            optimizer_parameters = it->second;
-            parameters.optimizer_parameters.erase(it);
-        }
+        parameters.assign_and_pop("optimizer_name", optimizer_name);
+        parameters.assign_and_pop("optimizer_parameters", optimizer_parameters);
+        parameters.assign_and_pop("numeric_stability", numeric_stability);
     }
 
     std::string optimizer_name = "icm";
     OptimizerParameters optimizer_parameters;
+    bool numeric_stability = false;
 };
 
 class Fusion
