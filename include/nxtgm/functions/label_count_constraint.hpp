@@ -5,6 +5,10 @@
 #include <vector>
 #include <xtensor/xarray.hpp>
 
+#ifndef NXTGM_NO_THREADS
+#include <mutex>
+#endif
+
 namespace nxtgm
 {
 
