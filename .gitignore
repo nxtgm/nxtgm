@@ -73,3 +73,6 @@ build_wasm*/
 
 # javascript
 javascript/dist/
+
+# sandbox
+sandbox/
