@@ -23,7 +23,7 @@ class parameters_type
 
     std::string optimizer_name = "icm";
     OptimizerParameters optimizer_parameters;
-    bool numeric_stability = false;
+    bool numeric_stability = true;
 };
 
 class Fusion

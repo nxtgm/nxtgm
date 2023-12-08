@@ -202,10 +202,16 @@ BeliefPropagation::BeliefPropagation(const DiscreteGm &gm, OptimizerParameters &
 
 OptimizationStatus BeliefPropagation::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
                                                     repair_callback_wrapper_type & /*repair_callback not used*/,
-                                                    const_discrete_solution_span)
+                                                    const_discrete_solution_span starting_point)
 {
     // shortcut to the model
     const auto &gm = this->model();
+
+    if (starting_point.size() > 0)
+    {
+        std::copy(starting_point.begin(), starting_point.end(), best_solution_.begin());
+        best_solution_value_ = gm.evaluate(best_solution_, false /* early exit when infeasible*/);
+    }
 
     for (std::size_t i = 0; i < parameters_.max_iterations; ++i)
     {

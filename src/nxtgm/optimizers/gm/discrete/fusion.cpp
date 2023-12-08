@@ -144,7 +144,10 @@ bool Fusion::fuse(const discrete_label_type *labels_a, // best
     // evaluate the proposed solution on the fused model
     auto fval_sol_a = fusegm_->evaluate(fused_gm_sol_a.data());
     auto fval_sol_b = fusegm_->evaluate(fused_gm_sol_b.data());
-    auto fused_starting_point_data = fval_sol_a < fval_sol_b ? fused_gm_sol_a.data() : fused_gm_sol_b.data();
+
+    auto a_better_b = fval_sol_a < fval_sol_b;
+
+    auto fused_starting_point_data = a_better_b ? fused_gm_sol_a.data() : fused_gm_sol_b.data();
     auto fval_best = fval_sol_a < fval_sol_b ? fval_sol_a : fval_sol_b;
 
     const_discrete_solution_span fused_starting_point(fused_starting_point_data, fusegm_num_var);
@@ -178,64 +181,16 @@ bool Fusion::fuse(const discrete_label_type *labels_a, // best
         }
     };
 
+    // THIS WHOLE LOGIC IS A MESS
+    bool changes = false;
     if (fvalue_fused < fval_best)
     {
-
-#if 1
-        // std::cout<<"fgmnumvar: "<<fusegm_num_var<<std::endl;
-        // std::cout<<"fval_fused: "<<fvalue_fused<<" fval_best: "<<fval_best<< " fvala "<<fval_sol_a<<" fvalb
-        // "<<fval_sol_b<<std::endl;
-
-        make_gm_sol(best_fused_solution, labels_fused);
-
-        // print fuse gm mixed sol
-        // std::cout<<"fused sol ";
-        for (std::size_t fi_gm = 0; fi_gm < fusegm_num_var; ++fi_gm)
-        {
-            // std::cout<<best_fused_solution[fi_gm]<<" ";
-        }
-        // std::cout<<std::endl;
-
-        // print fuse gm pos
-        // std::cout<<"fused pos ";
-        for (std::size_t fi_gm = 0; fi_gm < fusegm_num_var; ++fi_gm)
-        {
-            // std::cout<<fusegm_to_gm_[fi_gm]<<" ";
-        }
-        // std::cout<<std::endl;
-
-        // print labels A and B
-        // std::cout<<"labels A ";
-        for (std::size_t vi_gm = 0; vi_gm < gm_.num_variables(); ++vi_gm)
-        {
-            // std::cout<<labels_a[vi_gm]<<" ";
-        }
-        // std::cout<<std::endl;
-
-        // std::cout<<"labels B ";
-        for (std::size_t vi_gm = 0; vi_gm < gm_.num_variables(); ++vi_gm)
-        {
-            // std::cout<<labels_b[vi_gm]<<" ";
-        }
-
-        // std::cout<<std::endl;
-        // std::cout<<"labels F ";
-        //  print labels fused
-        for (std::size_t vi_gm = 0; vi_gm < gm_.num_variables(); ++vi_gm)
-        {
-            // std::cout<<labels_fused[vi_gm]<<" ";
-        }
-        // std::cout<<std::endl;
-
-        auto actual_val_of_fused = gm_.evaluate(labels_fused);
-
-        NXTGM_CHECK_OP(actual_val_of_fused, <, gm_.evaluate(labels_a), "");
-        NXTGM_CHECK_OP(actual_val_of_fused, <, gm_.evaluate(labels_b), "");
-
-#endif
+    }
+    else if (!a_better_b)
+    {
+        best_fused_solution = fused_gm_sol_b;
     }
 
-    bool changes = false;
     make_gm_sol(best_fused_solution, labels_fused);
     for (std::size_t vi_fused = 0; vi_fused < fusegm_num_var; ++vi_fused)
     {
