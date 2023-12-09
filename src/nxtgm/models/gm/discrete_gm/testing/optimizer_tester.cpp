@@ -7,7 +7,7 @@ namespace nxtgm
 {
 
 template <class F>
-void run_time_limited(F &&f, std::chrono::duration<double, std::milli> time_limit)
+void run_time_limited(F &&f, std::chrono::duration<double, std::milli> time_limit, std::size_t run_limit)
 {
     // run once to warm up
     f();
@@ -18,7 +18,7 @@ void run_time_limited(F &&f, std::chrono::duration<double, std::milli> time_limi
 
     // running mean of duration
     std::chrono::duration<double, std::milli> duration_mean = duration;
-    std::size_t count = 1;
+    std::size_t count = 2;
 
     while (true)
     {
@@ -34,8 +34,12 @@ void run_time_limited(F &&f, std::chrono::duration<double, std::milli> time_limi
         }
         f();
         ++count;
+        if (count >= run_limit)
+        {
+            break;
+        }
     }
-    std::cout << "did run " << count + 1 << " times" << std::endl;
+    std::cout << "did run " << count << " times" << std::endl;
     end = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration<double, std::milli>(end - start);
 }
@@ -622,7 +626,7 @@ void test_discrete_gm_optimizer(const std::string optimizer_name, const Optimize
         };
         //run();
         auto budget = std::chrono::duration<double, std::milli>(options.per_model_time_limit);
-        run_time_limited(run, budget);
+        run_time_limited(run, budget, 100);
     }
 }
 

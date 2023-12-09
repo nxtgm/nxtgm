@@ -76,34 +76,18 @@ void Fusion::add_to_fuse_gm(std::unique_ptr<DiscreteConstraintFunctionBase> fuse
     ////std::cout<<"add cid end"<<std::endl;
 }
 
-bool Fusion::fuse(const discrete_label_type *labels_a, // best
-                  const discrete_label_type *labels_b, // proposal
-                  discrete_label_type *labels_fused,   // best≠≠≠
-                  SolutionValue &value_fused)
+FusionResult Fusion::fuse(const discrete_label_type *labels_a, // best
+                          const discrete_label_type *labels_b, // proposal
+                          discrete_label_type *labels_fused)
 {
 
-    // print labels A and B
-    // std::cout<<"labels A ";
-    for (std::size_t vi_gm = 0; vi_gm < gm_.num_variables(); ++vi_gm)
-    {
-        // std::cout<<labels_a[vi_gm]<<" ";
-    }
-    // std::cout<<std::endl;
-
-    // std::cout<<"labels B ";
-    for (std::size_t vi_gm = 0; vi_gm < gm_.num_variables(); ++vi_gm)
-    {
-        // std::cout<<labels_b[vi_gm]<<" ";
-    }
-    // std::cout<<std::endl;
-
     // count number of variables and create mapping
-    std::size_t fusegm_num_var = build_mapping(labels_a, labels_b, labels_fused);
+    const std::size_t fusegm_num_var = build_mapping(labels_a, labels_b, labels_fused);
 
     // if no variables are different, return the best solution
     if (fusegm_num_var == 0)
     {
-        return false;
+        return FusionResult::A;
     }
 
     fusegm_.reset(new DiscreteGm(fusegm_num_var, 2));
@@ -137,20 +121,18 @@ bool Fusion::fuse(const discrete_label_type *labels_a, // best
         }
     });
 
-    // //std::cout<<"fusegm_->num_variables(): "<<fusegm_->num_variables()<<std::endl;
-    // //std::cout<<"fusegm_->num_factors(): "<<fusegm_->num_factors()<<std::endl;
-    // //std::cout<<"fusegm_->num_constraints(): "<<fusegm_->num_constraints()<<std::endl;
-
     // evaluate the proposed solution on the fused model
     auto fval_sol_a = fusegm_->evaluate(fused_gm_sol_a.data());
     auto fval_sol_b = fusegm_->evaluate(fused_gm_sol_b.data());
 
+    // check which is the best so far
     auto a_better_b = fval_sol_a < fval_sol_b;
+    auto b_better_a = fval_sol_b < fval_sol_a;
+    auto best_state_data = a_better_b ? fused_gm_sol_a.data() : fused_gm_sol_b.data();
+    auto fval_best = a_better_b ? fval_sol_a : fval_sol_b;
 
-    auto fused_starting_point_data = a_better_b ? fused_gm_sol_a.data() : fused_gm_sol_b.data();
-    auto fval_best = fval_sol_a < fval_sol_b ? fval_sol_a : fval_sol_b;
-
-    const_discrete_solution_span fused_starting_point(fused_starting_point_data, fusegm_num_var);
+    // starting point for the optimizer
+    const_discrete_solution_span fused_starting_point(best_state_data, fusegm_num_var);
 
     // create the fusion model optimizer
     auto expected_optimizer =
@@ -165,53 +147,92 @@ bool Fusion::fuse(const discrete_label_type *labels_a, // best
     optimizer->optimize(nullptr, nullptr, fused_starting_point);
 
     // get the solution
-    auto best_fused_solution = optimizer->best_solution();
+    auto foptimizer_solution = optimizer->best_solution();
 
-    // get the value
-    // auto fvalue_fused = parameters_.numeric_stability ? fusegm_->evaluate(optimizer->best_solution()) :
-    // optimizer->best_solution_value();
     auto fvalue_fused = fusegm_->evaluate(optimizer->best_solution());
+
     // make gm sol from fused sol
     auto make_gm_sol = [&](auto &fgm_sol, auto &gm_sol) {
         for (std::size_t vi_fused = 0; vi_fused < fusegm_num_var; ++vi_fused)
         {
             const auto vi_gm = fusegm_to_gm_[vi_fused];
-            NXTGM_ASSERT_OP(vi_gm, <, gm_.num_variables());
+            // NXTGM_ASSERT_OP(vi_gm, <, gm_.num_variables());
             gm_sol[vi_gm] = fgm_sol[vi_fused] == 0 ? labels_a[vi_gm] : labels_b[vi_gm];
         }
     };
 
-    // THIS WHOLE LOGIC IS A MESS
-    bool changes = false;
     if (fvalue_fused < fval_best)
     {
-    }
-    else if (!a_better_b)
-    {
-        best_fused_solution = fused_gm_sol_b;
-    }
 
-    make_gm_sol(best_fused_solution, labels_fused);
-    for (std::size_t vi_fused = 0; vi_fused < fusegm_num_var; ++vi_fused)
+        make_gm_sol(foptimizer_solution, labels_fused);
+        // check that solution is different from both a and b
+        // auto is_different_from_a = false;
+        // auto is_different_from_b = false;
+        // for (std::size_t vi_gm = 0; vi_gm < gm_.num_variables(); ++vi_gm)
+        // {
+        //     if (labels_fused[vi_gm] != labels_a[vi_gm])
+        //     {
+        //         is_different_from_a = true;
+        //     }
+        //     if (labels_fused[vi_gm] != labels_b[vi_gm])
+        //     {
+        //         is_different_from_b = true;
+        //     }
+        // }
+        // if (!is_different_from_a || !is_different_from_b)
+        // {
+        //     std::cout<<"Fusion produced a solution that is not different from a or b"<<std::endl;
+        //     std::cout<<"fval_sol_a: "<<fval_sol_a<<" fval_sol_b: "<<fval_sol_b<<" fvalue_fused:
+        //     "<<fvalue_fused<<std::endl; throw std::runtime_error("Fusion produced a solution that is not different
+        //     from a or b");
+        // }
+        // std::cout<<"fused\n";
+        return FusionResult::Fused;
+    }
+    else
     {
-        const auto vi_gm = fusegm_to_gm_[vi_fused];
-        // const auto fsd = best_fused_solution[vi_fused] == 0 ? labels_a[vi_gm] : labels_b[vi_gm];
-        if (labels_fused[vi_gm] != labels_a[vi_gm])
+        // if proposals a and b are different but evaluate to the same label
+        // we  should choose solution A, because downstream optimizers might
+        // assume that the solution B is better if we return FusionResult::B
+        if (a_better_b || !b_better_a)
         {
-            changes = true;
+            make_gm_sol(fused_gm_sol_a, labels_fused);
+            // std::cout<<"A"<<std::endl;
+            return FusionResult::A;
+        }
+        else
+        {
+            make_gm_sol(fused_gm_sol_b, labels_fused);
+
+            // auto eval_a = gm_.evaluate(labels_a);
+            // auto eval_b = gm_.evaluate(labels_b);
+            // auto eval_bb = gm_.evaluate(labels_b);
+
+            // if(!(eval_b < eval_a))
+            // {
+            //     std::cout<<"feval_b: "<<fval_sol_b<<" feval_a: "<<fval_sol_a<<"b<a ? "<< (fval_sol_b < fval_sol_a)<<"
+            //     a<b ? "<< (fval_sol_a < fval_sol_b)<<std::endl; std::cout<<" eval_b: "<<eval_b    <<"  eval_a:
+            //     "<<eval_a    <<" eval_bb: "<<eval_bb<<std::endl; throw std::runtime_error("eval_b >= eval_a");
+            // }
+
+            // // ensure different from a
+            // auto is_different_from_a = false;
+            // for (std::size_t vi_gm = 0; vi_gm < gm_.num_variables(); ++vi_gm)
+            // {
+            //     if (labels_fused[vi_gm] != labels_a[vi_gm])
+            //     {
+            //         is_different_from_a = true;
+            //     }
+            // }
+            // if (!is_different_from_a)
+            // {
+            //     std::cout<<" B is not different from A"<<std::endl;
+            //     throw std::runtime_error("B is not different from A");
+            // }
+            // std::cout<<"B"<<std::endl;
+            return FusionResult::B;
         }
     }
-
-    if (changes)
-    {
-        auto new_value = gm_.evaluate(labels_fused);
-        auto old_best = gm_.evaluate(labels_a);
-        return new_value < old_best;
-
-        NXTGM_CHECK_OP(new_value, <, old_best, "H");
-    }
-
-    return changes;
 }
 
 } // namespace nxtgm

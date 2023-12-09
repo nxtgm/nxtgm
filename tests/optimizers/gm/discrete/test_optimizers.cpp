@@ -825,6 +825,7 @@ TEST_CASE("fusion_moves")
         );
         // clang-format on
     }
+
     SUBCASE("icm")
     {
         // We can emulate icm with fusion moves when
@@ -867,6 +868,7 @@ TEST_CASE("fusion_moves")
         );
         // clang-format on
     }
+
     SUBCASE("alpha_expansion")
     {
         // running alpha expansion with an optimal fusion moves optimizer
