@@ -2,6 +2,7 @@
 #include <nxtgm/nxtgm.hpp>
 #include <nxtgm/optimizers/gm/discrete/optimizer_base.hpp>
 #include <nxtgm/utils/timer.hpp>
+#include <random>
 
 namespace nxtgm
 {
@@ -21,7 +22,9 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
             parameters.assign_and_pop("normalize_messages", normalize_messages);
             parameters.assign_and_pop("report_beliefs", report_beliefs);
             parameters.assign_and_pop("constraint_scaling", constraint_scaling);
-            parameters.assign_and_pop_from_any<belief_callack_type>("beliefs_callback", beliefs_callback);
+            parameters.assign_and_pop("compute_message_parameters", compute_message_parameters);
+            parameters.assign_and_pop("random_initialization", random_initialization);
+            parameters.assign_and_pop("seed", seed);
         }
 
         std::size_t max_iterations = 1000;
@@ -30,11 +33,13 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
         energy_type constraint_scaling = default_constraint_scaling;
         bool normalize_messages = true;
         bool report_beliefs = false;
+        bool random_initialization = false;
+        int seed = 0;
 
-        // this is used internally to build other algorithms
-        // ontop of belief propagation which need to access to the
-        // beliefs
-        std::function<void(const energy_type *beliefs)> beliefs_callback;
+        // this is passed to the constraint functions
+        // since there are complicated constraint functions
+        // which need parametrization (ie high arity UniqueLabelConstraints)
+        OptimizerParameters compute_message_parameters;
     };
 
   public:
@@ -60,6 +65,8 @@ class BeliefPropagation : public DiscreteGmOptimizerBase
 
     const solution_type &best_solution() const override;
     const solution_type &current_solution() const override;
+
+    void normalize_message(energy_type *begin, energy_type *end) const;
 
   private:
     // variable_to_factor / variable_to_constraint messages
@@ -198,14 +205,33 @@ BeliefPropagation::BeliefPropagation(const DiscreteGm &gm, OptimizerParameters &
 
     message_storage_[0].resize(message_storage_size, 0);
     message_storage_[1].resize(message_storage_size, 0);
+
+    if (parameters_.random_initialization)
+    {
+        std::mt19937 gen(parameters_.seed);
+        std::uniform_real_distribution<> dis(0.0, 1.0);
+        for (auto &m : message_storage_[0])
+        {
+            m = dis(gen);
+        }
+    }
 }
 
 OptimizationStatus BeliefPropagation::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
                                                     repair_callback_wrapper_type & /*repair_callback not used*/,
-                                                    const_discrete_solution_span)
+                                                    const_discrete_solution_span starting_point)
 {
     // shortcut to the model
     const auto &gm = this->model();
+
+    ReportData report_data;
+    report_data.double_data["beliefs"] = span<const energy_type>(belief_storage_.data(), belief_storage_.size());
+
+    if (starting_point.size() > 0)
+    {
+        std::copy(starting_point.begin(), starting_point.end(), best_solution_.begin());
+        best_solution_value_ = gm.evaluate(best_solution_, false /* early exit when infeasible*/);
+    }
 
     for (std::size_t i = 0; i < parameters_.max_iterations; ++i)
     {
@@ -225,11 +251,7 @@ OptimizationStatus BeliefPropagation::optimize_impl(reporter_callback_wrapper_ty
         // copy the messages
         std::copy(message_storage_[0].begin(), message_storage_[0].end(), message_storage_[1].begin());
 
-        if (parameters_.beliefs_callback)
-        {
-            parameters_.beliefs_callback(belief_storage_.data());
-        }
-        if (!this->report(reporter_callback))
+        if (!this->report(reporter_callback, report_data))
         {
             return OptimizationStatus::CALLBACK_EXIT;
         }
@@ -292,6 +314,18 @@ void BeliefPropagation::compute_beliefs()
 
             constraint_to_var_ptr += num_labels;
         }
+    }
+}
+
+void BeliefPropagation::normalize_message(energy_type *begin, energy_type *end) const
+{
+    // find min
+    const auto min = *std::min_element(begin, end);
+
+    // subtract min
+    for (std::size_t label = 0; label < end - begin; ++label)
+    {
+        begin[label] -= min;
     }
 }
 
@@ -365,11 +399,9 @@ void BeliefPropagation::compute_to_variable_messages()
     const auto &gm = this->model();
     for (std::size_t fi = 0; fi < gm.num_factors(); ++fi)
     {
-
         const auto &factor = gm.factor(fi);
 
-        // messages associated with unary factors
-        // do not change  after the first iteration
+        // messages associated with unary factors  do not change  after the first iteration
         if (iteration_ > 0 && factor.arity() == 1)
         {
             continue;
@@ -380,20 +412,16 @@ void BeliefPropagation::compute_to_variable_messages()
 
         for (std::size_t ai = 0; ai < factor.arity(); ++ai)
         {
-
             const auto num_lables = gm.num_labels(factor.variables()[ai]);
             local_to_variable_messages_[ai] = fac_to_var_ptr;
             local_from_variable_messages_[ai] = var_to_fac_ptr;
-
             fac_to_var_ptr += num_lables;
             var_to_fac_ptr += num_lables;
         }
 
-        const auto &local_variable_to_factor_messages = local_from_variable_messages_;
-
         // compute the messages
         factor.function()->compute_to_variable_messages(
-            static_cast<const energy_type *const *>(local_variable_to_factor_messages.data()),
+            static_cast<const energy_type *const *>(local_from_variable_messages_.data()),
             local_to_variable_messages_.data());
 
         // normalize the messages
@@ -401,26 +429,17 @@ void BeliefPropagation::compute_to_variable_messages()
         {
             for (std::size_t ai = 0; ai < factor.arity(); ++ai)
             {
-                // find min
-                const auto min =
-                    *std::min_element(local_to_variable_messages_[ai],
-                                      local_to_variable_messages_[ai] + gm.num_labels(factor.variables()[ai]));
-                // subtract min
-                for (std::size_t label = 0; label < gm.num_labels(factor.variables()[ai]); ++label)
-                {
-                    local_to_variable_messages_[ai][label] -= min;
-                }
+                this->normalize_message(local_to_variable_messages_[ai],
+                                        local_to_variable_messages_[ai] + gm.num_labels(factor.variables()[ai]));
             }
         }
     }
 
     for (std::size_t ci = 0; ci < gm.num_constraints(); ++ci)
     {
-
         const auto &constraint = gm.constraint(ci);
 
-        // messages associated with unary constraints
-        // do not change  after the first iteration
+        // messages associated with unary constraints do not change  after the first iteration
         if (iteration_ > 0 && constraint.arity() == 1)
         {
             continue;
@@ -435,32 +454,22 @@ void BeliefPropagation::compute_to_variable_messages()
             const auto num_lables = gm.num_labels(constraint.variables()[ai]);
             local_to_variable_messages_[ai] = constraint_to_var_ptr;
             local_from_variable_messages_[ai] = var_to_ptr;
-
             constraint_to_var_ptr += num_lables;
             var_to_ptr += num_lables;
         }
 
-        const auto &local_variable_to_constraint_messages = local_from_variable_messages_;
-
         // compute the messages
         constraint.function()->compute_to_variable_messages(
-            static_cast<const energy_type *const *>(local_variable_to_constraint_messages.data()),
-            local_to_variable_messages_.data(), parameters_.constraint_scaling);
+            static_cast<const energy_type *const *>(local_from_variable_messages_.data()),
+            local_to_variable_messages_.data(), parameters_.constraint_scaling, parameters_.compute_message_parameters);
 
         // normalize the messages
         if (parameters_.normalize_messages)
         {
             for (std::size_t ai = 0; ai < constraint.arity(); ++ai)
             {
-                // find min
-                const auto min =
-                    *std::min_element(local_to_variable_messages_[ai],
-                                      local_to_variable_messages_[ai] + gm.num_labels(constraint.variables()[ai]));
-                // subtract min
-                for (std::size_t label = 0; label < gm.num_labels(constraint.variables()[ai]); ++label)
-                {
-                    local_to_variable_messages_[ai][label] -= min;
-                }
+                this->normalize_message(local_to_variable_messages_[ai],
+                                        local_to_variable_messages_[ai] + gm.num_labels(constraint.variables()[ai]));
             }
         }
     }

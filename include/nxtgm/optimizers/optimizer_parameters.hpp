@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 // std::pair
-#include <any>
+#include <nxtgm/utils/uany.hpp>
 #include <utility>
 
 namespace nxtgm
@@ -74,7 +74,7 @@ class OptimizerParameters
     tsl::ordered_map<std::string, std::string> string_parameters;
     tsl::ordered_map<std::string, int64_t> int_parameters;
     tsl::ordered_map<std::string, double> double_parameters;
-    tsl::ordered_map<std::string, std::any> any_parameters;
+    tsl::ordered_map<std::string, uany> any_parameters;
     detail::ordered_map_vec<std::string, OptimizerParameters> optimizer_parameters;
     bool empty() const;
 
@@ -83,16 +83,44 @@ class OptimizerParameters
     {
         if (auto it = any_parameters.find(key); it != any_parameters.end())
         {
-            const std::any &anyval = it->second;
-            if (anyval.has_value() == false || anyval.type() != typeid(T))
+            const uany &canyval = it->second;
+            // const cast
+            uany &anyval = const_cast<uany &>(canyval);
+            if (!anyval.has_value())
             {
-                throw std::runtime_error(std::string("beliefs_callback must be ") + typeid(T).name() + " but is " +
-                                         anyval.type().name());
+                throw std::runtime_error(key + std::string(" is empty any val"));
             }
             else
             {
-                value = std::any_cast<T>(anyval);
-                any_parameters.erase(it);
+                if (anyval.type() != typeid(T))
+                {
+                    // std::cout<<anyval.type().name()<<std::endl;
+                    // std::cout<<typeid(T).name()<<std::endl;
+
+                    // throw std::runtime_error( key + std::string("is of type ") +  typeid(T).name() + " but is " +
+                    // anyval.type().name());
+
+                    // just try to cast it
+                    try
+                    {
+                        // std::cout<<"lets try to cast it"<<std::endl;
+                        value = uany_cast<T>(anyval);
+                        any_parameters.erase(it);
+                    }
+                    catch (const bad_uany_cast &e)
+                    {
+                        std::cout << e.what() << std::endl;
+                        // std::cout<<"anyhash "<< anyval.type().hash_code()<<std::endl;
+                        // std::cout<<"T  hash "<<typeid(T).hash_code()<<std::endl;
+                        throw std::runtime_error(key + std::string("is of type ") + typeid(T).name() + " but is " +
+                                                 anyval.type().name());
+                    }
+                }
+                else
+                {
+                    value = uany_cast<T>(anyval);
+                    any_parameters.erase(it);
+                }
             }
         }
     }

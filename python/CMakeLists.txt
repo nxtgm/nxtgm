@@ -22,6 +22,7 @@ pybind11_add_module(_nxtgm
     ${PY_SRC_DIR}/nxtgm/spaces/export_discrete_space.cpp
     ${PY_SRC_DIR}/nxtgm/models/gm/export_discrete_gm.cpp
     ${PY_SRC_DIR}/nxtgm/optimizers/gm/discrete/export_discrete_gm_optimizers.cpp
+    ${PY_SRC_DIR}/nxtgm/plugins/export_proposal_gen.cpp
 )
 
 # link dependencies

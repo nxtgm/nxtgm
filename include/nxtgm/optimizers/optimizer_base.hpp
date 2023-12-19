@@ -166,6 +166,14 @@ class OptimizerBase
         return ret;
     }
 
+    bool report(reporter_callback_wrapper_type &reporter_callback, const ReportData &data)
+    {
+        timer_.pause();
+        const auto ret = reporter_callback.report(data);
+        timer_.resume();
+        return ret;
+    }
+
   private:
     const model_type &model_;
     Timer timer_;

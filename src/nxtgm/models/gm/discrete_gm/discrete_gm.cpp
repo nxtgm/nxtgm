@@ -37,6 +37,41 @@ DiscreteGm::DiscreteGm(const DiscreteSpace &discrete_space)
 {
 }
 
+DiscreteGm::DiscreteGm(const DiscreteGm &other)
+    : space_(other.space_),
+      factors_(other.factors_),
+      energy_functions_(),
+      constraints_(other.constraints_),
+      constraint_functions_(),
+      max_factor_arity_(other.max_factor_arity_),
+      max_constraint_arity_(other.max_constraint_arity_),
+      max_factor_size_(other.max_factor_size_),
+      max_constraint_size_(other.max_constraint_size_)
+{
+    std::cout << "A copy constructor is called" << std::endl;
+    for (const auto &energy_function : other.energy_functions_)
+    {
+        energy_functions_.push_back(energy_function->clone());
+    }
+    for (const auto &constraint_function : other.constraint_functions_)
+    {
+        constraint_functions_.push_back(constraint_function->clone());
+    }
+}
+
+DiscreteGm::DiscreteGm(DiscreteGm &&other) noexcept
+    : space_(std::move(other.space_)),
+      factors_(std::move(other.factors_)),
+      energy_functions_(std::move(other.energy_functions_)),
+      constraints_(std::move(other.constraints_)),
+      constraint_functions_(std::move(other.constraint_functions_)),
+      max_factor_arity_(other.max_factor_arity_),
+      max_constraint_arity_(other.max_constraint_arity_),
+      max_factor_size_(other.max_factor_size_),
+      max_constraint_size_(other.max_constraint_size_)
+{
+}
+
 std::size_t DiscreteGm::add_energy_function(std::unique_ptr<DiscreteEnergyFunctionBase> function)
 {
     energy_functions_.push_back(std::move(function));

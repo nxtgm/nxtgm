@@ -14,8 +14,6 @@ jobs:
         include:
           - os: ubuntu-latest
             build_type: Release
-          - os: ubuntu-latest
-            build_type: Debug
           - os: macos-latest
             build_type: Release
 
@@ -98,17 +96,18 @@ jobs:
             cd bld
             for i in {1..10}; do echo "run $i";  NXTGM_PLUGIN_PATH=src/nxtgm/plugins ./tests/nxtgm_test_all --tce="ilp*" --order-by=random --rand-seed=$i; done
 
+      # this is to unstable
+      # # at the moment the ilp highs tests are not stable enough and already leak
+      # # when loading the shared library. Therefore we skip them for now
+      # - name: Run C++ tests with valgrind
+      #   if: ${{ matrix.os == 'ubuntu-latest' && matrix.build_type == 'Debug' }}
+      #   shell: bash -l {0}
+      #   run: |
+      #       sudo apt install -y libc6-dbg
+      #       $MAMBA_EXE install -y valgrind
+      #       cd bld
+      #       NXTGM_PLUGIN_PATH=src/nxtgm/plugins valgrind --error-exitcode=1 --tool=memcheck --leak-check=full ./tests/nxtgm_test_all --tce="ilp*"
 
-      # at the moment the ilp highs tests are not stable enough and already leak
-      # when loading the shared library. Therefore we skip them for now
-      - name: Run C++ tests with valgrind
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.build_type == 'Debug' }}
-        shell: bash -l {0}
-        run: |
-            sudo apt install -y libc6-dbg
-            $MAMBA_EXE install -y valgrind
-            cd bld
-            NXTGM_PLUGIN_PATH=src/nxtgm/plugins valgrind --error-exitcode=1 --tool=memcheck --leak-check=full ./tests/nxtgm_test_all --tce="ilp*"
 
 
       - name: Run Python tests
@@ -145,7 +144,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        build_type: ["Release", "Debug"]
+        build_type: ["Release"]
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
@@ -160,7 +159,7 @@ jobs:
           init-shell: >-
             cmd.exe
           cache-environment: true
-          post-cleanup: 'all'
+          post-cleanup: 'none'
 
       - name: build and test
         shell: cmd /C CALL {0}

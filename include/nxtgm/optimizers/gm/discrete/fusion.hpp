@@ -11,39 +11,36 @@ class DiscreteGm;
 class DiscreteEnergyFunctionBase;
 class DiscreteConstraintFunctionBase;
 
-class parameters_type
+enum class FusionResult
 {
-  public:
-    using belief_callack_type = std::function<void(const energy_type *beliefs)>;
-
-    inline parameters_type(OptimizerParameters &parameters)
-    {
-
-        if (auto it = parameters.string_parameters.find("optimizer_name"); it != parameters.string_parameters.end())
-        {
-            optimizer_name = it->second;
-            parameters.string_parameters.erase(it);
-        }
-        if (auto it = parameters.optimizer_parameters.find("optimizer_parameters");
-            it != parameters.optimizer_parameters.end())
-        {
-            optimizer_parameters = it->second;
-            parameters.optimizer_parameters.erase(it);
-        }
-    }
-
-    std::string optimizer_name = "icm";
-    OptimizerParameters optimizer_parameters;
+    A,
+    B,
+    Fused
 };
 
 class Fusion
 {
 
+    class parameters_type
+    {
+      public:
+        inline parameters_type(OptimizerParameters &parameters)
+        {
+            parameters.assign_and_pop("optimizer_name", optimizer_name);
+            parameters.assign_and_pop("optimizer_parameters", optimizer_parameters);
+            parameters.assign_and_pop("numeric_stability", numeric_stability);
+        }
+
+        std::string optimizer_name = "icm";
+        OptimizerParameters optimizer_parameters;
+        bool numeric_stability = true;
+    };
+
   public:
     Fusion(const DiscreteGm &gm, OptimizerParameters &&parameters);
 
-    bool fuse(const discrete_label_type *labels_a, const discrete_label_type *labels_b,
-              discrete_label_type *labels_fused, SolutionValue &value_fused);
+    FusionResult fuse(const discrete_label_type *labels_a, const discrete_label_type *labels_b,
+                      discrete_label_type *labels_fused);
 
     void add_to_fuse_gm(std::unique_ptr<DiscreteEnergyFunctionBase> fused_function, const std::size_t *variables);
     void add_to_fuse_gm(std::unique_ptr<DiscreteConstraintFunctionBase> fused_function, const std::size_t *variables);

@@ -19,6 +19,9 @@ void export_discrete_space(py::module_ &pymodule)
         // is_simple property (readonly)
         .def_property_readonly("is_simple", [](const DiscreteSpace &space) { return space.is_simple(); })
 
+        // max_num_labels property (readonly)
+        .def_property_readonly("max_num_labels", [](const DiscreteSpace &space) { return space.max_num_labels(); })
+
         ;
 }
 } // namespace nxtgm

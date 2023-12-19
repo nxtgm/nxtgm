@@ -23,11 +23,15 @@ class FusionMoves : public DiscreteGmOptimizerBase
             parameters.assign_and_pop("proposal_gen_name", proposal_gen_name);
             parameters.assign_and_pop("proposal_gen_parameters", proposal_gen_parameters);
             parameters.assign_and_pop("max_iterations", max_iterations);
+
+            parameters.assign_and_pop_from_any<std::shared_ptr<ProposalGenFactoryBase>>("proposal_gen_factory",
+                                                                                        proposal_gen_factory);
         }
         OptimizerParameters fusion_parameters;
         std::string proposal_gen_name = "alpha_expansion";
         OptimizerParameters proposal_gen_parameters;
         std::size_t max_iterations = 0; // 0 means the proposal generator decides
+        std::shared_ptr<ProposalGenFactoryBase> proposal_gen_factory;
     };
 
   public:
@@ -111,10 +115,17 @@ FusionMoves::FusionMoves(const DiscreteGm &gm, OptimizerParameters &&parameters)
 {
     ensure_all_handled(name(), parameters);
 
-    auto factory = get_plugin_registry<ProposalGenFactoryBase>().get_factory(std::string("proposal_gen_") +
-                                                                             parameters_.proposal_gen_name);
+    if (parameters_.proposal_gen_factory)
+    {
+        proposal_gen_ = parameters_.proposal_gen_factory->create(gm, std::move(parameters_.proposal_gen_parameters));
+    }
+    else
+    {
+        auto factory = get_plugin_registry<ProposalGenFactoryBase>().get_factory(std::string("proposal_gen_") +
+                                                                                 parameters_.proposal_gen_name);
 
-    proposal_gen_ = factory->create(gm, std::move(parameters_.proposal_gen_parameters));
+        proposal_gen_ = factory->create(gm, std::move(parameters_.proposal_gen_parameters));
+    }
 }
 
 OptimizationStatus FusionMoves::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
@@ -130,9 +141,14 @@ OptimizationStatus FusionMoves::optimize_impl(reporter_callback_wrapper_type &re
 
     auto status = OptimizationStatus::CONVERGED;
     proposal_gen_->generate(best_solution_.data(), proposal.data(), [&]() {
-        SolutionValue fused_value;
+        std::vector<discrete_label_type> fused(best_solution_.size());
+        auto fuse_results = this->fusion_.fuse(best_solution_.data(), proposal.data(), fused.data());
 
-        auto improved = this->fusion_.fuse(best_solution_.data(), proposal.data(), best_solution_.data(), fused_value);
+        if (fuse_results != FusionResult::A)
+        {
+            value_is_tidy_ = false;
+            std::copy(fused.begin(), fused.end(), best_solution_.begin());
+        }
 
         ++iteration_;
 
@@ -150,10 +166,8 @@ OptimizationStatus FusionMoves::optimize_impl(reporter_callback_wrapper_type &re
             return ProposalConsumerStatus::EXIT;
         }
 
-        if (improved)
+        if (fuse_results != FusionResult::A)
         {
-            value_is_tidy_ = false;
-
             // call visitor
             if (!this->report(reporter_callback))
             {

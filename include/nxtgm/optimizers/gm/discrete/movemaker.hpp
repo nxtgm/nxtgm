@@ -44,8 +44,6 @@ class FilteredMovemaker
     inline bool move_optimal(std::size_t variable)
     {
         const auto current_label = current_solution_[variable];
-        const auto &factors = factors_of_variables_[variable];
-        const auto &constraints = constraints_of_variables_[variable];
 
         const auto &factors_ids = factors_of_variables_[variable];
         const auto &constraints_ids = constraints_of_variables_[variable];

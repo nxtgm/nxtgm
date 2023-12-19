@@ -86,6 +86,8 @@ SET(NXTGM_LIBRARY_SOURCES
     src/nxtgm/functions/label_costs_energy_function.cpp
     src/nxtgm/functions/potts_energy_function.cpp
     src/nxtgm/functions/discrete_constraint_function_base.cpp
+    src/nxtgm/functions/label_count_constraint_base.cpp
+    src/nxtgm/functions/label_count_constraint.cpp
     src/nxtgm/functions/array_constraint_function.cpp
     src/nxtgm/functions/unique_labels_constraint_function.cpp
     src/nxtgm/spaces/discrete_space.cpp

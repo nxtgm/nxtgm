@@ -7,6 +7,12 @@
 #include <stdexcept>
 #include <vector>
 
+// we do debug checks in debug more (ie NDEBUG is not defined)
+// or if NXTGM_DEBUG is defined
+#ifndef NDEBUG
+#define NXTGM_DEBUG
+#endif
+
 /** \def NXTGM_CHECK_OP(a,op,b,message)
     \brief macro for runtime checks
 
@@ -98,16 +104,6 @@
             throw std::runtime_error(s.str() + "number is inf");                                                       \
     }
 
-#ifdef NDEBUG
-#ifdef NXTGM_DEBUG
-#define NXTGM_DO_DEBUG
-#endif
-#else
-#ifdef NXTGM_DEBUG
-#define NXTGM_DO_DEBUG
-#endif
-#endif
-
 /** \def NXTGM_ASSERT_OP(a,op,b,message)
     \brief macro for runtime checks
 
@@ -126,23 +122,10 @@
         NXTGM_ASSERT_OP(a, >=, 2) // will fail here
     \endcode
 */
-#ifdef NDEBUG
 #ifndef NXTGM_DEBUG
 #define NXTGM_ASSERT_OP(a, op, b)                                                                                      \
     {                                                                                                                  \
     }
-#else
-#define NXTGM_ASSERT_OP(a, op, b)                                                                                      \
-    if (!static_cast<bool>(a op b))                                                                                    \
-    {                                                                                                                  \
-        std::stringstream s;                                                                                           \
-        s << "nxtgm assertion :  " << #a << #op << #b << "  failed:\n";                                                \
-        s << #a " = " << a << "\n";                                                                                    \
-        s << #b " = " << b << "\n";                                                                                    \
-        s << "in file " << __FILE__ << ", line " << __LINE__ << "\n";                                                  \
-        throw std::runtime_error(s.str());                                                                             \
-    }
-#endif
 #else
 #define NXTGM_ASSERT_OP(a, op, b)                                                                                      \
     if (!static_cast<bool>(a op b))                                                                                    \
@@ -171,7 +154,7 @@
         NXTGM_ASSERT(a >= 2) // will fail here
     \endcode
 */
-#ifdef NDEBUG
+
 #ifndef NXTGM_DEBUG
 #define NXTGM_ASSERT(expression)                                                                                       \
     {                                                                                                                  \
@@ -186,13 +169,9 @@
         throw std::runtime_error(s.str());                                                                             \
     }
 #endif
+
+#ifdef NXTGM_DEBUG
+#define NXTGM_ASSERT_EQ_TOL(a, b, tol, message) NXTGM_CHECK_EQ_TOL(a, b, tol, message)
 #else
-#define NXTGM_ASSERT(expression)                                                                                       \
-    if (!(expression))                                                                                                 \
-    {                                                                                                                  \
-        std::stringstream s;                                                                                           \
-        s << "nxtgm assertion " << #expression << " failed in file " << __FILE__ << ", line " << __LINE__              \
-          << std::endl;                                                                                                \
-        throw std::runtime_error(s.str());                                                                             \
-    }
+#define NXTGM_ASSERT_EQ_TOL(a, b, tol, message)
 #endif

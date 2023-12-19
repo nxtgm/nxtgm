@@ -202,6 +202,9 @@ class DiscreteGm
     {
     }
 
+    DiscreteGm(const DiscreteGm &other);
+    DiscreteGm(DiscreteGm &&other) noexcept;
+
     inline const DiscreteSpace &space() const
     {
         return space_;
@@ -330,6 +333,43 @@ class DiscreteGm
     template <class DISCRETE_VARIABLES>
     std::size_t add_factor(DISCRETE_VARIABLES &&discrete_variables, std::size_t function_id)
     {
+        // check if all variables are valid
+        for (const auto &variable : discrete_variables)
+        {
+            if (variable >= space_.size())
+            {
+                throw std::runtime_error("Invalid variable index");
+            }
+        }
+        // check if there are no duplicates
+        for (std::size_t i = 0; i < discrete_variables.size(); ++i)
+        {
+            for (std::size_t j = i + 1; j < discrete_variables.size(); ++j)
+            {
+                if (discrete_variables[i] == discrete_variables[j])
+                {
+                    throw std::runtime_error("Duplicate variable index");
+                }
+            }
+        }
+
+        // check that the function matches the arity
+        if (discrete_variables.size() != energy_functions_[function_id]->arity())
+        {
+            throw std::runtime_error("Function arity does not match the number of variables");
+        }
+        // check that the function shape matches the number of labels
+        for (std::size_t i = 0; i < discrete_variables.size(); ++i)
+        {
+            if (space_[discrete_variables[i]] != energy_functions_[function_id]->shape(i))
+            {
+                std::stringstream ss;
+                ss << "Function shape does not match the number of labels: " << space_[discrete_variables[i]]
+                   << " != " << energy_functions_[function_id]->shape(i);
+                throw std::runtime_error(ss.str());
+            }
+        }
+
         const std::size_t arity = discrete_variables.size();
         max_factor_arity_ = std::max(max_factor_arity_, arity);
 
@@ -344,6 +384,50 @@ class DiscreteGm
     template <class DISCRETE_VARIABLES>
     std::size_t add_constraint(DISCRETE_VARIABLES &&discrete_variables, std::size_t function_id)
     {
+
+        // check if all variables are valid
+        for (const auto &variable : discrete_variables)
+        {
+            if (variable >= space_.size())
+            {
+                throw std::runtime_error("Invalid variable index");
+            }
+        }
+        // check if there are no duplicates
+        for (std::size_t i = 0; i < discrete_variables.size(); ++i)
+        {
+            for (std::size_t j = i + 1; j < discrete_variables.size(); ++j)
+            {
+                if (discrete_variables[i] == discrete_variables[j])
+                {
+                    throw std::runtime_error("Duplicate variable index");
+                }
+            }
+        }
+
+        // check that the function matches the arity
+        if (discrete_variables.size() != constraint_functions_[function_id]->arity())
+        {
+            throw std::runtime_error("Function arity does not match the number of variables");
+        }
+        // check that cid is valid
+        if (function_id >= constraint_functions_.size())
+        {
+            throw std::runtime_error("Invalid constraint function id");
+        }
+
+        // check that the function shape matches the number of labels
+        for (std::size_t i = 0; i < discrete_variables.size(); ++i)
+        {
+            if (space_[discrete_variables[i]] != constraint_functions_[function_id]->shape(i))
+            {
+                std::stringstream ss;
+                ss << "Constraint shape does not match the number of labels: " << space_[discrete_variables[i]]
+                   << " != " << constraint_functions_[function_id]->shape(i);
+                throw std::runtime_error(ss.str());
+            }
+        }
+
         const std::size_t arity = discrete_variables.size();
         max_constraint_arity_ = std::max(max_constraint_arity_, arity);
 
@@ -400,6 +484,9 @@ class DiscreteGm
             {
                 const const_discrete_label_span labels =
                     local_solution_from_model_solution(constraint.variables(), solution, local_labels_buffer);
+
+                // print local solution
+
                 const auto how_violated = constraint.function()->value(labels.data());
                 if (how_violated >= constraint_feasiblility_limit)
                 {

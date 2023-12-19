@@ -21,7 +21,8 @@ std::unique_ptr<DiscreteConstraintFunctionBase> DiscreteConstraintFunctionBase::
 
 void DiscreteConstraintFunctionBase::compute_to_variable_messages(const energy_type *const *in_messages,
                                                                   energy_type **out_messages,
-                                                                  energy_type constraint_scaling_factor) const
+                                                                  energy_type constraint_scaling_factor,
+                                                                  const OptimizerParameters &optimizer_parameters) const
 {
 
     const auto arity = this->arity();
@@ -71,7 +72,7 @@ void DiscreteConstraintFunctionBase::fuse(const discrete_label_type *labels_a, c
                                           discrete_label_type *labels_ab, const std::size_t fused_arity,
                                           const std::size_t *fuse_factor_var_pos, Fusion &fusion) const
 {
-
+    // std::cout<<"DiscreteConstraintFunctionBase::fuse"<<std::endl;
     std::vector<std::size_t> shape(fused_arity, 2);
     auto fused_function_data = xt::xarray<energy_type>::from_shape(shape);
     small_arity_vector<discrete_label_type> fused_coords(fused_arity);
@@ -92,6 +93,7 @@ void DiscreteConstraintFunctionBase::fuse(const discrete_label_type *labels_a, c
 
     fusion.add_to_fuse_gm(std::make_unique<ArrayDiscreteConstraintFunction>(std::move(fused_function_data)),
                           fuse_factor_var_pos);
+    // std::cout<<"DiscreteConstraintFunctionBase::fuse end"<<std::endl;
 }
 
 template <class T>

@@ -51,4 +51,12 @@ class SolutionValue
 // free operator
 SolutionValue operator+(const SolutionValue &lhs, const SolutionValue &rhs);
 
+// iostream
+inline std::ostream &operator<<(std::ostream &os, const SolutionValue &solution_value)
+{
+    os << "SolutionValue(energy=" << solution_value.energy() << ", how_violated=" << solution_value.how_violated()
+       << ")";
+    return os;
+}
+
 } // namespace nxtgm

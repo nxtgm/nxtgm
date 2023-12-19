@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nxtgm/functions/discrete_constraint_function_base.hpp>
+#include <nxtgm/functions/label_count_constraint_base.hpp>
 #include <nxtgm/nxtgm.hpp>
 
 #include <xtensor/xarray.hpp>
@@ -8,7 +8,7 @@
 namespace nxtgm
 {
 
-class UniqueLables : public DiscreteConstraintFunctionBase
+class UniqueLables : public LabelCountConstraintBase
 {
   public:
     static std::string serialization_key()
@@ -21,11 +21,10 @@ class UniqueLables : public DiscreteConstraintFunctionBase
     }
     UniqueLables() = default;
     UniqueLables(std::size_t arity, discrete_label_type n_labels, bool with_ignore_label = false,
-                 energy_type scale = 1.0);
+                 discrete_label_type ignore_label = 0, energy_type scale = 1.0);
 
     std::size_t arity() const override;
-    discrete_label_type shape(std::size_t) const override;
-    std::size_t size() const override;
+    discrete_label_type num_labels() const override;
     energy_type value(const discrete_label_type *discrete_labels) const override;
 
     std::unique_ptr<DiscreteConstraintFunctionBase> clone() const override;
@@ -36,15 +35,23 @@ class UniqueLables : public DiscreteConstraintFunctionBase
     static std::unique_ptr<DiscreteConstraintFunctionBase> deserialize(Deserializer &deserializer);
     static std::unique_ptr<DiscreteConstraintFunctionBase> deserialize_json(const nlohmann::json &json);
 
-    inline bool with_ignore_label() const
-    {
-        return with_ignore_label_;
-    }
+    std::size_t min_counts(discrete_label_type l) const override;
+    std::size_t max_counts(discrete_label_type l) const override;
+    bool with_ignore_label() const;
+    discrete_label_type ignore_label() const;
+
+    void fuse(const discrete_label_type *labels_a, const discrete_label_type *labels_b, discrete_label_type *labels_ab,
+              const std::size_t fused_arity, const std::size_t *fuse_factor_var_pos, Fusion &fusion) const override;
+
+    void compute_to_variable_messages(const energy_type *const *in_messages, energy_type **out_messages,
+                                      energy_type constraint_scaling_factor,
+                                      const OptimizerParameters &optimizer_parameters) const override;
 
   private:
     std::size_t arity_;
     discrete_label_type n_labels_;
     bool with_ignore_label_;
+    discrete_label_type ignore_label_;
     energy_type scale_;
 };
 
