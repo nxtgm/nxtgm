@@ -6,6 +6,8 @@
 // fusion
 #include <nxtgm/optimizers/gm/discrete/fusion.hpp>
 
+#include <algorithm>
+#include <tuple>
 #include <unordered_map>
 
 namespace nxtgm
@@ -19,6 +21,7 @@ UniqueLables::UniqueLables(std::size_t arity, discrete_label_type n_labels, bool
       ignore_label_(ignore_label),
       scale_(scale)
 {
+
     if (arity < 2)
     {
         throw std::runtime_error("UniqueLables arity must be >= 2");
@@ -37,6 +40,14 @@ discrete_label_type UniqueLables::num_labels() const
 
 energy_type UniqueLables::value(const discrete_label_type *discrete_labels) const
 {
+
+    // // print discrete_labels
+    // for (std::size_t i = 0; i < arity_; ++i)
+    // {
+    //     std::cout << std::setw(2) << discrete_labels[i] << " ";
+    // }
+    // std::cout << std::endl;
+
     auto n_duplicates = 0;
 
     for (auto i = 0; i < arity_ - 1; ++i)
@@ -64,7 +75,7 @@ energy_type UniqueLables::value(const discrete_label_type *discrete_labels) cons
 
 std::unique_ptr<DiscreteConstraintFunctionBase> UniqueLables::clone() const
 {
-    return std::make_unique<UniqueLables>(arity_, n_labels_, with_ignore_label_, scale_);
+    return std::make_unique<UniqueLables>(arity_, n_labels_, with_ignore_label_, ignore_label_, scale_);
 }
 
 void UniqueLables::add_to_lp(IlpData &ilp_data, const std::size_t *indicator_variables_mapping) const
@@ -149,11 +160,6 @@ void UniqueLables::fuse(const discrete_label_type *labels_a, const discrete_labe
                         discrete_label_type *labels_ab, const std::size_t fused_arity,
                         const std::size_t *fuse_factor_var_pos, Fusion &fusion) const
 {
-
-    // return LabelCountConstraintBase::fuse(labels_a, labels_b, labels_ab, fused_arity, fuse_factor_var_pos, fusion);
-    //  std::cout<<"UniqueLables::fuse:"<<std::endl;
-    //  std::cout<<"fused arity: "<<fused_arity<<" / "<<arity_<<std::endl;
-
     xt::xtensor<energy_type, 2> fused_binary = xt::xtensor<energy_type, 2>::from_shape({2, 2});
     xt::xtensor<energy_type, 1> fused_unary = xt::xtensor<energy_type, 1>::from_shape({2});
 
@@ -215,10 +221,7 @@ void UniqueLables::fuse(const discrete_label_type *labels_a, const discrete_labe
         {
             // add the fused function to the fusion
             std::size_t vars[1] = {pi};
-            // std::cout<<"add unary fused function"<<std::endl;
-            // std::cout<<"var pos: "<<pi<<std::endl;
             fusion.add_to_fuse_gm(std::make_unique<ArrayDiscreteConstraintFunction>(fused_unary), vars);
-            // std::cout<<"done"<<std::endl;
         }
     }
 
@@ -230,7 +233,6 @@ void UniqueLables::fuse(const discrete_label_type *labels_a, const discrete_labe
         for (std::size_t i1 = i0 + 1; i1 < fused_arity; ++i1)
         {
             const auto pi1 = fuse_factor_var_pos[i1];
-            // std::cout<<i0<<" / "<<i1<<std::endl;
 
             // reset the fused function data
             std::fill(fused_binary.begin(), fused_binary.end(), 0.0);
@@ -239,16 +241,9 @@ void UniqueLables::fuse(const discrete_label_type *labels_a, const discrete_labe
             const auto labels_pi0_a = labels_a[pi0];
             const auto labels_pi0_b = labels_b[pi0];
 
-            NXTGM_CHECK_OP(labels_pi0_a, !=, labels_pi0_b, "labels_pi0_a != labels_pi0_b");
-
             // the two labels for the second variable
             const auto labels_pi1_a = labels_a[pi1];
             const auto labels_pi1_b = labels_b[pi1];
-
-            NXTGM_CHECK_OP(labels_pi1_a, !=, labels_pi1_b, "labels_pi1_a != labels_pi1_b");
-
-            // std::cout<<"labels for first  variable: "<<labels_pi0_a<<" / "<<labels_pi0_b<<std::endl;
-            // std::cout<<"labels for second variable: "<<labels_pi1_a<<" / "<<labels_pi1_b<<std::endl;
 
             std::size_t num_constraint = 0;
 
@@ -286,18 +281,81 @@ void UniqueLables::fuse(const discrete_label_type *labels_a, const discrete_labe
             //     // everything is violated
             //     // do we just ignore this case?
             //     // there is nothing to do
-
             // }
             else
             {
-                // add the fused function to the fusion
-                // std::cout<<"add fused function"<<std::endl;
                 std::size_t vars2[2] = {pi0, pi1};
-                // std::cout<<"add binary fused function"<<std::endl;
-                // std::cout<<"var pos: "<<pi0<<" / "<<pi1<<std::endl;
                 fusion.add_to_fuse_gm(std::make_unique<ArrayDiscreteConstraintFunction>(fused_binary), vars2);
-                // std::cout<<"done"<<std::endl;
             }
+        }
+    }
+}
+
+void UniqueLables::compute_to_variable_messages(const energy_type *const *in_messages, energy_type **out_messages,
+                                                energy_type constraint_scaling_factor,
+                                                const OptimizerParameters &optimizer_parameters) const
+{
+
+    std::vector<std::tuple<std::size_t, std::size_t, energy_type>> queue;
+    queue.reserve(arity_ * n_labels_);
+    for (auto ai = 0; ai < arity_; ++ai)
+    {
+        for (auto l = 0; l < n_labels_; ++l)
+        {
+            const auto value = in_messages[ai][l];
+            queue.emplace_back(ai, l, value);
+        }
+    }
+    // sort the queue
+    std::sort(queue.begin(), queue.end(), [](const auto &a, const auto &b) { return std::get<2>(a) < std::get<2>(b); });
+
+    std::vector<uint8_t> is_used_label(n_labels_, 0);
+    std::vector<uint8_t> is_used_var(arity_, 0);
+
+    // is assigmend allowed
+    auto is_assignment_allowed = [&](std::size_t ai, std::size_t l) {
+        if (is_used_var[ai] == 1)
+        {
+            return false;
+        }
+
+        if (with_ignore_label_ && l == ignore_label_)
+        {
+            return true;
+        }
+
+        return is_used_label[l] == 0;
+    };
+
+    for (std::size_t ai = 0; ai < arity_; ++ai)
+    {
+        for (discrete_label_type l = 0; l < n_labels_; ++l)
+        {
+            std::fill(is_used_label.begin(), is_used_label.end(), 0);
+            std::fill(is_used_var.begin(), is_used_var.end(), 0);
+
+            // here, we are forcing variable "ai" to be label "l"
+            energy_type acc_min_marginal = 0.0;
+            std::size_t n_assigned_vars = 1;
+
+            is_used_var[ai] = 1;
+            is_used_label[l] = 1;
+
+            for (auto [other_var, other_label, value] : queue)
+            {
+                if (is_assignment_allowed(other_var, other_label))
+                {
+                    acc_min_marginal += value;
+                    ++n_assigned_vars;
+                    is_used_var[other_var] = 1;
+                    is_used_label[other_label] = 1;
+                }
+                if (n_assigned_vars == arity_)
+                {
+                    break;
+                }
+            }
+            out_messages[ai][l] = acc_min_marginal * constraint_scaling_factor;
         }
     }
 }

@@ -23,11 +23,15 @@ class FusionMoves : public DiscreteGmOptimizerBase
             parameters.assign_and_pop("proposal_gen_name", proposal_gen_name);
             parameters.assign_and_pop("proposal_gen_parameters", proposal_gen_parameters);
             parameters.assign_and_pop("max_iterations", max_iterations);
+
+            parameters.assign_and_pop_from_any<std::shared_ptr<ProposalGenFactoryBase>>("proposal_gen_factory",
+                                                                                        proposal_gen_factory);
         }
         OptimizerParameters fusion_parameters;
         std::string proposal_gen_name = "alpha_expansion";
         OptimizerParameters proposal_gen_parameters;
         std::size_t max_iterations = 0; // 0 means the proposal generator decides
+        std::shared_ptr<ProposalGenFactoryBase> proposal_gen_factory;
     };
 
   public:
@@ -111,10 +115,17 @@ FusionMoves::FusionMoves(const DiscreteGm &gm, OptimizerParameters &&parameters)
 {
     ensure_all_handled(name(), parameters);
 
-    auto factory = get_plugin_registry<ProposalGenFactoryBase>().get_factory(std::string("proposal_gen_") +
-                                                                             parameters_.proposal_gen_name);
+    if (parameters_.proposal_gen_factory)
+    {
+        proposal_gen_ = parameters_.proposal_gen_factory->create(gm, std::move(parameters_.proposal_gen_parameters));
+    }
+    else
+    {
+        auto factory = get_plugin_registry<ProposalGenFactoryBase>().get_factory(std::string("proposal_gen_") +
+                                                                                 parameters_.proposal_gen_name);
 
-    proposal_gen_ = factory->create(gm, std::move(parameters_.proposal_gen_parameters));
+        proposal_gen_ = factory->create(gm, std::move(parameters_.proposal_gen_parameters));
+    }
 }
 
 OptimizationStatus FusionMoves::optimize_impl(reporter_callback_wrapper_type &reporter_callback,
@@ -123,7 +134,6 @@ OptimizationStatus FusionMoves::optimize_impl(reporter_callback_wrapper_type &re
 {
     if (starting_point.size() > 0)
     {
-        std::cout << "starting point size: " << starting_point.size() << std::endl;
         std::copy(starting_point.begin(), starting_point.end(), best_solution_.begin());
     }
 

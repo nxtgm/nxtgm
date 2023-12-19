@@ -40,6 +40,7 @@ endfunction()
 
 nxtgm_regiter_test(discrete_gm                   models/gm/test_discrete_gm.cpp)
 nxtgm_regiter_test(sparse_array                  utils/test_sparse_array.cpp)
+nxtgm_regiter_test(uany                          utils/test_uany.cpp)
 nxtgm_regiter_test(solution_value                models/test_solution_value.cpp)
 nxtgm_regiter_test(discrete_constraints          functions/test_discrete_constraints.cpp)
 nxtgm_regiter_test(discrete_energy_functions     functions/test_discrete_energy_functions.cpp)

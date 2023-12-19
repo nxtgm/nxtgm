@@ -43,6 +43,10 @@ class UniqueLables : public LabelCountConstraintBase
     void fuse(const discrete_label_type *labels_a, const discrete_label_type *labels_b, discrete_label_type *labels_ab,
               const std::size_t fused_arity, const std::size_t *fuse_factor_var_pos, Fusion &fusion) const override;
 
+    void compute_to_variable_messages(const energy_type *const *in_messages, energy_type **out_messages,
+                                      energy_type constraint_scaling_factor,
+                                      const OptimizerParameters &optimizer_parameters) const override;
+
   private:
     std::size_t arity_;
     discrete_label_type n_labels_;

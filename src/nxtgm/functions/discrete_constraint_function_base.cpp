@@ -21,7 +21,8 @@ std::unique_ptr<DiscreteConstraintFunctionBase> DiscreteConstraintFunctionBase::
 
 void DiscreteConstraintFunctionBase::compute_to_variable_messages(const energy_type *const *in_messages,
                                                                   energy_type **out_messages,
-                                                                  energy_type constraint_scaling_factor) const
+                                                                  energy_type constraint_scaling_factor,
+                                                                  const OptimizerParameters &optimizer_parameters) const
 {
 
     const auto arity = this->arity();

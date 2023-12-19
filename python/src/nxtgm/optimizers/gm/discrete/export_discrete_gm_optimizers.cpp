@@ -8,10 +8,51 @@
 
 #include <nxtgm/optimizers/gm/discrete/discrete_gm_optimizer_factory.hpp>
 
+// plugin factories need to be stored in any
+#include <nxtgm/plugins/proposal_gen/proposal_gen_base.hpp>
+
 namespace py = pybind11;
 
 namespace nxtgm
 {
+
+class PyReporterCallbackBase : public ReporterCallbackBase<DiscreteGmOptimizerBase>
+{
+  public:
+    using base_type = ReporterCallbackBase<DiscreteGmOptimizerBase>;
+    /* Inherit the constructors */
+    using base_type::base_type;
+
+    /* Trampoline (need one for each virtual function) */
+    void begin() override
+    {
+        PYBIND11_OVERRIDE_PURE(void,      /* Return type */
+                               base_type, /* Parent class */
+                               begin,     /* Name of function in C++ (must match Python name) */
+        );
+    }
+    void end() override
+    {
+        PYBIND11_OVERRIDE_PURE(void,      /* Return type */
+                               base_type, /* Parent class */
+                               end,       /* Name of function in C++ (must match Python name) */
+        );
+    }
+    bool report() override
+    {
+        PYBIND11_OVERRIDE_PURE(bool,      /* Return type */
+                               base_type, /* Parent class */
+                               report,    /* Name of function in C++ (must match Python name) */
+        );
+    }
+    bool report_data(const ReportData &data) override
+    {
+        PYBIND11_OVERRIDE_PURE(bool,        /* Return type */
+                               base_type,   /* Parent class */
+                               report_data, /* Name of function in C++ (must match Python name) */
+                               data);
+    }
+};
 
 void export_discrete_gm_optimizers(py::module_ &pymodule)
 {
@@ -35,13 +76,42 @@ void export_discrete_gm_optimizers(py::module_ &pymodule)
              [](OptimizerParameters &params, const std::string &key, int value) { params.int_parameters[key] = value; })
         .def("__setitem__", [](OptimizerParameters &params, const std::string &key,
                                double value) { params.double_parameters[key] = value; })
-        .def("__setitem__", [](OptimizerParameters &params, const std::string &key, const OptimizerParameters &value) {
-            params.optimizer_parameters[key] = value;
+        .def("__setitem__", [](OptimizerParameters &params, const std::string &key,
+                               const OptimizerParameters &value) { params.optimizer_parameters[key] = value; })
+        .def("__setitem__",
+             [](OptimizerParameters &params, const std::string &key, std::shared_ptr<ProposalGenFactoryBase> value) {
+                 params.any_parameters[key] = std::shared_ptr<ProposalGenFactoryBase>(value);
+             });
+
+    py::class_<ReportData>(pymodule, "ReportData")
+        .def(py::init<>())
+        .def("get_double",
+             [](const ReportData &data, const std::string &key) {
+                 auto it = data.double_data.find(key);
+                 if (it == data.double_data.end())
+                 {
+                     throw std::runtime_error("key not found");
+                 }
+                 return py::array(it->second.size(), it->second.data(),
+                                  py::cast(data, py::return_value_policy::reference));
+             })
+        .def("get_int", [](const ReportData &data, const std::string &key) {
+            auto it = data.int_data.find(key);
+            if (it == data.int_data.end())
+            {
+                throw std::runtime_error("key not found");
+            }
+            return py::array(it->second.size(), it->second.data(), py::cast(data, py::return_value_policy::reference));
         });
 
-    // reporter callback base
     using reporter_callback_base_type = DiscreteGmOptimizerBase::reporter_callback_base_type;
-    py::class_<reporter_callback_base_type>(pymodule, "DiscreteGmOptimizerReporterCcallbackBase");
+    py::class_<reporter_callback_base_type, PyReporterCallbackBase /* <--- trampoline*/>(
+        pymodule, "DiscreteGmOptimizerReporterCallbackBase")
+        .def(py::init<const DiscreteGmOptimizerBase *>(), py::arg("optimizer"), py::keep_alive<0, 1>())
+        .def("begin", &reporter_callback_base_type::begin)
+        .def("end", &reporter_callback_base_type::end)
+        .def("report", &reporter_callback_base_type::report)
+        .def("report_data", &reporter_callback_base_type::report_data);
 
     using reporter_callback = ReporterCallback<DiscreteGmOptimizerBase>;
     py::class_<reporter_callback, reporter_callback_base_type>(pymodule, "DiscreteGmOptimizerReporterCallback")
@@ -69,7 +139,6 @@ void export_discrete_gm_optimizers(py::module_ &pymodule)
         .def("best_solution",
              [](DiscreteGmOptimizerBase *optimizer) {
                  const auto &sol = optimizer->best_solution();
-                 std::cout << sol.size() << std::endl;
                  xt::pytensor<discrete_label_type, 1> array =
                      xt::zeros<discrete_label_type>({uint16_t(optimizer->model().num_variables())});
                  std::copy(sol.begin(), sol.end(), array.begin());

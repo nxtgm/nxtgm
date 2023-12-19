@@ -1,4 +1,5 @@
 #include <nxtgm/optimizers/optimizer_parameters.hpp>
+#include <nxtgm/utils/uany.hpp>
 #include <nxtgm_test_common.hpp>
 #include <vector>
 
@@ -31,7 +32,7 @@ TEST_CASE("optimizer-parameters")
     CHECK(parameters2.any_parameters["vector"].has_value());
     CHECK(parameters2.any_parameters["vector"].type() == typeid(std::vector<int>));
 
-    auto &vector = std::any_cast<std::vector<int> &>(parameters2.any_parameters["vector"]);
+    auto &vector = nxtgm::uany_cast<std::vector<int> &>(parameters2.any_parameters["vector"]);
     CHECK(vector.size() == 3);
     CHECK(vector[0] == 1);
     CHECK(vector[1] == 2);

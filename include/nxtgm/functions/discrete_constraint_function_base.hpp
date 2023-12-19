@@ -6,6 +6,8 @@
 #include <nxtgm/utils/lp.hpp>
 #include <nxtgm/utils/serialize.hpp>
 
+#include <nxtgm/optimizers/optimizer_parameters.hpp>
+
 namespace nxtgm
 {
 
@@ -24,7 +26,8 @@ class DiscreteConstraintFunctionBase : public DiscreteFunctionBase
         const span<std::size_t> &binded_vars, const span<discrete_label_type> &binded_vars_labels) const;
 
     virtual void compute_to_variable_messages(const energy_type *const *in_messages, energy_type **out_messages,
-                                              energy_type constraint_scaling_factor) const;
+                                              energy_type constraint_scaling_factor,
+                                              const OptimizerParameters &optimizer_parameters) const;
 
     virtual void fuse(const discrete_label_type *labels_a, const discrete_label_type *labels_b,
                       discrete_label_type *labels_ab, const std::size_t fused_arity,

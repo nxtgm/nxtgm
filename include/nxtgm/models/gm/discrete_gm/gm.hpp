@@ -202,6 +202,9 @@ class DiscreteGm
     {
     }
 
+    DiscreteGm(const DiscreteGm &other);
+    DiscreteGm(DiscreteGm &&other) noexcept;
+
     inline const DiscreteSpace &space() const
     {
         return space_;
@@ -481,6 +484,9 @@ class DiscreteGm
             {
                 const const_discrete_label_span labels =
                     local_solution_from_model_solution(constraint.variables(), solution, local_labels_buffer);
+
+                // print local solution
+
                 const auto how_violated = constraint.function()->value(labels.data());
                 if (how_violated >= constraint_feasiblility_limit)
                 {

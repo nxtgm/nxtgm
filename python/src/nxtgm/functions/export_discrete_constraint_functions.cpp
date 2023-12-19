@@ -66,6 +66,19 @@ void export_discrete_constraint_functions(py::module_ &pymodule)
                  // return the value
                  return self->value(index.data());
              })
+        .def("__getitem__",
+             [](DiscreteConstraintFunctionBase *self, py::array_t<discrete_label_type> indices) {
+                 const auto arity = self->arity();
+                 // check that the tuple has the correct arity
+                 if (indices.size() != arity)
+                 {
+                     throw std::runtime_error("tuple must have the same arity "
+                                              "as the energy function");
+                 }
+
+                 // return the value
+                 return self->value(indices.data());
+             })
 
         ;
 
@@ -76,7 +89,9 @@ void export_discrete_constraint_functions(py::module_ &pymodule)
     py::class_<UniqueLables, LabelCountConstraintBase>(pymodule, "UniqueLables")
         .def(py::init<std::size_t, discrete_label_type, bool, discrete_label_type, energy_type>(), py::arg("arity"),
              py::arg("num_labels"), py::arg("with_ignore_label") = false, py::arg("ignore_label") = 0,
-             py::arg("scale") = 1.0);
+             py::arg("scale") = 1.0)
+        .def_property_readonly("with_ignore_label", &UniqueLables::with_ignore_label)
+        .def_property_readonly("ignore_label", &UniqueLables::ignore_label);
 
     py::class_<ArrayDiscreteConstraintFunction, DiscreteConstraintFunctionBase>(pymodule,
                                                                                 "ArrayDiscreteConstraintFunction")

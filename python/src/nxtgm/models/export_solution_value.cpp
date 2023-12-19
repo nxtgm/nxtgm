@@ -24,17 +24,28 @@ void export_solution_value(py::module_ &pymodule)
              [](const SolutionValue &solution) { return py::make_tuple(solution.energy(), solution.how_violated()); })
         .def("__len__", [](const SolutionValue &solution) { return 2; })
         // getitme
-        .def("__getitem__", [](const SolutionValue &solution, std::size_t index) -> py::object {
-            switch (index)
-            {
-            case 0:
-                // as py::object
-                return py::cast(solution.energy());
-            case 1:
-                return py::cast(solution.how_violated());
-            default:
-                throw std::out_of_range("index out of range");
-            }
-        });
+        .def("__getitem__",
+             [](const SolutionValue &solution, std::size_t index) -> py::object {
+                 switch (index)
+                 {
+                 case 0:
+                     // as py::object
+                     return py::cast(solution.energy());
+                 case 1:
+                     return py::cast(solution.how_violated());
+                 default:
+                     throw std::out_of_range("index out of range");
+                 }
+             })
+
+        // print / str
+        .def("__str__",
+             [](const SolutionValue &solution) {
+                 std::stringstream ss;
+                 ss << "(energy=" << solution.energy() << ", how_violated=" << solution.how_violated() << ")";
+                 return ss.str();
+             })
+
+        ;
 }
 } // namespace nxtgm

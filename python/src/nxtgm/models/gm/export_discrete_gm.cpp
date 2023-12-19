@@ -13,6 +13,9 @@ namespace nxtgm
 {
 void export_discrete_gm(py::module_ &pymodule)
 {
+
+    using DiscreteGmConstRefWrapper = std::reference_wrapper<const DiscreteGm>;
+
     py::class_<DiscreteGm>(pymodule, "DiscreteGm")
 
         .def(py::init<std::size_t, discrete_label_type>(), py::arg("num_var"), py::arg("num_labels"))

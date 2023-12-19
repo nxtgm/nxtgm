@@ -6,6 +6,7 @@ from ._nxtgm import *  # noqa: F401, F403
 from ._nxtgm import __version__  # noqa: F401
 from ._nxtgm import _discrete_gm_optimizer_factory
 from ._nxtgm import _OptimizerParameters
+from ._nxtgm import _proposal_gen_factory
 
 
 class OptimizerParameters(_OptimizerParameters):
@@ -41,3 +42,20 @@ def discrete_gm_optimizer_factory(
         gm=gm, optimizer_name=optimizer_name,
         parameters=parameters,
     )
+
+
+class _ProposalGeneratorFactory:
+    def __init__(self, cls, **kwargs):
+        self._cls = cls
+        self._kwargs = kwargs
+        self.license = 'MIT'
+        self.description = 'pure python proposal generator factory'
+
+    def create(self, gm):
+        return self._cls(gm=gm, **self._kwargs)
+
+
+# proposal generator related
+def proposal_gen_factory(proposal_gen_cls, *args, **kwargs):
+    _factory = _ProposalGeneratorFactory(proposal_gen_cls, *args, **kwargs)
+    return _proposal_gen_factory(_factory)
