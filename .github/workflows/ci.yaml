@@ -161,7 +161,7 @@ jobs:
           init-shell: >-
             cmd.exe
           cache-environment: true
-          post-cleanup: 'all'
+          post-cleanup: 'none'
 
       - name: build and test
         shell: cmd /C CALL {0}
