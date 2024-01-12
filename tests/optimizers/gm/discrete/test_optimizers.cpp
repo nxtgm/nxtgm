@@ -92,12 +92,12 @@ chained_optimizer_params["optimizer_parameters"].push_back(belief_propagation_pa
 chained_optimizer_params["optimizer_parameters"].push_back(icm_params);
 
 // clang-format off
-        test_discrete_gm_optimizer(
-            "chained_optimizers",
-            chained_optimizer_params,
-            potts_grid(4,4,2,false),
-            require_local_optimality(true)
-        );
+            test_discrete_gm_optimizer(
+                "chained_optimizers",
+                chained_optimizer_params,
+                potts_grid(4,4,2,false),
+                require_local_optimality(true)
+            );
 // clang-format on
 } // namespace nxtgm
 #ifndef WIN32
@@ -111,7 +111,7 @@ SUBCASE("icm_ilp")
             ilp_based_parameters["ilp_plugin_name"] = ilp_plugin;
 
             OptimizerParameters chained_optimizer_params;
-            chained_optimizer_params["optimizer_names"].push_back("icm");
+            chained_optimizer_params["optimizer_names"].push_back(OptimizerParameters());
             chained_optimizer_params["optimizer_parameters"].push_back(icm_params);
 
             chained_optimizer_params["optimizer_names"].push_back("ilp_based");
