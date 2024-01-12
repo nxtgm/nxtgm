@@ -159,14 +159,10 @@ OptimizationStatus ChainedOptimizers::optimize_impl(reporter_callback_wrapper_ty
         best_solution_value_ = gm.evaluate(best_solution_, false /* early exit when infeasible*/);
     }
 
-    std::cout << "num_optimizers: " << num_optimizers << std::endl;
-
     for (std::size_t opt_index = 0; opt_index < num_optimizers; ++opt_index)
     {
         const auto &optimizer_name = parameters_.optimizer_names[opt_index];
         const auto &optimizer_parameters = parameters_.optimizer_parameters[opt_index];
-
-        std::cout << "optimizer_name: " << optimizer_name << std::endl;
 
         auto expected_optimizer = discrete_gm_optimizer_factory(gm, optimizer_name, optimizer_parameters);
         if (!expected_optimizer)
@@ -200,7 +196,6 @@ OptimizationStatus ChainedOptimizers::optimize_impl(reporter_callback_wrapper_ty
 
             if (!this->report(reporter_callback))
             {
-                std::cout << "callback exit" << std::endl;
                 return OptimizationStatus::CALLBACK_EXIT;
             }
         }
