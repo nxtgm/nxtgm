@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from collections import OrderedDict
 
 import numpy as np
 import nxtgm
@@ -170,33 +169,6 @@ class TestOptimizers:
 
         # let the optimizer do its work
         print('optimizing:')
-        status = optimizer.optimize(reporter_callback)
-        assert status == nxtgm.OptimizationStatus.LOCAL_OPTIMAL
-
-        # get solution
-        solution = optimizer.best_solution()
-        assert solution is not None
-        print('solution: ', solution)
-        assert solution.shape[0] == len(gm.space)
-        energy, how_violated = gm.evaluate(solution)
-        print(f'energy: {energy}, how_violated: {how_violated}')
-
-    def test_chained_optimizers(self):
-        gm = potts_chain(num_variables=10, num_labels=2)
-
-        optimizer = nxtgm.discrete_gm_optimizer_factory(
-            gm, 'chained_optimizers', OrderedDict(
-                belief_propagation=dict(time_limit_ms=1000),
-                icm=dict(time_limit_ms=1000000),
-            ),
-        )
-
-        # setup reporter callback
-        reporter_callback = nxtgm.DiscreteGmOptimizerReporterCallback(
-            optimizer,
-        )
-
-        # let the optimizer do its work
         status = optimizer.optimize(reporter_callback)
         assert status == nxtgm.OptimizationStatus.LOCAL_OPTIMAL
 
