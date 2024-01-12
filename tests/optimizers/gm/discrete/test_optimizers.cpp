@@ -111,8 +111,8 @@ SUBCASE("icm_ilp")
             ilp_based_parameters["ilp_plugin_name"] = ilp_plugin;
 
             OptimizerParameters chained_optimizer_params;
-            chained_optimizer_params["optimizer_names"].push_back(OptimizerParameters());
-            chained_optimizer_params["optimizer_parameters"].push_back(icm_params);
+            chained_optimizer_params["optimizer_names"].push_back("icm");
+            chained_optimizer_params["optimizer_parameters"].push_back(OptimizerParameters());
 
             chained_optimizer_params["optimizer_names"].push_back("ilp_based");
             chained_optimizer_params["optimizer_parameters"].push_back(ilp_based_parameters);
