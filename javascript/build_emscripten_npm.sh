@@ -73,6 +73,7 @@ if true; then
         -DZLIB_LIBRARY=$PREFIX/lib/libz.a \
         -DZLIB_ROOT=$PREFIX \
         -DZLIB_USE_STATIC_LIBS=ON \
+        -Dxtensor_DIR=$PREFIX/share/cmake/xtensor \
         ..
     popd
 
