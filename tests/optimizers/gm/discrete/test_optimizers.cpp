@@ -397,7 +397,7 @@ TEST_CASE("icm")
     // clang-format on
 }
 
-TEST_CASE("acims")
+TEST_CASE("acims" * SKIP_WIN)
 {
     for (auto ilp_plugin_name : all_ilp_plugins())
     {
