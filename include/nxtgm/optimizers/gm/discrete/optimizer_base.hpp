@@ -36,6 +36,9 @@ class DiscreteGmOptimizerFactoryBase
     virtual expected<std::unique_ptr<DiscreteGmOptimizerBase>> create(const DiscreteGm &gm,
                                                                       OptimizerParameters &&params) const = 0;
 
+    virtual std::unique_ptr<DiscreteGmOptimizerBase> create_unique(const DiscreteGm &gm,
+                                                                   OptimizerParameters &&params) const;
+
     static std::string plugin_type();
 
     static std::string plugin_dir_env_var();
@@ -48,9 +51,6 @@ class DiscreteGmOptimizerFactoryBase
 
     // description of the plugin
     virtual std::string description() const = 0;
-
-    // flags of the plugin
-    virtual OptimizerFlags flags() const = 0;
 
     // get the registry of the plugin
     static plugin_registry<DiscreteGmOptimizerFactoryBase> &get_registry();

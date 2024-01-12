@@ -10,19 +10,6 @@
 namespace nxtgm
 {
 
-enum class OptimizerFlags : uint64_t
-{
-    None = 0,
-    WarmStartable = 1 << 0,
-    Optimal = 1 << 1,
-    PartialOptimal = 1 << 2,
-    LocalOptimal = 1 << 3,
-    OptimalOnTrees = 1 << 4,
-    OptimalOnBinarySecondOrderSubmodular = 1 << 5,
-    OptimalForFirstOrderMatching = 1 << 6,
-    MetaOptimizer = 1 << 7
-};
-
 // custom exception UnsupportedModelException
 class UnsupportedModelException : public std::exception
 {
@@ -40,18 +27,6 @@ class UnsupportedModelException : public std::exception
   private:
     std::string message_;
 };
-
-inline OptimizerFlags operator|(OptimizerFlags lhs, OptimizerFlags rhs)
-{
-    return static_cast<OptimizerFlags>(static_cast<std::underlying_type<OptimizerFlags>::type>(lhs) |
-                                       static_cast<std::underlying_type<OptimizerFlags>::type>(rhs));
-}
-
-inline OptimizerFlags operator&(OptimizerFlags lhs, OptimizerFlags rhs)
-{
-    return static_cast<OptimizerFlags>(static_cast<std::underlying_type<OptimizerFlags>::type>(lhs) &
-                                       static_cast<std::underlying_type<OptimizerFlags>::type>(rhs));
-}
 
 enum class OptimizationStatus
 {
@@ -89,7 +64,11 @@ class OptimizerBase
     {
         if (auto it = parameters.int_parameters.find("time_limit_ms"); it != parameters.int_parameters.end())
         {
-            time_limit_ = std::chrono::milliseconds(it->second);
+            if (it->second.size() != 1)
+            {
+                throw std::runtime_error("time_limit_ms must be a single value");
+            }
+            time_limit_ = std::chrono::milliseconds(it->second.front());
             parameters.int_parameters.erase(it);
         }
     }

@@ -74,10 +74,6 @@ class HungarianMatchingFactory : public DiscreteGmOptimizerFactoryBase
         return "Hungarian  matching algorithm for graphical models "
                "with only unaries and unique label constraints.";
     }
-    OptimizerFlags flags() const override
-    {
-        return OptimizerFlags::OptimalOnTrees;
-    }
 };
 } // namespace nxtgm
 

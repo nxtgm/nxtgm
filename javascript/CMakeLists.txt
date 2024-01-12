@@ -23,6 +23,14 @@ add_library(js_files_lib STATIC  ${CMAKE_CURRENT_BINARY_DIR}/js_files.cpp)
 add_executable(
     nxtgm_javascript_runtime
     ${CMAKE_CURRENT_SOURCE_DIR}/src/export_nxtgm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/convert.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/export_optimizers.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/export_callbacks.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/export_gm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/export_space.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/export_functions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/proposal_gen.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/export_proposal_gen.cpp
 )
 
 # link dependencies

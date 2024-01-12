@@ -1,6 +1,5 @@
-#pragma once
-
 #include <emscripten.h>
+#include <emscripten/bind.h>
 #include <emscripten/val.h>
 
 #include <nxtgm/optimizers/gm/discrete/optimizer_base.hpp>

@@ -3,10 +3,14 @@
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 
+#include <xtensor/xadapt.hpp>
+
 #include <iostream>
 
 namespace nxtgm
 {
+
+namespace em = emscripten;
 
 // helper struct to convert type T to string like "Int8Array" for int8_t and so on
 template <typename T>
@@ -16,7 +20,7 @@ struct type_to_string;
     template <>                                                                                                        \
     struct type_to_string<TYPE>                                                                                        \
     {                                                                                                                  \
-        static std::string name()                                                                                      \
+        inline static std::string name()                                                                               \
         {                                                                                                              \
             return #NAME;                                                                                              \
         }                                                                                                              \
@@ -41,25 +45,9 @@ emscripten::val ptr_range_to_typed_array_copy(const T *begin, std::size_t size)
     return mem_copy;
 }
 
-std::size_t get_length(const emscripten::val &value)
-{
-    return value["length"].as<std::size_t>();
-}
-
-void require_array(const emscripten::val &value)
-{
-    if (!value.isArray())
-    {
-        throw std::runtime_error("value is not an array");
-    }
-}
-void require_number(const emscripten::val &value)
-{
-    if (!value.isNumber())
-    {
-        throw std::runtime_error("value is not an number");
-    }
-}
+std::size_t get_length(const emscripten::val &value);
+void require_array(const emscripten::val &value);
+void require_number(const emscripten::val &value);
 template <class T>
 T as_number_checked(const emscripten::val &value)
 {

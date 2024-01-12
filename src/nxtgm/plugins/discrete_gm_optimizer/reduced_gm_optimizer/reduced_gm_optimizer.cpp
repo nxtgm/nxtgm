@@ -13,18 +13,8 @@ class ReducedGmOptimizer : public DiscreteGmOptimizerBase
       public:
         inline parameters_type(OptimizerParameters &parameters)
         {
-            if (auto find = parameters.string_parameters.find("sub_optimizer");
-                find != parameters.string_parameters.end())
-            {
-                sub_optimizer = find->second;
-                parameters.string_parameters.erase(find);
-            }
-            if (auto find = parameters.optimizer_parameters.find("sub_optimizer_parameters");
-                find != parameters.optimizer_parameters.end())
-            {
-                sub_optimizer_parameters = find->second;
-                parameters.optimizer_parameters.erase(find);
-            }
+            parameters.assign_and_pop("sub_optimizer", sub_optimizer);
+            parameters.assign_and_pop("sub_optimizer_parameters", sub_optimizer_parameters);
         }
 
         std::string sub_optimizer = "icm";
@@ -95,11 +85,6 @@ class ReducedGmOptimizerFactory : public DiscreteGmOptimizerFactoryBase
     std::string description() const override
     {
         return "Find partial optimal solution and then optimize the reduced model.";
-    }
-    OptimizerFlags flags() const override
-    {
-        return OptimizerFlags::PartialOptimal | OptimizerFlags::OptimalOnBinarySecondOrderSubmodular |
-               OptimizerFlags::OptimalOnTrees | OptimizerFlags::WarmStartable | OptimizerFlags::MetaOptimizer;
     }
 };
 

@@ -80,10 +80,6 @@ class MatchingIcmFactory : public DiscreteGmOptimizerFactoryBase
     {
         return "Iterated conditional models optimizer for matching problems";
     }
-    OptimizerFlags flags() const override
-    {
-        return OptimizerFlags::LocalOptimal;
-    }
 };
 
 } // namespace nxtgm

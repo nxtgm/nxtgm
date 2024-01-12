@@ -81,10 +81,6 @@ class GraphCutFactory : public DiscreteGmOptimizerFactoryBase
     {
         return "Graph cut optimizer";
     }
-    OptimizerFlags flags() const override
-    {
-        return OptimizerFlags::OptimalOnBinarySecondOrderSubmodular;
-    }
 };
 
 } // namespace nxtgm

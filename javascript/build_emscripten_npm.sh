@@ -25,7 +25,7 @@ NUM_CORES=8
 
 ENV_NAME=nxtgm-emscripten
 
-if true; then
+if false; then
 
     # install wasm env
     rm -rf $MAMBA_ROOT_PREFIX/envs/$ENV_NAME
@@ -78,7 +78,7 @@ if true; then
 
     pushd $BUILD_DIR
 
-    emmake make -j$NUM_CORES #install
+    emmake make -j$NUM_CORES install
     popd
 
 fi
@@ -86,7 +86,7 @@ fi
 
 
 
-# cp -r $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/nxtgm/plugins   $JS_DIST_DIR/plugins
-# cp $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/libnxtgm_shared.so $JS_DIST_DIR/libnxtgm_shared.so
-# cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_DIST_DIR
-# cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_SRC_DIR
+cp -r $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/nxtgm/plugins   $JS_DIST_DIR/plugins
+cp $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/libnxtgm_shared.so $JS_DIST_DIR/libnxtgm_shared.so
+cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_DIST_DIR
+cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_SRC_DIR

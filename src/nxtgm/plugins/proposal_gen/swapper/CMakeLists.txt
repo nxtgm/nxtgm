@@ -1,5 +1,5 @@
 set(PLUGIN_TYPE         proposal_gen)
-set(PLUGIN_NAME_CORE    matchmaker)
+set(PLUGIN_NAME_CORE    swapper)
 set(PLUGIN_TARGET_NAME  ${PLUGIN_TYPE}_${PLUGIN_NAME_CORE})
 
 if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})

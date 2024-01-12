@@ -90,10 +90,6 @@ class FusionMovesFactory : public DiscreteGmOptimizerFactoryBase
     {
         return "Fusion Moves";
     }
-    OptimizerFlags flags() const override
-    {
-        return OptimizerFlags::WarmStartable;
-    }
 };
 } // namespace nxtgm
 
@@ -121,8 +117,11 @@ FusionMoves::FusionMoves(const DiscreteGm &gm, OptimizerParameters &&parameters)
     }
     else
     {
+        std::cout << "using " << parameters_.proposal_gen_name << std::endl;
         auto factory = get_plugin_registry<ProposalGenFactoryBase>().get_factory(std::string("proposal_gen_") +
                                                                                  parameters_.proposal_gen_name);
+
+        std::cout << "try to fuse...with " << factory->description() << std::endl;
 
         proposal_gen_ = factory->create(gm, std::move(parameters_.proposal_gen_parameters));
     }

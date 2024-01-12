@@ -85,8 +85,11 @@ OptimizerParameters chained_optimizer_params;
 chained_optimizer_params["time_limit_ms"] = 10000000;
 
 // order will be respected
-chained_optimizer_params["belief_propagation"] = belief_propagation_params;
-chained_optimizer_params["icm"] = icm_params;
+chained_optimizer_params["optimizer_names"].push_back("belief_propagation");
+chained_optimizer_params["optimizer_names"].push_back("icm");
+
+chained_optimizer_params["optimizer_parameters"].push_back(belief_propagation_params);
+chained_optimizer_params["optimizer_parameters"].push_back(icm_params);
 
 // clang-format off
         test_discrete_gm_optimizer(
@@ -388,6 +391,29 @@ TEST_CASE("icm")
         },
         require_local_optimality(true)
     );
+    // clang-format on
+}
+
+TEST_CASE("acims")
+{
+    for (auto ilp_plugin_name : all_ilp_plugins())
+    {
+        SUBCASE(ilp_plugin_name.c_str())
+        {
+            OptimizerParameters parameters;
+            parameters["ilp_plugin_name"] = ilp_plugin_name;
+            // clang-format off
+            test_discrete_gm_optimizer(
+                "acims",
+                parameters,
+                {
+                    unique_label_chain(5,5, /*pairwise*/ false, /*with ignore label*/ false),
+                },
+                {}
+            );
+        }
+    }
+
     // clang-format on
 }
 
@@ -835,7 +861,7 @@ TEST_CASE("fusion_moves")
         // This is very slow, but allows to test the fusion framework,
         // since we can test for the "local_optimal" status.
         // Ie. after optimizing with fusion moves, no single variable can be changed
-        // to improve the solution. We test this property in a brute force way.
+        // to improve the solution. We  test this property in a brute force way.
 
         // fusion parameters
         OptimizerParameters fusion_parameters;

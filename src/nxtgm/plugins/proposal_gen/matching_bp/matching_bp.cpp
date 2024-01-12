@@ -224,7 +224,7 @@ class ProposalGenOptimizerBasedFactory : public ProposalGenFactoryBase
     }
     std::string description() const override
     {
-        return "Higher order clique reduction by Alexander Fix";
+        return "Matching Bp";
     }
 };
 

@@ -54,8 +54,19 @@ class IcmFactory : public DiscreteGmOptimizerFactoryBase
     expected<std::unique_ptr<DiscreteGmOptimizerBase>> create(const DiscreteGm &gm,
                                                               OptimizerParameters &&params) const override
     {
-        return std::make_unique<Icm>(gm, std::move(params));
+        // std::cout<<"IcmFactory::create"<<std::endl;
+        auto icm = std::make_unique<Icm>(gm, std::move(params));
+        // std::cout<<"IcmFactory::created"<<std::endl;
+        return std::move(icm);
     }
+    // std::unique_ptr<DiscreteGmOptimizerBase> create_me(const DiscreteGm &gm,
+    //                                                           OptimizerParameters &&params) const override
+    // {
+    //     std::cout<<"IcmFactory::create"<<std::endl;
+    //     auto icm =  std::make_unique<Icm>(gm, std::move(params));
+    //     std::cout<<"IcmFactory::created"<<std::endl;
+    //     return std::move(icm);
+    // }
     int priority() const override
     {
         return plugin_priority(PluginPriority::LOW);
@@ -67,10 +78,6 @@ class IcmFactory : public DiscreteGmOptimizerFactoryBase
     std::string description() const override
     {
         return "Iterated conditional models optimizer";
-    }
-    OptimizerFlags flags() const override
-    {
-        return OptimizerFlags::WarmStartable | OptimizerFlags::LocalOptimal;
     }
 };
 
@@ -86,6 +93,7 @@ Icm::Icm(const DiscreteGm &gm, OptimizerParameters &&parameters)
       movemaker_(gm),
       in_queue_(gm.num_variables(), 1)
 {
+    std::cout << "Icm::Icm" << std::endl;
     ensure_all_handled(name(), parameters);
     // put all variables on queue
     for (std::size_t i = 0; i < gm.num_variables(); ++i)
