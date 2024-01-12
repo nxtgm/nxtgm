@@ -25,7 +25,7 @@ NUM_CORES=8
 
 ENV_NAME=nxtgm-emscripten
 
-if false; then
+if true; then
 
     # install wasm env
     rm -rf $MAMBA_ROOT_PREFIX/envs/$ENV_NAME
