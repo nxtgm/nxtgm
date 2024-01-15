@@ -45,7 +45,6 @@ find_package(Threads REQUIRED)
 find_package(xtensor REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(xplugin REQUIRED)
-find_package(tsl-ordered-map REQUIRED)
 find_package(tl-expected REQUIRED)
 
 ###############################################################
@@ -166,7 +165,6 @@ endif()
 # private
 target_link_libraries(nxtgm_shared PRIVATE
     xplugin::xplugin
-    tsl::ordered_map
 )
 
 

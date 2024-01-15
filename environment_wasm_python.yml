@@ -1,0 +1,18 @@
+name: nxtgm-emscripten
+channels:
+  - https://repo.mamba.pm/emscripten-forge
+  - conda-forge
+
+dependencies:
+  - nlohmann_json
+  - xtensor
+  - xtl
+  - xplugin >= 0.2.0
+  - tsl_ordered_map
+  - highs
+  - zlib
+  - cpp-expected
+  - numpy
+  - python
+  - pybind11
+  - xeus-python

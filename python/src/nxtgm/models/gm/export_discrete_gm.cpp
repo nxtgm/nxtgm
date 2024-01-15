@@ -56,21 +56,21 @@ void export_discrete_gm(py::module_ &pymodule)
             },
             py::arg("discrete_energy_function"))
 
-        .def(
-            "add_function",
-            [](DiscreteGm &gm, const xt::pytensor<energy_type, 1> &array) {
-                auto f = std::make_unique<nxtgm::XTensor<1>>(array);
-                return gm.add_energy_function(std::move(f));
-            },
-            py::arg("energy_function"))
+        // .def(
+        //     "add_function",
+        //     [](DiscreteGm &gm, const xt::pytensor<energy_type, 1> &array) {
+        //         auto f = std::make_unique<nxtgm::XTensor<1>>(array);
+        //         return gm.add_energy_function(std::move(f));
+        //     },
+        //     py::arg("energy_function"))
 
-        .def(
-            "add_function",
-            [](DiscreteGm &gm, const xt::pytensor<energy_type, 2> &array) {
-                auto f = std::make_unique<nxtgm::XTensor<2>>(array);
-                return gm.add_energy_function(std::move(f));
-            },
-            py::arg("energy_function"))
+        // .def(
+        //     "add_function",
+        //     [](DiscreteGm &gm, const xt::pytensor<energy_type, 2> &array) {
+        //         auto f = std::make_unique<nxtgm::XTensor<2>>(array);
+        //         return gm.add_energy_function(std::move(f));
+        //     },
+        //     py::arg("energy_function"))
 
         .def(
             "add_function",
