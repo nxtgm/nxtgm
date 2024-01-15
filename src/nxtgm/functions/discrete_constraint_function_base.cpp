@@ -5,6 +5,10 @@
 #include <nxtgm/utils/n_nested_loops.hpp>
 #include <nxtgm/utils/tuple_for_each.hpp>
 
+#include <nxtgm/functions/array_constraint_function.hpp>
+
+#include "bind.hpp"
+
 namespace nxtgm
 {
 
@@ -16,7 +20,27 @@ void DiscreteConstraintFunctionBase::add_to_lp(IlpData &ilp_data, const std::siz
 std::unique_ptr<DiscreteConstraintFunctionBase> DiscreteConstraintFunctionBase::bind(
     const span<std::size_t> &binded_vars, const span<discrete_label_type> &binded_vars_labels) const
 {
-    throw std::runtime_error("DiscreteConstraintFunctionBase::bind is not implemented");
+    small_factor_size_vector<energy_type> values(this->size());
+    this->copy_values(values.data());
+
+    const std::size_t arity = this->arity();
+
+    // copy the shape (this is stupid atm)
+    // xtensor adapt only takes std vector
+    small_arity_vector<discrete_label_type> shape(arity);
+    std::vector<std::size_t> size_t_shape(arity);
+    this->copy_shape(shape.data());
+    std::copy(shape.begin(), shape.end(), size_t_shape.begin());
+
+    // create an xtensor view
+    auto values_view = xt::adapt(values.data(), this->size(), xt::no_ownership(), size_t_shape);
+
+    // bind the variables
+    auto binded = bind_many(values_view, binded_vars, binded_vars_labels);
+
+    return std::make_unique<ArrayDiscreteConstraintFunction>(std::move(binded));
+
+    // throw std::runtime_error("DiscreteConstraintFunctionBase::bind is not implemented");
 }
 
 void DiscreteConstraintFunctionBase::compute_to_variable_messages(const energy_type *const *in_messages,

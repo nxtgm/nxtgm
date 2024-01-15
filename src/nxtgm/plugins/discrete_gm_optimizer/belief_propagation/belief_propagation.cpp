@@ -129,10 +129,6 @@ class BeliefPropagationFactory : public DiscreteGmOptimizerFactoryBase
     {
         return "BeliefPropagation with parallel message passing update rules";
     }
-    OptimizerFlags flags() const override
-    {
-        return OptimizerFlags::OptimalOnTrees;
-    }
 };
 
 } // namespace nxtgm

@@ -66,10 +66,6 @@ class BruteForceFactory : public DiscreteGmOptimizerFactoryBase
     {
         return "Naive brute force optimizer suitable for very small problems.";
     }
-    OptimizerFlags flags() const override
-    {
-        return OptimizerFlags::OptimalOnTrees;
-    }
 };
 
 BruteForceNaive::BruteForceNaive(const DiscreteGm &gm, OptimizerParameters &&parameters)

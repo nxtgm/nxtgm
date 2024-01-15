@@ -73,12 +73,13 @@ if true; then
         -DZLIB_LIBRARY=$PREFIX/lib/libz.a \
         -DZLIB_ROOT=$PREFIX \
         -DZLIB_USE_STATIC_LIBS=ON \
+        -Dxtensor_DIR=$PREFIX/share/cmake/xtensor \
         ..
     popd
 
     pushd $BUILD_DIR
 
-    emmake make -j$NUM_CORES #install
+    emmake make -j$NUM_CORES install
     popd
 
 fi
@@ -86,7 +87,7 @@ fi
 
 
 
-# cp -r $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/nxtgm/plugins   $JS_DIST_DIR/plugins
-# cp $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/libnxtgm_shared.so $JS_DIST_DIR/libnxtgm_shared.so
-# cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_DIST_DIR
-# cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_SRC_DIR
+cp -r $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/nxtgm/plugins   $JS_DIST_DIR/plugins
+cp $MAMBA_ROOT_PREFIX/envs/$ENV_NAME/lib/libnxtgm_shared.so $JS_DIST_DIR/libnxtgm_shared.so
+cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_DIST_DIR
+cp $BUILD_DIR/javascript/nxtgm_javascript_runtime.*         $JS_SRC_DIR

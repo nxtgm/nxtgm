@@ -38,7 +38,12 @@ class IlpFactoryBase
             parameters.assign_and_pop("log_level", log_level);
             if (auto it = parameters.int_parameters.find("time_limit_ms"); it != parameters.int_parameters.end())
             {
-                time_limit = std::chrono::milliseconds(it->second);
+                if (it->second.size() != 1)
+                {
+                    throw std::runtime_error(std::string("assign_and_pop: vector size ") +
+                                             std::to_string(it->second.size()) + " != 1");
+                }
+                time_limit = std::chrono::milliseconds(it->second.front());
                 parameters.int_parameters.erase(it);
             }
         }

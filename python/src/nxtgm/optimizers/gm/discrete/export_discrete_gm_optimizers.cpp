@@ -70,14 +70,18 @@ void export_discrete_gm_optimizers(py::module_ &pymodule)
     // on the python side to allow for a more pythonic interface
     py::class_<OptimizerParameters>(pymodule, "_OptimizerParameters")
         .def(py::init<>())
-        .def("__setitem__", [](OptimizerParameters &params, const std::string &key,
-                               const std::string &value) { params.string_parameters[key] = value; })
         .def("__setitem__",
-             [](OptimizerParameters &params, const std::string &key, int value) { params.int_parameters[key] = value; })
+             [](OptimizerParameters &params, const std::string &key, const std::string &value) {
+                 params.string_parameters[key] = std::vector<std::string>(1, value);
+             })
         .def("__setitem__", [](OptimizerParameters &params, const std::string &key,
-                               double value) { params.double_parameters[key] = value; })
+                               int value) { params.int_parameters[key] = std::vector<int64_t>(1, value); })
         .def("__setitem__", [](OptimizerParameters &params, const std::string &key,
-                               const OptimizerParameters &value) { params.optimizer_parameters[key] = value; })
+                               double value) { params.double_parameters[key] = std::vector<double>(1, value); })
+        .def("__setitem__",
+             [](OptimizerParameters &params, const std::string &key, const OptimizerParameters &value) {
+                 params.optimizer_parameters[key] = std::vector<OptimizerParameters>(1, value);
+             })
         .def("__setitem__",
              [](OptimizerParameters &params, const std::string &key, std::shared_ptr<ProposalGenFactoryBase> value) {
                  params.any_parameters[key] = std::shared_ptr<ProposalGenFactoryBase>(value);

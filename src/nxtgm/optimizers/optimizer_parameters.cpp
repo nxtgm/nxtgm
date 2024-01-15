@@ -15,15 +15,25 @@ OptimizerParameters::Proxy::Proxy(const std::string &key, OptimizerParameters *p
 {
 }
 
+void OptimizerParameters::Proxy::push_back(const std::string &value)
+{
+    parent->string_parameters[key].push_back(value);
+}
+
+void OptimizerParameters::Proxy::push_back(const OptimizerParameters &value)
+{
+    parent->optimizer_parameters[key].push_back(value);
+}
+
 typename OptimizerParameters::Proxy &OptimizerParameters::Proxy::operator=(const std::string &value)
 {
-    parent->string_parameters[key] = value;
+    parent->string_parameters[key] = std::vector<std::string>(1, value);
     return *this;
 }
 
 typename OptimizerParameters::Proxy &OptimizerParameters::Proxy::operator=(const OptimizerParameters &value)
 {
-    parent->optimizer_parameters[key] = value;
+    parent->optimizer_parameters[key] = std::vector<OptimizerParameters>(1, value);
     return *this;
 }
 
@@ -49,10 +59,15 @@ void OptimizerParameters::serialize(Serializer &serializer) const
     serializer(int_parameters);
     serializer(double_parameters);
     serializer(uint64_t(optimizer_parameters.size()));
-    for (const auto &[key, value] : optimizer_parameters)
+    for (const auto &[key, optimizer_paramter_vector] : optimizer_parameters)
     {
         serializer(key);
-        serializer(value);
+        // vector size
+        serializer(uint64_t(optimizer_paramter_vector.size()));
+        for (const auto &optimizer_parameter : optimizer_paramter_vector)
+        {
+            optimizer_parameter.serialize(serializer);
+        }
     }
 }
 
@@ -63,14 +78,19 @@ OptimizerParameters OptimizerParameters::deserialize(Deserializer &deserializer)
     deserializer(p.string_parameters);
     deserializer(p.int_parameters);
     deserializer(p.double_parameters);
+
     uint64_t optimizer_parameters_size;
     deserializer(optimizer_parameters_size);
     for (uint64_t i = 0; i < optimizer_parameters_size; ++i)
     {
         std::string key;
         deserializer(key);
-        OptimizerParameters value = OptimizerParameters::deserialize(deserializer);
-        p.optimizer_parameters[key] = value;
+        uint64_t optimizer_parameter_vector_size;
+        deserializer(optimizer_parameter_vector_size);
+        for (uint64_t j = 0; j < optimizer_parameter_vector_size; ++j)
+        {
+            p.optimizer_parameters[key].push_back(OptimizerParameters::deserialize(deserializer));
+        }
     }
 
     return p;
@@ -80,27 +100,46 @@ OptimizerParameters OptimizerParameters::deserialize(Deserializer &deserializer)
 template <class STREAM>
 STREAM &to_stream(STREAM &out, const OptimizerParameters &p)
 {
+
+    // helper to print a vector
+    auto print_vector = [&out](const auto &vec) {
+        out << "[";
+        bool first = true;
+        for (const auto &v : vec)
+        {
+            if (!first)
+                out << ", ";
+            out << v;
+            first = false;
+        }
+        out << "]";
+    };
+
     out << "OptimizerParameters(";
     bool first = true;
     for (const auto &[key, value] : p.string_parameters)
     {
         if (!first)
             out << ", ";
-        out << key << "=" << value;
+
+        out << key << "=";
+        print_vector(value);
         first = false;
     }
     for (const auto &[key, value] : p.int_parameters)
     {
         if (!first)
             out << ", ";
-        out << key << "=" << value;
+        out << key << "=";
+        print_vector(value);
         first = false;
     }
     for (const auto &[key, value] : p.double_parameters)
     {
         if (!first)
             out << ", ";
-        out << key << "=" << value;
+        out << key << "=";
+        print_vector(value);
         first = false;
     }
     for (const auto &[key, value] : p.any_parameters)
@@ -116,7 +155,10 @@ STREAM &to_stream(STREAM &out, const OptimizerParameters &p)
         if (!first)
             out << ", ";
         out << key << "=";
-        to_stream(out, value);
+        for (const auto &optimizer_parameter : value)
+        {
+            to_stream(out, optimizer_parameter);
+        }
         first = false;
     }
     out << ")";

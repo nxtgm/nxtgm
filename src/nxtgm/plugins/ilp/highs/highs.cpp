@@ -70,7 +70,7 @@ class IlpHighs : public IlpBase
         {
             if (auto it = parameters.int_parameters.find("time_limit_ms"); it != parameters.int_parameters.end())
             {
-                time_limit_ = std::chrono::milliseconds(it->second);
+                time_limit_ = std::chrono::milliseconds(it->second.front());
                 parameters.int_parameters.erase(it);
             }
         }

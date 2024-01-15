@@ -9,6 +9,8 @@
 // xtensor adapt
 #include <xtensor/xadapt.hpp>
 
+#include "bind.hpp"
+
 #include <nxtgm/functions/label_costs_energy_function.hpp>
 #include <nxtgm/functions/potts_energy_function.hpp>
 #include <nxtgm/functions/sparse_energy_function.hpp>
@@ -23,27 +25,6 @@
 
 namespace nxtgm
 {
-
-template <class XTENSOR>
-auto bind_at(const XTENSOR &xtensor, std::size_t axis, std::size_t value)
-{
-    xt::xstrided_slice_vector sv(xtensor.dimension(), xt::all());
-    sv[axis] = value;
-    return xt::strided_view(xtensor, sv);
-}
-
-template <class XTENSOR, class AXES, class LABELS>
-auto bind_many(const XTENSOR &xtensor, AXES &&axes, LABELS &&labels)
-{
-    xt::xstrided_slice_vector sv(xtensor.dimension(), xt::all());
-
-    for (std::size_t i = 0; i < axes.size(); ++i)
-    {
-        sv[axes[i]] = labels[i];
-    }
-
-    return xt::strided_view(xtensor, sv);
-}
 
 // energy_type DiscreteEnergyFunctionBase::value(std::initializer_list<discrete_label_type> discrete_labels) const
 // {

@@ -86,10 +86,6 @@ class DynamicProgrammingFactory : public DiscreteGmOptimizerFactoryBase
     {
         return "Dynamic Programming for second order graphical models";
     }
-    OptimizerFlags flags() const override
-    {
-        return OptimizerFlags::OptimalOnTrees;
-    }
 };
 } // namespace nxtgm
 

@@ -4,14 +4,17 @@ SET(PY_MODULE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/module)
 # dependencies for python bindings
 find_package(pybind11 REQUIRED)
 find_package(xtensor-python REQUIRED)
-find_package(NumPy REQUIRED)
 
-# find numpy
-execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import numpy; print(numpy.get_include())"
-                OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
+if(NOT NUMPY_INCLUDE_DIR)
 
+    find_package(NumPy REQUIRED)
 
+    # find numpy
+    execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import numpy; print(numpy.get_include())"
+                    OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+endif()
 
 # add python bindings target
 pybind11_add_module(_nxtgm
@@ -58,11 +61,14 @@ add_test(NAME python_tests COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} 
 
 set_property(TEST python_tests PROPERTY ENVIRONMENT "NXTGM_PLUGIN_PATH=${NXTGM_PLUGIN_OUTPUT_DIRECTORY}")
 
+if(NOT PYTHON_SITE_PACKAGES)
 # python get side-packakge dir
 execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
                 OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
 
+message(STATUS "Python site-packages directory: ${PYTHON_SITE_PACKAGES}")
 
 # install the pure python files from  $CMAKE_SOURCE_DIR/python/module/nxtgm to the site-packages directory
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/python/module/nxtgm

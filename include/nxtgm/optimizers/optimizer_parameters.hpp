@@ -4,7 +4,7 @@
 #include <map>
 #include <nxtgm/utils/serialize.hpp>
 #include <string>
-#include <tsl/ordered_map.h>
+#include <unordered_map>
 #include <vector>
 // exceptions
 #include <stdexcept>
@@ -15,15 +15,9 @@
 
 namespace nxtgm
 {
-/// \cond
-namespace detail
-{
-template <typename KEY, typename VALUE>
-using ordered_map_vec =
-    tsl::ordered_map<KEY, VALUE, std::hash<KEY>, std::equal_to<KEY>, std::allocator<std::pair<KEY, VALUE>>,
-                     std::vector<std::pair<KEY, VALUE>>, std::uint_least32_t>;
-}
-/// \endcond
+
+template <class K, class V>
+using unordered_vector_map = std::unordered_map<K, std::vector<V>>;
 
 class UnknownParameterException : public std::runtime_error
 {
@@ -45,15 +39,31 @@ class OptimizerParameters
         template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type * = nullptr>
         Proxy &operator=(const T &value)
         {
-            parent->int_parameters[key] = value;
+            parent->int_parameters[key] = std::vector<int64_t>(1, value);
             return *this;
         }
 
         template <typename T, typename std::enable_if<std::is_floating_point<T>::value, int>::type * = nullptr>
         Proxy &operator=(const T &value)
         {
-            parent->double_parameters[key] = value;
+            parent->double_parameters[key] = std::vector<double>(1, value);
             return *this;
+        }
+
+        // push back
+        void push_back(const std::string &value);
+        void push_back(const OptimizerParameters &value);
+
+        template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type * = nullptr>
+        void push_back(const T &value)
+        {
+            parent->int_parameters[key].push_back(value);
+        }
+
+        template <typename T, typename std::enable_if<std::is_floating_point<T>::value, int>::type * = nullptr>
+        void push_back(const T &value)
+        {
+            parent->double_parameters[key].push_back(value);
         }
 
       private:
@@ -71,11 +81,11 @@ class OptimizerParameters
     // write access
     Proxy operator[](const std::string &key);
 
-    tsl::ordered_map<std::string, std::string> string_parameters;
-    tsl::ordered_map<std::string, int64_t> int_parameters;
-    tsl::ordered_map<std::string, double> double_parameters;
-    tsl::ordered_map<std::string, uany> any_parameters;
-    detail::ordered_map_vec<std::string, OptimizerParameters> optimizer_parameters;
+    unordered_vector_map<std::string, std::string> string_parameters;
+    unordered_vector_map<std::string, int64_t> int_parameters;
+    unordered_vector_map<std::string, double> double_parameters;
+    unordered_vector_map<std::string, OptimizerParameters> optimizer_parameters;
+    std::unordered_map<std::string, uany> any_parameters;
     bool empty() const;
 
     template <class T>
@@ -94,24 +104,14 @@ class OptimizerParameters
             {
                 if (anyval.type() != typeid(T))
                 {
-                    // std::cout<<anyval.type().name()<<std::endl;
-                    // std::cout<<typeid(T).name()<<std::endl;
-
-                    // throw std::runtime_error( key + std::string("is of type ") +  typeid(T).name() + " but is " +
-                    // anyval.type().name());
-
-                    // just try to cast it
                     try
                     {
-                        // std::cout<<"lets try to cast it"<<std::endl;
                         value = uany_cast<T>(anyval);
                         any_parameters.erase(it);
                     }
                     catch (const bad_uany_cast &e)
                     {
                         std::cout << e.what() << std::endl;
-                        // std::cout<<"anyhash "<< anyval.type().hash_code()<<std::endl;
-                        // std::cout<<"T  hash "<<typeid(T).hash_code()<<std::endl;
                         throw std::runtime_error(key + std::string("is of type ") + typeid(T).name() + " but is " +
                                                  anyval.type().name());
                     }
@@ -125,8 +125,10 @@ class OptimizerParameters
         }
     }
 
+    // vectors:
+    // try to assign whats at at the key to the out parameter "value" and pop it from the map
     template <class T>
-    void assign_and_pop(const std::string &key, T &value)
+    void assign_and_pop(const std::string &key, std::vector<T> &value)
     {
         auto &map = get_map<T>();
         if (auto it = map.find(key); it != map.end())
@@ -136,8 +138,8 @@ class OptimizerParameters
         }
     }
 
-    template <class T, class U>
-    void assign_and_pop(const std::string &key, T &value, const U &default_value)
+    template <class T>
+    void assign_and_pop(const std::string &key, std::vector<T> &value, const std::vector<T> &default_value)
     {
         auto &map = get_map<T>();
         if (auto it = map.find(key); it != map.end())
@@ -151,77 +153,72 @@ class OptimizerParameters
         }
     }
 
+    // scalars:
+    // try to assign whats at at the key to the out parameter "value" and pop it from the map
+    // if the key is not found, do nothing
+    template <class T>
+    void assign_and_pop(const std::string &key, T &value)
+    {
+        auto &map = get_map<T>();
+        if (auto it = map.find(key); it != map.end())
+        {
+            if (it->second.size() != 1)
+            {
+                throw std::runtime_error(std::string("assign_and_pop: vector size ") +
+                                         std::to_string(it->second.size()) + " != 1");
+            }
+            value = it->second.front();
+            map.erase(it);
+        }
+    }
+    // try to assign whats at at the key to the out parameter "value" and pop it from the map
+    // if the key is not found, assign the default value
+    template <class T, class U>
+    void assign_and_pop(const std::string &key, T &value, const U &default_value)
+    {
+        auto &map = get_map<T>();
+        if (auto it = map.find(key); it != map.end())
+        {
+            if (it->second.size() != 1)
+            {
+                throw std::runtime_error(std::string("assign_and_pop: vector size ") +
+                                         std::to_string(it->second.size()) + " != 1");
+            }
+            value = it->second.front();
+            map.erase(it);
+        }
+        else
+        {
+            value = default_value;
+        }
+    }
+
     void serialize(Serializer &serializer) const;
     static OptimizerParameters deserialize(Deserializer &deserializer);
 
   private:
     template <class T, typename std::enable_if<std::is_same<T, std::string>::value, int>::type * = nullptr>
-    tsl::ordered_map<std::string, std::string> &get_map()
+    unordered_vector_map<std::string, std::string> &get_map()
     {
         return string_parameters;
     }
     template <class T, typename std::enable_if<std::is_same<T, OptimizerParameters>::value, int>::type * = nullptr>
-    detail::ordered_map_vec<std::string, OptimizerParameters> &get_map()
+    unordered_vector_map<std::string, OptimizerParameters> &get_map()
     {
         return optimizer_parameters;
     }
     template <class T, typename std::enable_if<std::is_integral<T>::value, int>::type * = nullptr>
-    tsl::ordered_map<std::string, int64_t> &get_map()
+    unordered_vector_map<std::string, int64_t> &get_map()
     {
         return int_parameters;
     }
     template <class T, typename std::enable_if<std::is_floating_point<T>::value, int>::type * = nullptr>
-    tsl::ordered_map<std::string, double> &get_map()
+    unordered_vector_map<std::string, double> &get_map()
     {
         return double_parameters;
     }
 };
 
 void ensure_all_handled(const std::string &optimizer_name, const OptimizerParameters &parameters);
-
-// template<class OS_STREAM>
-// OS_STREAM &operator<<(OS_STREAM &out, const OptimizerParameters &p)
-// {
-//     out << "OptimizerParameters(";
-//     bool first = true;
-//     for (const auto &[key, value] : p.string_parameters)
-//     {
-//         if (!first)
-//             out << ", ";
-//         out << key << "=" << value;
-//         first = false;
-//     }
-//     for (const auto &[key, value] : p.int_parameters)
-//     {
-//         if (!first)
-//             out << ", ";
-//         out << key << "=" << value;
-//         first = false;
-//     }
-//     for (const auto &[key, value] : p.double_parameters)
-//     {
-//         if (!first)
-//             out << ", ";
-//         out << key << "=" << value;
-//         first = false;
-//     }
-//     for (const auto &[key, value] : p.any_parameters)
-//     {
-//         if (!first)
-//             out << ", ";
-//         out << key << "="
-//             << "<some any value>";
-//         first = false;
-//     }
-//     for (const auto &[key, value] : p.optimizer_parameters)
-//     {
-//         if (!first)
-//             out << ", ";
-//         out << key << "=" << value;
-//         first = false;
-//     }
-//     out << ")";
-//     return  out;
-// }
 
 } // namespace nxtgm

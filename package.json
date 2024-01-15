@@ -2,11 +2,11 @@
     "name": "nxtgm",
     "version": "0.1.0",
     "description": "nxtgm for discrete graphical models mrfs and crfs",
-    "main": "index.js",
     "directories": {
-        "doc": "docs",
-        "test": "tests"
+        "lib": "javascript/dist",
+        "dist": "javascript/dist"
     },
+    "main": "javascript/dist/nxtgm/index.js",
     "scripts": {
         "build_wasm":
             "./javascript/build_emscripten_npm.sh build_wasm_npm javascript/ts_src javascript/dist/nxtgm ~/emsdk_install",
@@ -14,7 +14,7 @@
         "build": "tsc"
     },
     "files": [
-        "javascript/lib"
+        "javascript/dist"
     ],
     "repository": {
         "type": "git",

@@ -98,10 +98,6 @@ class IlpBasedFactory : public DiscreteGmOptimizerFactoryBase
     {
         return "Iterated conditional models optimizer";
     }
-    OptimizerFlags flags() const override
-    {
-        return OptimizerFlags::Optimal;
-    }
 };
 
 } // namespace nxtgm

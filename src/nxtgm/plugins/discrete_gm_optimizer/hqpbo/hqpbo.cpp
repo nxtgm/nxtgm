@@ -95,11 +95,6 @@ class HqpboDiscreteGmOptimizerFactory : public DiscreteGmOptimizerFactoryBase
     {
         return "Higher order QPBO optimizer";
     }
-    OptimizerFlags flags() const override
-    {
-        return OptimizerFlags::PartialOptimal | OptimizerFlags::OptimalOnBinarySecondOrderSubmodular |
-               OptimizerFlags::OptimalOnTrees;
-    }
 };
 
 } // namespace nxtgm

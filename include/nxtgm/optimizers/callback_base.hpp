@@ -108,6 +108,10 @@ class ReporterCallbackWrapper
     {
         return this->reporter_callback_ != nullptr;
     }
+    reporter_callback_base_type *get() const
+    {
+        return this->reporter_callback_;
+    }
 
   private:
     reporter_callback_base_type *reporter_callback_;

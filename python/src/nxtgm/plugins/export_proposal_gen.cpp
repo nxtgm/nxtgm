@@ -13,9 +13,7 @@ namespace py = pybind11;
 struct PyConsumerProxy
 {
     std::function<ProposalConsumerStatus()> consumer;
-    discrete_label_type *proposal;
-    discrete_label_type *best;
-    std::size_t size;
+    // std::size_t size;
 };
 
 class PyProposalGen : public ProposalGenBase
@@ -38,9 +36,7 @@ class PyProposalGen : public ProposalGenBase
 
         PyConsumerProxy consumer_proxy;
         consumer_proxy.consumer = consumer;
-        // consumer_proxy.proposal = proposal;
-        // consumer_proxy.best = const_cast<discrete_label_type *>(best);
-        consumer_proxy.size = gm_.num_variables();
+        // consumer_proxy.size = gm_.num_variables();
 
         py_proposal_gen_.attr("generate")(consumer_proxy, best_view, proposal_view);
     }

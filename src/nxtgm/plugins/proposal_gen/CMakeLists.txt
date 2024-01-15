@@ -1,7 +1,7 @@
 
 option(BUILD_PLUGIN_PROPOSAL_GEN_ALPHA_EXPANSION "Build alpha expansion proposal generator plugin"  ON)
 option(BUILD_PLUGIN_PROPOSAL_GEN_OPTIMIZER_BASED "Build optimizer based proposal generator plugin"  ON)
-option(BUILD_PLUGIN_PROPOSAL_MATCHMAKER          "Build matchmaker proposal generator plugin"       ON)
+option(BUILD_PLUGIN_PROPOSAL_SWAPPER             "Build swapper proposal generator plugin"          ON)
 option(BUILD_PLUGIN_PROPOSAL_RANDOM              "Build random proposal generator plugin"           ON)
 option(BUILD_PLUGIN_PROPOSAL_MATCHING_BP         "Build proposal generator based on matching bp"    ON)
 option(BUILD_PLUGIN_PROPOSAL_GEN_TESTING         "Build proposal generator plugin used for testing" ON)
@@ -16,8 +16,8 @@ if(BUILD_PLUGIN_PROPOSAL_GEN_OPTIMIZER_BASED)
   add_subdirectory(optimizer_based)
 endif()
 
-if(BUILD_PLUGIN_PROPOSAL_MATCHMAKER)
-  add_subdirectory(matchmaker)
+if(BUILD_PLUGIN_PROPOSAL_SWAPPER)
+  add_subdirectory(swapper)
 endif()
 
 if(BUILD_PLUGIN_PROPOSAL_RANDOM)

@@ -54,7 +54,10 @@ class IcmFactory : public DiscreteGmOptimizerFactoryBase
     expected<std::unique_ptr<DiscreteGmOptimizerBase>> create(const DiscreteGm &gm,
                                                               OptimizerParameters &&params) const override
     {
-        return std::make_unique<Icm>(gm, std::move(params));
+        // std::cout<<"IcmFactory::create"<<std::endl;
+        auto icm = std::make_unique<Icm>(gm, std::move(params));
+        // std::cout<<"IcmFactory::created"<<std::endl;
+        return std::move(icm);
     }
     int priority() const override
     {
@@ -67,10 +70,6 @@ class IcmFactory : public DiscreteGmOptimizerFactoryBase
     std::string description() const override
     {
         return "Iterated conditional models optimizer";
-    }
-    OptimizerFlags flags() const override
-    {
-        return OptimizerFlags::WarmStartable | OptimizerFlags::LocalOptimal;
     }
 };
 

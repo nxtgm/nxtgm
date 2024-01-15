@@ -139,7 +139,7 @@ std::size_t UniqueLables::min_counts(discrete_label_type l) const
 }
 std::size_t UniqueLables::max_counts(discrete_label_type l) const
 {
-    if (with_ignore_label_ && l == ignore_label_)
+    if (with_ignore_label_ && (l == ignore_label_))
     {
         return this->arity_;
     }

@@ -23,4 +23,10 @@ plugin_registry<DiscreteGmOptimizerFactoryBase> &DiscreteGmOptimizerFactoryBase:
     return registry;
 }
 
+std::unique_ptr<DiscreteGmOptimizerBase> DiscreteGmOptimizerFactoryBase::create_unique(
+    const DiscreteGm &gm, OptimizerParameters &&params) const
+{
+    return create(gm, std::move(params)).value();
+}
+
 } // namespace nxtgm
