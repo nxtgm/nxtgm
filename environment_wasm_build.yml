@@ -1,4 +1,4 @@
-name: nxtgm-xeus-python
+name: nxtgm-xeus-python-build
 channels:
   - https://repo.mamba.pm/emscripten-forge
   - conda-forge
