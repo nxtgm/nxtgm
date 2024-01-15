@@ -57,8 +57,7 @@ if true; then
 
     cd $THIS_DIR"/.."
     git clone -b wasm_fixes --single-branch https://github.com/DerThorsten/xtensor-python.git
-
-
+    cd xtensor-python
 
     mkdir -p build_wasm
     cd build_wasm
