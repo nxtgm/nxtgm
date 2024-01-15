@@ -141,8 +141,8 @@ if true; then
 
     # jupyterlite
     jupyter lite build \
+        --contents  $THIS_DIR/python/notebooks/ \
         --XeusAddon.prefix=$XEUS_PYTHON_WASM_ENV_PREFIX \
         --XeusAddon.mounts=$MOUNT_PYTHON_PKG,$MOUNT_LIBNXTGM,$MOUNT_NXTGM_PLUGINS
-
 
 fi
