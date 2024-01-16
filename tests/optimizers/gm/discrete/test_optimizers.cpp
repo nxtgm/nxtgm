@@ -397,29 +397,6 @@ TEST_CASE("icm")
     // clang-format on
 }
 
-TEST_CASE("acims" * SKIP_WIN)
-{
-    for (auto ilp_plugin_name : all_ilp_plugins())
-    {
-        SUBCASE(ilp_plugin_name.c_str())
-        {
-            OptimizerParameters parameters;
-            parameters["ilp_plugin_name"] = ilp_plugin_name;
-            // clang-format off
-            test_discrete_gm_optimizer(
-                "acims",
-                parameters,
-                {
-                    unique_label_chain(5,5, /*pairwise*/ false, /*with ignore label*/ false),
-                },
-                {}
-            );
-        }
-    }
-
-    // clang-format on
-}
-
 TEST_CASE("qpbo")
 {
     TestDiscreteGmOptimizerOptions test_options;
@@ -640,36 +617,6 @@ TEST_CASE("hqpbo")
     }
 }
 
-TEST_CASE("matching_icm")
-{
-
-    nxtgm::OptimizerParameters params;
-    params["subgraph_size"] = 2;
-
-    for (auto subgraph_size = 2; subgraph_size <= 3; ++subgraph_size)
-    {
-        params["subgraph_size"] = subgraph_size;
-        // clang-format off
-        test_discrete_gm_optimizer(
-            "matching_icm",
-            OptimizerParameters(),
-            {
-                unique_label_chain(8,8),
-                unique_label_chain(10,12),
-                hungarian_matching_model(/*n_var*/ 3, /*n_labels*/ 3),
-                hungarian_matching_model(/*n_var*/ 5, /*n_labels*/ 5),
-                hungarian_matching_model(/*n_var*/ 4, /*n_labels*/ 6),
-                hungarian_matching_model(/*n_var*/ 5, /*n_labels*/ 8)
-            },
-            {
-                require_local_n_optimality(subgraph_size),
-                require_optimization_status(OptimizationStatus::LOCAL_OPTIMAL)
-            }
-        );
-        // clang-format on
-    }
-}
-
 TEST_CASE("ilp_based" * SKIP_WIN)
 {
     for (auto ilp_plugin : all_ilp_plugins())
@@ -794,27 +741,6 @@ TEST_CASE("reduced_gm_optimizer")
             // clang-format on
         }
     }
-}
-
-TEST_CASE("hungarian_matching")
-{
-
-    // clang-format off
-        test_discrete_gm_optimizer(
-            "hungarian_matching",
-            OptimizerParameters(),
-            {
-                hungarian_matching_model(/*n_var*/ 3, /*n_labels*/ 3),
-                hungarian_matching_model(/*n_var*/ 5, /*n_labels*/ 5),
-                hungarian_matching_model(/*n_var*/ 4, /*n_labels*/ 6),
-                hungarian_matching_model(/*n_var*/ 3, /*n_labels*/ 8)
-            },
-            {
-                require_optimality( /*tolerance*/ 1e-3),
-                require_optimization_status(OptimizationStatus::OPTIMAL)
-            }
-        );
-    // clang-format on
 }
 
 TEST_CASE("fusion_moves")

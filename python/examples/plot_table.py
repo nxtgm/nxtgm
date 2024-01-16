@@ -87,29 +87,22 @@ variables = list(range(gm.num_variables))
 gm.add_constraint(variables, constrain_function_id)
 
 
-# optimize the model with Matching-ICM
-parameters = dict(subgraph_size=2)
-optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'matching_icm', parameters)
-callack = nxtgm.DiscreteGmOptimizerReporterCallback(optimizer)
-optimizer.optimize(callack)
-best_solution = optimizer.best_solution()
-print(best_solution)
-
-
-# optimize the model with Matching-ICM
-parameters = dict(subgraph_size=3)
-optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'matching_icm', parameters)
-callack = nxtgm.DiscreteGmOptimizerReporterCallback(optimizer)
-optimizer.optimize(callack)
-best_solution = optimizer.best_solution()
-print(best_solution)
-
-
-# %%
-# optimize with an ILP solver
+# optimize the model with belief_propagation
 parameters = dict()
-optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'ilp_based', parameters)
+optimizer = nxtgm.discrete_gm_optimizer_factory(
+    gm, 'belief_propagation', parameters,
+)
 callack = nxtgm.DiscreteGmOptimizerReporterCallback(optimizer)
 optimizer.optimize(callack)
 best_solution = optimizer.best_solution()
 print(best_solution)
+
+
+# # %%
+# # optimize with an ILP solver
+# parameters = dict()
+# optimizer = nxtgm.discrete_gm_optimizer_factory(gm, 'ilp_based', parameters)
+# callack = nxtgm.DiscreteGmOptimizerReporterCallback(optimizer)
+# optimizer.optimize(callack)
+# best_solution = optimizer.best_solution()
+# print(best_solution)

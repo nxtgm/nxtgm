@@ -1,12 +1,20 @@
 from __future__ import annotations
 
 import numbers
+import os
+import sys
 
 from ._nxtgm import *  # noqa: F401, F403
 from ._nxtgm import __version__  # noqa: F401
 from ._nxtgm import _discrete_gm_optimizer_factory
 from ._nxtgm import _OptimizerParameters
 from ._nxtgm import _proposal_gen_factory
+
+
+# on emscripten, the PREFIX is **always** the root of the filesystem
+# ie "/".  This is used to find the plugins
+if sys.platform == 'emscripten':
+    os.environ['CONDA_PREFIX'] = '/'
 
 
 class OptimizerParameters(_OptimizerParameters):
