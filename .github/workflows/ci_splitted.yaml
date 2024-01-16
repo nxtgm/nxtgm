@@ -64,6 +64,7 @@ jobs:
       - name: build all plugins
         shell: bash -l {0}
         run: |
+          set -e
           cd src/nxtgm/plugins/
           # loop over all subdirectories / plugin types
           # ie discrete_gm_optimizer, proposal_gen, ...
