@@ -56,7 +56,11 @@ NUMPY_INCLUDE_DIR=$WASM_ENV_PREFIX/lib/python3.11/site-packages/numpy/core/inclu
 if true; then
 
     cd $THIS_DIR"/.."
-    git clone -b wasm_fixes --single-branch https://github.com/DerThorsten/xtensor-python.git
+    if [ -d "xtensor-python" ]; then
+        echo "xtensor-python already exists. Skipping."
+    else
+        git clone -b wasm_fixes --single-branch https://github.com/DerThorsten/xtensor-python.git
+    fi
     cd xtensor-python
 
     mkdir -p build_wasm
