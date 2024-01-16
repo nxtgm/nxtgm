@@ -57,7 +57,8 @@ jobs:
           path: build_wasm/_output
 
 
-  # Deploy job
+  # Deploy job (only for the repo and **not** for forks)
+
   deploy:
     # Add a dependency to the build job
     needs: build
@@ -77,5 +78,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.repository == 'nxtgm/nxtgm'
         id: deployment
         uses: actions/deploy-pages@v3 # or specific "vX.X.X" version tag for this action

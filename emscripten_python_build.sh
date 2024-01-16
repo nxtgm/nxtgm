@@ -56,7 +56,11 @@ NUMPY_INCLUDE_DIR=$WASM_ENV_PREFIX/lib/python3.11/site-packages/numpy/core/inclu
 if true; then
 
     cd $THIS_DIR"/.."
-    git clone -b wasm_fixes --single-branch https://github.com/DerThorsten/xtensor-python.git
+    if [ -d "xtensor-python" ]; then
+        echo "xtensor-python already exists. Skipping."
+    else
+        git clone -b wasm_fixes --single-branch https://github.com/DerThorsten/xtensor-python.git
+    fi
     cd xtensor-python
 
     mkdir -p build_wasm
@@ -98,7 +102,8 @@ if true; then
         -DZLIB_ROOT=$WASM_ENV_PREFIX \
         -DZLIB_USE_STATIC_LIBS=ON \
         -Dxtensor_DIR=$WASM_ENV_PREFIX/share/cmake/xtensor \
-        -DHIGHS_DIR=$WASM_ENV_PREFIX/lib/cmake/highs \
+        -DHIGHS_LIBRARY=$WASM_ENV_PREFIX/lib/libhighs.a \
+        -DHIGHS_INCLUDE_DIR=$WASM_ENV_PREFIX/include/highs \
         -Dxtl_DIR=$WASM_ENV_PREFIX/share/cmake/xtl \
         -Dnlohmann_json_DIR=$WASM_ENV_PREFIX/share/cmake/nlohmann_json \
         -Dtl-expected_DIR=$WASM_ENV_PREFIX/share/cmake/tl-expected \
