@@ -18,7 +18,10 @@ nxtgm_add_plugin(${PLUGIN_TARGET_NAME} ${PLUGIN_NAME_CORE}.cpp)
 
 # plugin base class / interface headers
 target_link_libraries(${PLUGIN_TARGET_NAME}  ${NXTGM_SHARED_LIBRARY} ${HIGHS_LIBRARIES})
-target_include_directories(${PLUGIN_TARGET_NAME} PUBLIC ${HIGHS_INCLUDE_DIRS})
+target_include_directories(${PLUGIN_TARGET_NAME} PUBLIC
+    ${HIGHS_INCLUDE_DIRS}
+    ${HIGHS_INCLUDE_DIRS}/highs
+)
 
 # install plugin
 install(TARGETS ${PLUGIN_TARGET_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/nxtgm/plugins/${PLUGIN_TYPE})
