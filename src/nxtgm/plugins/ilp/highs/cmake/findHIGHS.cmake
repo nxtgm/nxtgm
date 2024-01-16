@@ -1,7 +1,21 @@
 # FindHIGHS.cmake
 
-find_path(HIGHS_INCLUDE_DIR NAMES Highs.h PATHS $ENV{CONDA_PREFIX}/include/highs)
-find_library(HIGHS_LIBRARY NAMES highs PATHS $ENV{CONDA_PREFIX}/lib)
+find_path(HIGHS_INCLUDE_DIR NAMES Highs.h
+HINTS
+    $ENV{CONDA_PREFIX}/include/highs
+    $ENV{PREFIX}/include
+PATH
+    $ENV{CONDA_PREFIX}/include/highs
+    $ENV{PREFIX}/include
+)
+find_library(HIGHS_LIBRARY NAMES highs
+HINTS
+    $ENV{CONDA_PREFIX}/lib
+    $ENV{PREFIX}/lib
+PATH
+    $ENV{CONDA_PREFIX}/lib
+    $ENV{PREFIX}/lib
+)
 
 
 
