@@ -74,8 +74,8 @@ if true; then
         -DZLIB_ROOT=$PREFIX \
         -DZLIB_USE_STATIC_LIBS=ON \
         -Dxtensor_DIR=$PREFIX/share/cmake/xtensor \
-        -DHIGHS_LIBRARY=$WASM_ENV_PREFIX/lib/libhighs.a \
-        -DHIGHS_INCLUDE_DIR=$WASM_ENV_PREFIX/include/highs \
+        -DHIGHS_LIBRARY=$PREFIX/lib/libhighs.a \
+        -DHIGHS_INCLUDE_DIR=$PREFIX/include/highs \
         ..
     popd
 

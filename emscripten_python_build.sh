@@ -98,8 +98,8 @@ if true; then
         -DZLIB_ROOT=$WASM_ENV_PREFIX \
         -DZLIB_USE_STATIC_LIBS=ON \
         -Dxtensor_DIR=$WASM_ENV_PREFIX/share/cmake/xtensor \
-        -DHIGHS_LIBRARY=$CONDA_PREFIX/lib/libhighs.a \
-        -DHIGHS_INCLUDE_DIR=$CONDA_PREFIX/include/highs \
+        -DHIGHS_LIBRARY=$WASM_ENV_PREFIX/lib/libhighs.a \
+        -DHIGHS_INCLUDE_DIR=$WASM_ENV_PREFIX/include/highs \
         -Dxtl_DIR=$WASM_ENV_PREFIX/share/cmake/xtl \
         -Dnlohmann_json_DIR=$WASM_ENV_PREFIX/share/cmake/nlohmann_json \
         -Dtl-expected_DIR=$WASM_ENV_PREFIX/share/cmake/tl-expected \
