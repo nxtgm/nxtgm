@@ -41,6 +41,10 @@ jobs:
       - name: cmake configure
         shell: bash -l {0}
         run: |
+          SHARED_LIB_EXT=so
+          if [ "$(uname)" == "Darwin" ]; then
+            SHARED_LIB_EXT=dylib
+          fi
           mkdir -p bld
           cd bld
           cmake \
@@ -49,7 +53,10 @@ jobs:
               -DBUILD_SINGLE_BINARY_TESTS=ON \
               -DBUILD_PYTHON=ON \
               -DBUILD_DOCS=ON \
-          .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+              -DHIGHS_LIBRARY=$CONDA_PREFIX/lib/libhighs.$SHARED_LIB_EXT \
+              -DHIGHS_INCLUDE_DIR=$CONDA_PREFIX/include/highs \
+              -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX \
+          ..
 
       - name: Build
         shell: bash -l {0}
