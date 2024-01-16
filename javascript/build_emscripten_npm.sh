@@ -19,7 +19,7 @@ EMSCRIPTEN_FORGE_EMSDK_DIR=$4
 mkdir -p $BUILD_DIR
 mkdir -p $JS_DIST_DIR
 
-# abs path to build dir
+# abs path to build dir1
 BUILD_DIR=$(cd $BUILD_DIR && pwd)
 NUM_CORES=8
 
@@ -74,6 +74,8 @@ if true; then
         -DZLIB_ROOT=$PREFIX \
         -DZLIB_USE_STATIC_LIBS=ON \
         -Dxtensor_DIR=$PREFIX/share/cmake/xtensor \
+        -DHIGHS_LIBRARY=$WASM_ENV_PREFIX/lib/libhighs.a \
+        -DHIGHS_INCLUDE_DIR=$WASM_ENV_PREFIX/include/highs \
         ..
     popd
 
