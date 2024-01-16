@@ -6,6 +6,8 @@ if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
     cmake_minimum_required(VERSION 3.12)
     project(nxtgm_${PLUGIN_TYPE}_${PLUGIN_NAME_CORE})
     find_package(nxtgm REQUIRED)
+    # add cmake directory to module path
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 endif()
 
 find_package(HIGHS REQUIRED)
