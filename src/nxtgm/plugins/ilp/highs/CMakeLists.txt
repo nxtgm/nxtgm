@@ -12,15 +12,15 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(HIGHS REQUIRED)
-message(STATUS "HIGHS_INCLUDE_DIRS: ${HIGHS_INCLUDE_DIRS}")
-message(STATUS "HIGHS_LIBRARIES: ${HIGHS_LIBRARIES}")
+message(STATUS "HIGHS_INCLUDE_DIRS: ${HIGHS_INCLUDE_DIR}")
+message(STATUS "HIGHS_LIBRARY: ${HIGHS_LIBRARY}")
 nxtgm_add_plugin(${PLUGIN_TARGET_NAME} ${PLUGIN_NAME_CORE}.cpp)
 
 # plugin base class / interface headers
-target_link_libraries(${PLUGIN_TARGET_NAME}  ${NXTGM_SHARED_LIBRARY} ${HIGHS_LIBRARIES})
+target_link_libraries(${PLUGIN_TARGET_NAME}  ${NXTGM_SHARED_LIBRARY} ${HIGHS_LIBRARY})
 target_include_directories(${PLUGIN_TARGET_NAME} PUBLIC
-    ${HIGHS_INCLUDE_DIRS}
-    ${HIGHS_INCLUDE_DIRS}/highs
+    ${HIGHS_INCLUDE_DIR}
+    ${HIGHS_INCLUDE_DIR}/highs
 )
 
 # install plugin

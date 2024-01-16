@@ -1,22 +1,27 @@
 # FindHIGHS.cmake
 
-find_path(HIGHS_INCLUDE_DIR NAMES Highs.h
-HINTS
-    $ENV{CONDA_PREFIX}/include/highs
-    $ENV{PREFIX}/include
-PATH
-    $ENV{CONDA_PREFIX}/include/highs
-    $ENV{PREFIX}/include
-)
-find_library(HIGHS_LIBRARY NAMES highs
-HINTS
-    $ENV{CONDA_PREFIX}/lib
-    $ENV{PREFIX}/lib
-PATH
-    $ENV{CONDA_PREFIX}/lib
-    $ENV{PREFIX}/lib
-)
+if(NOT HIGHS_INCLUDE_DIR)
 
+    find_path(HIGHS_INCLUDE_DIR NAMES Highs.h
+    HINTS
+        $ENV{CONDA_PREFIX}/include/highs
+        $ENV{PREFIX}/include
+    PATH
+        $ENV{CONDA_PREFIX}/include/highs
+        $ENV{PREFIX}/include
+    )
+endif()
+
+if(NOT HIGHS_LIBRARY)
+    find_library(HIGHS_LIBRARY NAMES highs
+    HINTS
+        $ENV{CONDA_PREFIX}/lib
+        $ENV{PREFIX}/lib
+    PATH
+        $ENV{CONDA_PREFIX}/lib
+        $ENV{PREFIX}/lib
+    )
+endif()
 
 
 # handle the QUIETLY and REQUIRED arguments and set HIGHS_FOUND to TRUE if
